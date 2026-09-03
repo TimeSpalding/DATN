@@ -1,0 +1,4 @@
+OK [OPT-1] DPM++ scheduler
+OK [OPT-1] Karras sigmas
+OK [OPT-2] xFormers
+OK [OPT-3] steps=20

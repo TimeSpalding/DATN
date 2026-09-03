@@ -55,7 +55,7 @@ function App() {
 
     try {
       // Backend URL
-      const response = await fetch('http://localhost:8000/api/tryon', {
+      const response = await fetch('http://localhost:8080/api/tryon', {
         method: 'POST',
         body: formData,
       });
