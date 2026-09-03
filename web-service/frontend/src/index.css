@@ -1,0 +1,143 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+@import "tailwindcss";
+
+/* =========================================================
+   L'ATELIER - Luxury Digital Fashion & Fitting Studio System
+   ========================================================= */
+
+@theme {
+  --color-luxury-black: #111215;
+  --color-luxury-charcoal: #1c1e24;
+  --color-luxury-graphite: #2b2e38;
+  --color-luxury-muted: #6e7382;
+
+  --color-sand-50: #fbfaf8;
+  --color-sand-100: #f6f5f1;
+  --color-sand-200: #eeebe3;
+  --color-sand-300: #ded8cc;
+  --color-sand-400: #c5beaf;
+  --color-sand-500: #a49c8c;
+
+  --color-gold-400: #d4af37;
+  --color-gold-500: #c59e35;
+  --color-gold-600: #a88325;
+
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+}
+
+/* =========================================================
+   Base Layout & Typography
+   ========================================================= */
+
+html {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #faf9f6;
+  color: #1a1b1f;
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 2px solid #a88325;
+  outline-offset: 3px;
+}
+
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+/* =========================================================
+   Custom Subtle Animations
+   ========================================================= */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes spinSlow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-spin-slow {
+  animation: spinSlow 3s linear infinite;
+}
+
+/* =========================================================
+   Luxury Custom Glass & Elevation
+   ========================================================= */
+
+.luxury-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(220, 216, 206, 0.7);
+  box-shadow: 0 4px 20px -2px rgba(28, 30, 36, 0.04), 0 2px 6px -1px rgba(28, 30, 36, 0.02);
+}
+
+.luxury-card-hover {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.luxury-card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 32px -4px rgba(28, 30, 36, 0.08), 0 4px 12px -2px rgba(28, 30, 36, 0.03);
+  border-color: rgba(197, 158, 53, 0.4);
+}
+
+/* Smooth custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ded8cc;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #c5beaf;
+}
