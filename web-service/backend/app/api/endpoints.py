@@ -1,4 +1,4 @@
-from fastapi import APIRouter, File, UploadFile, HTTPException
+from fastapi import APIRouter, File, UploadFile, Form, HTTPException
 from fastapi.responses import Response
 import requests
 
@@ -16,8 +16,12 @@ async def get_catalog():
     ]
 
 @router.post("/tryon")
-async def request_tryon(person_image: UploadFile = File(...), cloth_image: UploadFile = File(...)):
-    print(f"[Backend] Đã nhận ảnh từ Web: {person_image.filename}, {cloth_image.filename}")
+async def request_tryon(
+    person_image: UploadFile = File(...), 
+    cloth_image: UploadFile = File(...),
+    category: str = Form("upper")
+):
+    print(f"[Backend] Đã nhận ảnh từ Web: {person_image.filename}, {cloth_image.filename}. Thể loại: {category}")
     print("[Backend] Đang gửi sang Kaggle AI Service...")
     
     # 1. Đọc nội dung file ảnh
@@ -29,10 +33,13 @@ async def request_tryon(person_image: UploadFile = File(...), cloth_image: Uploa
         'person_image': (person_image.filename, person_bytes, person_image.content_type),
         'cloth_image': (cloth_image.filename, cloth_bytes, cloth_image.content_type)
     }
+    data = {
+        'category': category
+    }
     
     try:
         # Gọi sang API của Kaggle (chờ ~40s)
-        response = requests.post(AI_SERVICE_URL, files=files)
+        response = requests.post(AI_SERVICE_URL, files=files, data=data)
         
         if response.status_code == 200:
             print("[Backend] Kaggle đã trả kết quả thành công!")
