@@ -96,13 +96,13 @@ export default function ResultViewer({
 
             {/* Before/After Indicator */}
             {showOriginal && (
-              <div className="absolute top-3 left-3 bg-[#111215]/80 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-md">
+              <div className="absolute top-3 left-3 bg-[#111215]/80 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-md opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100">
                 Ảnh Gốc Ban Đầu
               </div>
             )}
 
             {/* Top Right Actions */}
-            <div className="absolute top-3 right-3 flex items-center gap-1.5">
+            <div className="absolute top-3 right-3 flex items-center gap-1.5 opacity-0 -translate-y-1 transition-all duration-200 group-hover:opacity-100 group-hover:translate-y-0 group-focus-within:opacity-100 group-focus-within:translate-y-0">
               {originalModelUrl && (
                 <button
                   type="button"
@@ -117,8 +117,8 @@ export default function ResultViewer({
             </div>
 
             {/* Bottom Floating Bar */}
-            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-            <div className="absolute bottom-3 inset-x-3 flex items-center justify-between gap-2">
+            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100" />
+            <div className="absolute bottom-3 inset-x-3 flex items-center justify-between gap-2 opacity-0 translate-y-1 transition-all duration-200 group-hover:opacity-100 group-hover:translate-y-0 group-focus-within:opacity-100 group-focus-within:translate-y-0">
               <span className="text-white text-[10px] font-semibold px-2 py-1 bg-white/15 backdrop-blur-md rounded-md border border-white/20">
                 HD &bull; {elapsedTime}s
               </span>

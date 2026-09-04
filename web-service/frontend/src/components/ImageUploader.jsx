@@ -63,10 +63,10 @@ export default function ImageUploader({
               className="w-full h-full object-contain bg-[#f7f6f2] transition-transform duration-700 group-hover:scale-[1.02]"
             />
             {/* Subtle gradient vignette */}
-            <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/65 via-black/20 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/65 via-black/20 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100" />
             
             {/* Bottom Status Tag */}
-            <div className="absolute bottom-3 inset-x-3 flex items-center justify-between">
+            <div className="absolute bottom-3 inset-x-3 flex items-center justify-between opacity-0 translate-y-1 transition-all duration-200 group-hover:opacity-100 group-hover:translate-y-0 group-focus-within:opacity-100 group-focus-within:translate-y-0">
               <span className="text-white text-[11px] font-semibold px-2.5 py-1 bg-white/20 backdrop-blur-md rounded-lg border border-white/20 line-clamp-1">
                 {label} Đã Sẵn Sàng
               </span>
