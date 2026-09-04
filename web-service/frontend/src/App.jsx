@@ -1,50 +1,162 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Plus, Equal, AlertCircle, Sparkles, Camera } from 'lucide-react';
+import Navbar from './components/Navbar';
+import Header from './components/Header';
+import { PRESET_MODELS } from './components/ModelSelector';
+import ImageUploader from './components/ImageUploader';
+import ResultViewer from './components/ResultViewer';
+import TryOnButton from './components/TryOnButton';
+import GarmentCatalog, { CATALOG_ITEMS } from './components/GarmentCatalog';
+import StudioBenefits from './components/StudioBenefits';
+import Footer from './components/Footer';
+
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080').replace(/\/$/, '');
 
 function App() {
   const [personImg, setPersonImg] = useState(null);
   const [clothImg, setClothImg] = useState(null);
   const [personPreview, setPersonPreview] = useState(null);
   const [clothPreview, setClothPreview] = useState(null);
-  const [category, setCategory] = useState('overall'); // Cập nhật mặc định là overall
+  const [selectedModelId, setSelectedModelId] = useState('studio-female');
+  const [isCustomModel, setIsCustomModel] = useState(false);
+  const [selectedGarment, setSelectedGarment] = useState(CATALOG_ITEMS[0]);
+  const [category, setCategory] = useState('upper');
   const [loading, setLoading] = useState(false);
   const [resultImgUrl, setResultImgUrl] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [cartCount, setCartCount] = useState(0);
+  const [toastMsg, setToastMsg] = useState('');
+  const personObjectUrlRef = useRef(null);
+  const clothObjectUrlRef = useRef(null);
+  const resultObjectUrlRef = useRef(null);
 
-  // Bộ đếm thời gian
+  const revokeObjectUrl = (urlRef) => {
+    if (urlRef.current) {
+      URL.revokeObjectURL(urlRef.current);
+      urlRef.current = null;
+    }
+  };
+
+  const setObjectPreview = (urlRef, file) => {
+    revokeObjectUrl(urlRef);
+    const url = URL.createObjectURL(file);
+    urlRef.current = url;
+    return url;
+  };
+
+  useEffect(() => () => {
+    revokeObjectUrl(personObjectUrlRef);
+    revokeObjectUrl(clothObjectUrlRef);
+    revokeObjectUrl(resultObjectUrlRef);
+  }, []);
+
+  // Auto-dismiss toast
+  useEffect(() => {
+    if (toastMsg) {
+      const t = setTimeout(() => setToastMsg(''), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [toastMsg]);
+
+  // Loading timer
   useEffect(() => {
     let timer;
     if (loading) {
-      timer = setInterval(() => {
-        setElapsedTime((prev) => prev + 1);
-      }, 1000);
+      timer = setInterval(() => setElapsedTime((p) => p + 1), 1000);
     } else {
       clearInterval(timer);
     }
     return () => clearInterval(timer);
   }, [loading]);
 
-  const handlePersonChange = (e) => {
-    const file = e.target.files[0];
-    setPersonImg(file);
-    if (file) setPersonPreview(URL.createObjectURL(file));
+  // Initialize with curated demo preset on first load
+  useEffect(() => {
+    loadModelPreset(PRESET_MODELS[0]);
+    loadGarmentPreset(CATALOG_ITEMS[0]);
+  }, []);
+
+  const loadModelPreset = async (model) => {
+    setSelectedModelId(model.id);
+    setIsCustomModel(false);
+    try {
+      const res = await fetch(model.image);
+      if (!res.ok) throw new Error(`Không thể tải ảnh mẫu (HTTP ${res.status}).`);
+      const blob = await res.blob();
+      const file = new File([blob], `${model.id}.jpg`, { type: blob.type || 'image/jpeg' });
+      revokeObjectUrl(personObjectUrlRef);
+      setPersonPreview(model.image);
+      setPersonImg(file);
+    } catch (e) {
+      revokeObjectUrl(personObjectUrlRef);
+      setPersonImg(null);
+      setPersonPreview(null);
+      setToastMsg(`Không thể tải ảnh người mẫu: ${e.message}`);
+    }
   };
 
-  const handleClothChange = (e) => {
-    const file = e.target.files[0];
+  const loadGarmentPreset = async (garment) => {
+    setSelectedGarment(garment);
+    setCategory(garment.category || 'upper');
+    try {
+      const res = await fetch(garment.image);
+      if (!res.ok) throw new Error(`Không thể tải ảnh trang phục (HTTP ${res.status}).`);
+      const blob = await res.blob();
+      const file = new File([blob], `${garment.id}.jpg`, { type: blob.type || 'image/jpeg' });
+      revokeObjectUrl(clothObjectUrlRef);
+      setClothPreview(garment.image);
+      setClothImg(file);
+    } catch (e) {
+      revokeObjectUrl(clothObjectUrlRef);
+      setClothImg(null);
+      setClothPreview(null);
+      setToastMsg(`Không thể tải ảnh trang phục: ${e.message}`);
+    }
+  };
+
+  const handleCustomModelUpload = (file) => {
+    if (!file) return;
+    setPersonImg(file);
+    setPersonPreview(setObjectPreview(personObjectUrlRef, file));
+    setIsCustomModel(true);
+    setSelectedModelId('custom');
+    setToastMsg('Đã tải lên ảnh người mẫu của bạn!');
+  };
+
+  const handleCustomClothUpload = (file) => {
+    if (!file) return;
     setClothImg(file);
-    if (file) setClothPreview(URL.createObjectURL(file));
+    setClothPreview(setObjectPreview(clothObjectUrlRef, file));
+    setSelectedGarment({
+      id: 'custom',
+      name: file.name.replace(/\.[^/.]+$/, ''),
+      price: 'Mẫu Tải Lên',
+      category: category
+    });
+    setToastMsg('Đã tải lên ảnh trang phục tùy chọn!');
+  };
+
+  const handleSelectFromCatalog = (garment) => {
+    loadGarmentPreset(garment);
+    const studioEl = document.getElementById('studio');
+    if (studioEl) {
+      studioEl.scrollIntoView({ behavior: 'smooth' });
+    }
+    setToastMsg(`Đã đưa "${garment.name}" vào phòng thử đồ!`);
+  };
+
+  const handleAddToCart = () => {
+    setCartCount((c) => c + 1);
+    setToastMsg(`Đã thêm "${selectedGarment?.name || 'Trang phục'}" vào túi đồ của bạn!`);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!personImg || !clothImg) {
-      alert("Vui lòng chọn đủ 2 ảnh (Ảnh người mẫu và Ảnh trang phục)!");
-      return;
-    }
+    if (!personImg || !clothImg) return;
 
     setLoading(true);
     setErrorMsg('');
+    revokeObjectUrl(resultObjectUrlRef);
     setResultImgUrl(null);
     setElapsedTime(0);
 
@@ -54,179 +166,219 @@ function App() {
     formData.append('category', category);
 
     try {
-      // Backend URL
-      const response = await fetch('http://localhost:8080/api/tryon', {
+      const response = await fetch(`${API_BASE_URL}/api/tryon`, {
         method: 'POST',
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error('Server báo lỗi! Hãy kiểm tra lại Backend.');
+        throw new Error(`Máy chủ AI trả về lỗi HTTP ${response.status}. Vui lòng thử lại sau.`);
       }
 
       const blob = await response.blob();
-      const imageUrl = URL.createObjectURL(blob);
-      setResultImgUrl(imageUrl);
+      resultObjectUrlRef.current = URL.createObjectURL(blob);
+      setResultImgUrl(resultObjectUrlRef.current);
+      setToastMsg('✨ Ướm thử trang phục thành công!');
     } catch (err) {
-      setErrorMsg(err.message);
+      setErrorMsg(err.message || `Không thể kết nối đến máy chủ AI tại ${API_BASE_URL}.`);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans p-4 md:p-8 flex flex-col items-center justify-center">
-      <div className="bg-white border border-gray-200 rounded-3xl p-6 md:p-10 shadow-xl max-w-7xl mx-auto w-full">
-        
-        {/* Header */}
-        <div className="text-center mb-10">
-          <h2 className="text-gray-900 font-extrabold text-3xl md:text-4xl mb-3 tracking-tight">✨ AI Virtual Try-On</h2>
-          <p className="text-gray-500 text-base max-w-2xl mx-auto">
-            Đồ án tốt nghiệp - Tự động ghép trang phục lên người mẫu bằng AI
-          </p>
+    <div className="min-h-screen bg-[#faf9f6] text-[#111215] flex flex-col font-sans">
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed top-20 right-5 z-50 animate-fade-in">
+          <div className="bg-[#111215] text-[#fbfaf8] text-xs font-semibold px-4 py-2.5 rounded-xl shadow-xl border border-white/15 flex items-center gap-2">
+            <Sparkles className="w-3.5 h-3.5 text-[#d4af37]" />
+            <span>{toastMsg}</span>
+          </div>
         </div>
+      )}
 
-        <form onSubmit={handleSubmit}>
-          
-          {/* Cấu hình Category */}
-          <div className="flex flex-col items-center justify-center mb-10 bg-gray-50 p-4 rounded-xl border border-gray-100">
-            <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-4">Loại Trang Phục</h3>
-            <div className="flex flex-wrap justify-center gap-4 md:gap-8">
-              {['upper', 'lower', 'overall'].map((cat) => (
-                <label key={cat} className="flex items-center space-x-2 cursor-pointer group">
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${category === cat ? 'border-blue-500' : 'border-gray-400 group-hover:border-blue-400'}`}>
-                    {category === cat && <div className="w-2.5 h-2.5 bg-blue-500 rounded-full" />}
-                  </div>
-                  <input 
-                    type="radio" 
-                    name="category" 
-                    value={cat}
-                    checked={category === cat}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="hidden"
-                  />
-                  <span className={`font-medium capitalize ${category === cat ? 'text-blue-600' : 'text-gray-600 group-hover:text-blue-500'}`}>
-                    {cat === 'upper' ? 'Áo (Upper)' : cat === 'lower' ? 'Quần/Váy (Lower)' : 'Đồ bộ/Áo dài (Overall)'}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </div>
+      {/* Luxury E-Commerce Navigation Bar */}
+      <Navbar cartCount={cartCount} />
 
-          {/* Vùng hiển thị phương trình A + B = C */}
-          <div className="w-full overflow-x-auto pb-8 pt-4 custom-scrollbar">
-            <div className="flex flex-row items-center justify-start md:justify-center gap-4 md:gap-6 min-w-max px-4">
-              
-              {/* 1. Ảnh Người */}
-              <div className="flex flex-col items-center group">
-                <label className="relative rounded-2xl overflow-hidden border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 cursor-pointer h-[400px] w-[260px] md:h-[450px] md:w-[290px] flex flex-col items-center justify-center transition-all duration-300 shrink-0">
-                  <input type="file" accept="image/*" className="hidden" onChange={handlePersonChange} />
-                  {personPreview ? (
-                    <>
-                      <img src={personPreview} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" alt="Person" />
-                      <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-                        <span className="text-white font-medium text-sm px-3 py-1 bg-black/40 backdrop-blur-sm rounded-full border border-white/20">👤 Người mẫu</span>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-center p-4">
-                      <span className="text-4xl mb-2 block">🧍</span>
-                      <span className="text-gray-500 font-medium group-hover:text-blue-500">Tải ảnh người lên</span>
-                    </div>
-                  )}
-                </label>
-              </div>
-              
-              {/* Dấu Cộng */}
-              <div className="flex items-center justify-center bg-white rounded-full h-12 w-12 md:h-14 md:w-14 border border-gray-200 shadow-sm z-10 shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-6 h-6 text-gray-400">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-              </div>
+      {/* Main Content */}
+      <main className="flex-1">
+        {/* Studio Section */}
+        <section id="studio" className="max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 pb-12">
+          <Header />
 
-              {/* 2. Ảnh Trang Phục */}
-              <div className="flex flex-col items-center group">
-                <label className="relative rounded-2xl overflow-hidden border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 cursor-pointer h-[400px] w-[260px] md:h-[450px] md:w-[290px] flex flex-col items-center justify-center transition-all duration-300 shrink-0">
-                  <input type="file" accept="image/*" className="hidden" onChange={handleClothChange} />
-                  {clothPreview ? (
-                    <>
-                      <img src={clothPreview} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" alt="Cloth" />
-                      <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-                        <span className="text-white font-medium text-sm px-3 py-1 bg-black/40 backdrop-blur-sm rounded-full border border-white/20">👗 Trang phục</span>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-center p-4">
-                      <span className="text-4xl mb-2 block">👕</span>
-                      <span className="text-gray-500 font-medium group-hover:text-blue-500">Tải ảnh trang phục</span>
+          {/* Unified Studio Workbench Frame */}
+          <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-[#ded8cc] shadow-sm p-4 sm:p-6 lg:p-8 xl:p-10">
+            <form onSubmit={handleSubmit}>
+              {/* 3-Column Fitting Stage */}
+              <div className="grid grid-cols-1 items-start gap-5 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_2.5rem_minmax(0,1fr)_2.5rem_minmax(0,1fr)] lg:items-center lg:gap-4 xl:gap-6">
+                {/* 1. Model Column */}
+                <ImageUploader
+                  label="Người Mẫu"
+                  icon="person"
+                  file={personImg}
+                  preview={personPreview}
+                  onFileChange={handleCustomModelUpload}
+                  onClear={() => {
+                    revokeObjectUrl(personObjectUrlRef);
+                    setPersonImg(null);
+                    setPersonPreview(null);
+                    setIsCustomModel(false);
+                  }}
+                  headerRight={
+                    <div className="inline-flex items-center p-0.5 rounded-full bg-[#f6f5f1] border border-[#ded8cc] text-[9.5px] font-bold uppercase gap-0.5">
+                      <button
+                        type="button"
+                        onClick={() => loadModelPreset(PRESET_MODELS[0])}
+                        className={`px-2 py-0.5 rounded-full transition-all cursor-pointer ${selectedModelId === 'studio-female' && !isCustomModel ? 'bg-[#111215] text-white shadow-2xs' : 'text-[#6e7382] hover:text-[#111215]'}`}
+                      >
+                        Nữ
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => loadModelPreset(PRESET_MODELS[1])}
+                        className={`px-2 py-0.5 rounded-full transition-all cursor-pointer ${selectedModelId === 'studio-male' && !isCustomModel ? 'bg-[#111215] text-white shadow-2xs' : 'text-[#6e7382] hover:text-[#111215]'}`}
+                      >
+                        Nam
+                      </button>
+                      <label className={`px-2 py-0.5 rounded-full transition-all cursor-pointer flex items-center gap-1 ${isCustomModel ? 'bg-[#111215] text-white shadow-2xs' : 'text-[#6e7382] hover:text-[#111215]'}`}>
+                        <Camera className="w-2.5 h-2.5 text-[#a88325]" />
+                        <span>Tải ảnh</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => e.target.files?.[0] && handleCustomModelUpload(e.target.files[0])}
+                        />
+                      </label>
                     </div>
-                  )}
-                </label>
-              </div>
-              
-              {/* Dấu Bằng */}
-              <div className="flex items-center justify-center bg-blue-500 rounded-full h-12 w-12 md:h-14 md:w-14 shadow-lg z-10 text-white shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="3" stroke="currentColor" className="w-6 h-6">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12h15m-15 4.5h15m-15-9h15" />
-                </svg>
-              </div>
+                  }
+                  helperText="Tải ảnh chính diện hoặc chọn mẫu Nữ / Nam"
+                />
 
-              {/* 3. Kết Quả */}
-              <div className="flex flex-col items-center group">
-                <div className={`relative rounded-2xl overflow-hidden border-4 bg-gray-50 h-[420px] w-[280px] md:h-[480px] md:w-[310px] flex flex-col items-center justify-center transition-all duration-300 shrink-0 ${resultImgUrl ? 'border-blue-500 shadow-2xl ring-4 ring-blue-500/20' : 'border-gray-200 border-dashed'}`}>
-                  
-                  {loading ? (
-                    <div className="text-center flex flex-col items-center">
-                      <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-                      <p className="text-blue-500 font-bold animate-pulse">Đang xử lý AI...</p>
-                      <p className="text-gray-400 text-sm mt-2">{elapsedTime} giây</p>
-                    </div>
-                  ) : resultImgUrl ? (
-                    <>
-                      <img src={resultImgUrl} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" alt="Result" />
-                      <div className="absolute top-4 right-4">
-                        <span className="flex h-3 w-3">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-3 w-3 bg-green-400 border border-white"></span>
-                        </span>
-                      </div>
-                      <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-blue-600/90 to-transparent p-5">
-                        <span className="text-white font-bold text-sm px-4 py-1.5 bg-black/30 backdrop-blur-md rounded-full border border-white/30 shadow-sm flex items-center w-max">
-                          ✨ Hoàn tất ({elapsedTime}s)
-                        </span>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-center p-4">
-                      <span className="text-4xl mb-2 block text-gray-300">🪄</span>
-                      <span className="text-gray-400 font-medium">Kết quả sẽ hiển thị ở đây</span>
-                    </div>
-                  )}
+                {/* Plus Operator */}
+                <div className="flex w-8 h-8 rounded-full bg-[#f6f5f1] border border-[#ded8cc] shadow-2xs items-center justify-center justify-self-center text-[#8d887f] font-bold lg:mt-7">
+                  <Plus className="w-4 h-4" />
                 </div>
+
+                {/* 2. Garment Column */}
+                <ImageUploader
+                  label="Trang Phục"
+                  icon="cloth"
+                  file={clothImg}
+                  preview={clothPreview}
+                  onFileChange={handleCustomClothUpload}
+                  onClear={() => {
+                    revokeObjectUrl(clothObjectUrlRef);
+                    setClothImg(null);
+                    setClothPreview(null);
+                    setSelectedGarment(null);
+                  }}
+                  headerRight={
+                    <div className="inline-flex items-center p-0.5 rounded-full bg-[#f6f5f1] border border-[#ded8cc] text-[9.5px] font-bold uppercase gap-0.5">
+                      <button
+                        type="button"
+                        onClick={() => setCategory('upper')}
+                        className={`px-2 py-0.5 rounded-full transition-all cursor-pointer ${category === 'upper' ? 'bg-[#111215] text-white shadow-2xs' : 'text-[#6e7382] hover:text-[#111215]'}`}
+                      >
+                        Áo
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCategory('lower')}
+                        className={`px-2 py-0.5 rounded-full transition-all cursor-pointer ${category === 'lower' ? 'bg-[#111215] text-white shadow-2xs' : 'text-[#6e7382] hover:text-[#111215]'}`}
+                      >
+                        Quần
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCategory('overall')}
+                        className={`px-2 py-0.5 rounded-full transition-all cursor-pointer ${category === 'overall' ? 'bg-[#111215] text-white shadow-2xs' : 'text-[#6e7382] hover:text-[#111215]'}`}
+                      >
+                        Đầm
+                      </button>
+                    </div>
+                  }
+                  helperText="Chọn từ tủ đồ dưới hoặc tải ảnh áo của bạn"
+                />
+
+                {/* Equal Operator */}
+                <div className="flex w-8 h-8 rounded-full bg-[#111215] text-[#d4af37] shadow-xs items-center justify-center justify-self-center font-bold lg:mt-7">
+                  <Equal className="w-4 h-4" />
+                </div>
+
+                {/* 3. Fitting Result Column */}
+                <ResultViewer
+                  loading={loading}
+                  resultImgUrl={resultImgUrl}
+                  originalModelUrl={personPreview}
+                  elapsedTime={elapsedTime}
+                  onAddToCart={handleAddToCart}
+                  selectedGarment={selectedGarment}
+                  headerRight={
+                    resultImgUrl ? (
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                        Đã Xong
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-semibold text-[#8d887f] bg-[#f6f5f1] px-2.5 py-0.5 rounded-full border border-[#ded8cc]">
+                        Gương Số
+                      </span>
+                    )
+                  }
+                />
               </div>
-              
-            </div>
+
+              {/* Error Notice */}
+              {errorMsg && (
+                <div className="mt-5 max-w-md mx-auto animate-fade-in">
+                  <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{errorMsg}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Action Area */}
+              <div 
+                style={{ 
+                  marginTop: 36, 
+                  marginBottom: 8, 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center' 
+                }}
+              >
+                <TryOnButton
+                  loading={loading}
+                  disabled={loading || !personImg || !clothImg}
+                  elapsedTime={elapsedTime}
+                />
+
+                <p className="text-[11px] text-[#8d887f] text-center mt-3.5">
+                  💡 <strong>Gợi ý:</strong> Chọn ảnh người mẫu chính diện, đứng thẳng và ánh sáng tự nhiên để đạt độ rủ vải chuẩn xác nhất.
+                </p>
+              </div>
+            </form>
           </div>
+        </section>
 
-          {errorMsg && (
-            <div className="bg-red-50 text-red-600 border border-red-200 p-4 rounded-xl text-center mb-8 max-w-2xl mx-auto">
-              <strong>LỖI: </strong> {errorMsg}
-            </div>
-          )}
+        {/* Curated Garment Catalog */}
+        <GarmentCatalog
+          selectedGarmentId={selectedGarment?.id}
+          onSelectGarment={handleSelectFromCatalog}
+          onUploadCustomClick={() => {
+            const studioEl = document.getElementById('studio');
+            if (studioEl) studioEl.scrollIntoView({ behavior: 'smooth' });
+          }}
+        />
 
-          {/* Button Submit */}
-          <div className="text-center mt-6">
-            <button 
-              type="submit" 
-              disabled={loading || !personImg || !clothImg}
-              className={`px-10 py-4 text-lg font-bold text-white rounded-full shadow-lg transition-all transform hover:scale-105 active:scale-95 ${loading || !personImg || !clothImg ? 'bg-gray-400 cursor-not-allowed shadow-none hover:scale-100' : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 hover:shadow-blue-500/30'}`}
-            >
-              {loading ? `⏳ Đang Ghép Đồ... (${elapsedTime}s)` : '✨ BẮT ĐẦU GHÉP ĐỒ'}
-            </button>
-          </div>
+        {/* Store Benefits */}
+        <StudioBenefits />
+      </main>
 
-        </form>
-      </div>
+      {/* Brand Footer */}
+      <Footer />
     </div>
   );
 }
