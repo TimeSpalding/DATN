@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Equal, AlertCircle, Sparkles, Camera } from 'lucide-react';
 import Navbar from './components/Navbar';
 import Header from './components/Header';
@@ -9,6 +9,8 @@ import TryOnButton from './components/TryOnButton';
 import GarmentCatalog, { CATALOG_ITEMS } from './components/GarmentCatalog';
 import StudioBenefits from './components/StudioBenefits';
 import Footer from './components/Footer';
+
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080').replace(/\/$/, '');
 
 function App() {
   const [personImg, setPersonImg] = useState(null);
@@ -25,6 +27,29 @@ function App() {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [cartCount, setCartCount] = useState(0);
   const [toastMsg, setToastMsg] = useState('');
+  const personObjectUrlRef = useRef(null);
+  const clothObjectUrlRef = useRef(null);
+  const resultObjectUrlRef = useRef(null);
+
+  const revokeObjectUrl = (urlRef) => {
+    if (urlRef.current) {
+      URL.revokeObjectURL(urlRef.current);
+      urlRef.current = null;
+    }
+  };
+
+  const setObjectPreview = (urlRef, file) => {
+    revokeObjectUrl(urlRef);
+    const url = URL.createObjectURL(file);
+    urlRef.current = url;
+    return url;
+  };
+
+  useEffect(() => () => {
+    revokeObjectUrl(personObjectUrlRef);
+    revokeObjectUrl(clothObjectUrlRef);
+    revokeObjectUrl(resultObjectUrlRef);
+  }, []);
 
   // Auto-dismiss toast
   useEffect(() => {
@@ -54,35 +79,45 @@ function App() {
   const loadModelPreset = async (model) => {
     setSelectedModelId(model.id);
     setIsCustomModel(false);
-    setPersonPreview(model.image);
     try {
       const res = await fetch(model.image);
+      if (!res.ok) throw new Error(`Không thể tải ảnh mẫu (HTTP ${res.status}).`);
       const blob = await res.blob();
       const file = new File([blob], `${model.id}.jpg`, { type: blob.type || 'image/jpeg' });
+      revokeObjectUrl(personObjectUrlRef);
+      setPersonPreview(model.image);
       setPersonImg(file);
     } catch (e) {
-      console.log('Error preloading model file:', e);
+      revokeObjectUrl(personObjectUrlRef);
+      setPersonImg(null);
+      setPersonPreview(null);
+      setToastMsg(`Không thể tải ảnh người mẫu: ${e.message}`);
     }
   };
 
   const loadGarmentPreset = async (garment) => {
     setSelectedGarment(garment);
     setCategory(garment.category || 'upper');
-    setClothPreview(garment.image);
     try {
       const res = await fetch(garment.image);
+      if (!res.ok) throw new Error(`Không thể tải ảnh trang phục (HTTP ${res.status}).`);
       const blob = await res.blob();
       const file = new File([blob], `${garment.id}.jpg`, { type: blob.type || 'image/jpeg' });
+      revokeObjectUrl(clothObjectUrlRef);
+      setClothPreview(garment.image);
       setClothImg(file);
     } catch (e) {
-      console.log('Error preloading garment file:', e);
+      revokeObjectUrl(clothObjectUrlRef);
+      setClothImg(null);
+      setClothPreview(null);
+      setToastMsg(`Không thể tải ảnh trang phục: ${e.message}`);
     }
   };
 
   const handleCustomModelUpload = (file) => {
     if (!file) return;
     setPersonImg(file);
-    setPersonPreview(URL.createObjectURL(file));
+    setPersonPreview(setObjectPreview(personObjectUrlRef, file));
     setIsCustomModel(true);
     setSelectedModelId('custom');
     setToastMsg('Đã tải lên ảnh người mẫu của bạn!');
@@ -91,7 +126,7 @@ function App() {
   const handleCustomClothUpload = (file) => {
     if (!file) return;
     setClothImg(file);
-    setClothPreview(URL.createObjectURL(file));
+    setClothPreview(setObjectPreview(clothObjectUrlRef, file));
     setSelectedGarment({
       id: 'custom',
       name: file.name.replace(/\.[^/.]+$/, ''),
@@ -121,6 +156,7 @@ function App() {
 
     setLoading(true);
     setErrorMsg('');
+    revokeObjectUrl(resultObjectUrlRef);
     setResultImgUrl(null);
     setElapsedTime(0);
 
@@ -130,20 +166,21 @@ function App() {
     formData.append('category', category);
 
     try {
-      const response = await fetch('http://localhost:8080/api/tryon', {
+      const response = await fetch(`${API_BASE_URL}/api/tryon`, {
         method: 'POST',
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error('Không thể kết nối đến máy chủ AI. Vui lòng kiểm tra Kaggle Server.');
+        throw new Error(`Máy chủ AI trả về lỗi HTTP ${response.status}. Vui lòng thử lại sau.`);
       }
 
       const blob = await response.blob();
-      setResultImgUrl(URL.createObjectURL(blob));
+      resultObjectUrlRef.current = URL.createObjectURL(blob);
+      setResultImgUrl(resultObjectUrlRef.current);
       setToastMsg('✨ Ướm thử trang phục thành công!');
     } catch (err) {
-      setErrorMsg(err.message || 'Đã có lỗi xảy ra trong quá trình xử lý');
+      setErrorMsg(err.message || `Không thể kết nối đến máy chủ AI tại ${API_BASE_URL}.`);
     } finally {
       setLoading(false);
     }
@@ -183,6 +220,7 @@ function App() {
                   preview={personPreview}
                   onFileChange={handleCustomModelUpload}
                   onClear={() => {
+                    revokeObjectUrl(personObjectUrlRef);
                     setPersonImg(null);
                     setPersonPreview(null);
                     setIsCustomModel(false);
@@ -231,6 +269,7 @@ function App() {
                   preview={clothPreview}
                   onFileChange={handleCustomClothUpload}
                   onClear={() => {
+                    revokeObjectUrl(clothObjectUrlRef);
                     setClothImg(null);
                     setClothPreview(null);
                     setSelectedGarment(null);

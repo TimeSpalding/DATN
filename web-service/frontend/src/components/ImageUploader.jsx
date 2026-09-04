@@ -20,6 +20,13 @@ export default function ImageUploader({
     }
   };
 
+  const handleKeyDown = (event) => {
+    if (!preview && (event.key === 'Enter' || event.key === ' ')) {
+      event.preventDefault();
+      handleClick();
+    }
+  };
+
   return (
     <div className="w-full max-w-[360px] lg:max-w-none lg:w-full flex flex-col justify-self-center">
       {/* Label Header with fixed height for pixel-perfect vertical alignment */}
@@ -36,6 +43,10 @@ export default function ImageUploader({
       {/* Card Stage with explicit height */}
       <div
         onClick={handleClick}
+        onKeyDown={handleKeyDown}
+        role={!preview ? 'button' : undefined}
+        tabIndex={!preview ? 0 : undefined}
+        aria-label={!preview ? `Tải ảnh ${label}` : undefined}
         className={`
           relative group rounded-2xl overflow-hidden
           w-full aspect-[3/4] max-h-[380px]
@@ -52,7 +63,7 @@ export default function ImageUploader({
           type="file"
           accept="image/*"
           className="hidden"
-          onChange={(e) => onFileChange(e.target.files[0])}
+          onChange={(e) => onFileChange(e.target.files?.[0])}
         />
 
         {preview ? (
