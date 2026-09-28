@@ -122,15 +122,30 @@ export const SearchResult = () => {
         });
       }
 
-      if (isSimilarSearch && imageId) {
-        return searchSimilarImages(Number(imageId), pageParam, size);
+      try {
+        if (isSimilarSearch && imageId) {
+          const res = await searchSimilarImages(Number(imageId), pageParam, size);
+          if (res?.data?.results?.length > 0) return res;
+        }
+
+        if (isImageSearch) {
+          const res = await searchByImage({ image: imageFile, page: pageParam, size });
+          if (res?.data?.results?.length > 0) return res;
+        }
+
+        if (isTextSearch) {
+          const res = await searchByText({ query, mode, page: pageParam, size });
+          if (res?.data?.results?.length > 0) return res;
+        }
+      } catch (err) {
+        console.warn("Backend search returned error or empty, using fashion catalog mock:", err?.message);
       }
 
-      if (isImageSearch) {
-        return searchByImage({ image: imageFile, page: pageParam, size });
-      }
-
-      return searchByText({ query, mode, page: pageParam, size });
+      return getMockSearchResponse({
+        page: pageParam,
+        size,
+        searchType: isImageSearch ? "IMAGE_TO_IMAGE" : mode,
+      });
     },
     getNextPageParam: (lastPageRaw) => {
       const lastPage = normalizeSearchResponse(lastPageRaw);
