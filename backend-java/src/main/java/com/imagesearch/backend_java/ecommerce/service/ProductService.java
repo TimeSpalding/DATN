@@ -1,16 +1,15 @@
 package com.imagesearch.backend_java.ecommerce.service;
 
-import com.imagesearch.backend_java.ecommerce.dto.ProductDetailDTO;
-import com.imagesearch.backend_java.ecommerce.dto.ProductFilterRequest;
-import com.imagesearch.backend_java.ecommerce.dto.ProductSummaryDTO;
-import com.imagesearch.backend_java.ecommerce.dto.VariantDTO;
+import com.imagesearch.backend_java.ecommerce.dto.*;
 import com.imagesearch.backend_java.ecommerce.entity.Category;
 import com.imagesearch.backend_java.ecommerce.entity.Product;
 import com.imagesearch.backend_java.ecommerce.entity.ProductImage;
 import com.imagesearch.backend_java.ecommerce.entity.ProductVariant;
 import com.imagesearch.backend_java.ecommerce.enums.ProductStatus;
 import com.imagesearch.backend_java.ecommerce.repository.CategoryRepository;
+import com.imagesearch.backend_java.ecommerce.repository.ProductImageRepository;
 import com.imagesearch.backend_java.ecommerce.repository.ProductRepository;
+import com.imagesearch.backend_java.ecommerce.repository.ProductVariantRepository;
 import com.imagesearch.backend_java.index.dto.PageResponse;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
@@ -37,6 +36,8 @@ import java.util.stream.Collectors;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final ProductVariantRepository productVariantRepository;
+    private final ProductImageRepository productImageRepository;
     private final CategoryRepository categoryRepository;
 
     @Transactional(readOnly = true)
@@ -288,5 +289,211 @@ public class ProductService {
         symbols.setGroupingSeparator('.');
         DecimalFormat df = new DecimalFormat("#,###", symbols);
         return df.format(price.longValue()) + "₫";
+    }
+
+    @Transactional
+    public ProductDetailDTO createProduct(CreateProductRequest request) {
+        Category category = categoryRepository.findByCode(request.getCategoryCode())
+                .orElseGet(() -> {
+                    Category newCat = Category.builder()
+                            .code(request.getCategoryCode().toLowerCase().replaceAll("\\s+", "-"))
+                            .name(request.getCategoryCode())
+                            .sortOrder(99)
+                            .active(true)
+                            .build();
+                    return categoryRepository.save(newCat);
+                });
+
+        String baseSku = "PRD-" + System.currentTimeMillis() % 1000000;
+        Product product = Product.builder()
+                .name(request.getName())
+                .sku(baseSku)
+                .category(category)
+                .subCategory(request.getSubCategory())
+                .gender(request.getGender() != null ? request.getGender() : "unisex")
+                .basePrice(request.getBasePrice())
+                .originalPrice(request.getOriginalPrice() != null ? request.getOriginalPrice() : request.getBasePrice())
+                .material(request.getMaterial())
+                .origin(request.getOrigin())
+                .badge(request.getBadge())
+                .description(request.getDescription())
+                .status(ProductStatus.ACTIVE)
+                .build();
+
+        // Primary & Gallery images
+        List<ProductImage> images = new ArrayList<>();
+        if (request.getImage() != null && !request.getImage().isBlank()) {
+            images.add(ProductImage.builder()
+                    .product(product)
+                    .imageUrl(request.getImage())
+                    .isPrimary(true)
+                    .sortOrder(0)
+                    .build());
+        }
+        if (request.getGallery() != null) {
+            int order = images.isEmpty() ? 0 : 1;
+            for (String gUrl : request.getGallery()) {
+                if (gUrl != null && !gUrl.isBlank() && !gUrl.equals(request.getImage())) {
+                    images.add(ProductImage.builder()
+                            .product(product)
+                            .imageUrl(gUrl)
+                            .isPrimary(images.isEmpty())
+                            .sortOrder(order++)
+                            .build());
+                }
+            }
+        }
+        product.setProductImages(images);
+
+        // Variants
+        List<ProductVariant> variants = new ArrayList<>();
+        if (request.getVariants() != null && !request.getVariants().isEmpty()) {
+            for (CreateProductRequest.CreateVariantRequest vr : request.getVariants()) {
+                String vSku = baseSku + "-" + (vr.getSize() != null ? vr.getSize() : "STD") +
+                        (vr.getColor() != null ? "-" + vr.getColor().replaceAll("\\s+", "") : "");
+                variants.add(ProductVariant.builder()
+                        .product(product)
+                        .sku(vSku)
+                        .size(vr.getSize() != null ? vr.getSize().toUpperCase() : "FREESIZE")
+                        .color(vr.getColor())
+                        .colorHex(vr.getColorHex())
+                        .stockQuantity(vr.getStockQuantity() != null ? vr.getStockQuantity() : 50)
+                        .priceOverride(vr.getPriceOverride())
+                        .active(true)
+                        .build());
+            }
+        } else {
+            // Default variant
+            variants.add(ProductVariant.builder()
+                    .product(product)
+                    .sku(baseSku + "-STD")
+                    .size("FREESIZE")
+                    .color("Tiêu chuẩn")
+                    .colorHex("#111827")
+                    .stockQuantity(50)
+                    .active(true)
+                    .build());
+        }
+        product.setVariants(variants);
+
+        Product saved = productRepository.save(product);
+        log.info("Created product successfully with ID: {}, SKU: {}", saved.getId(), saved.getSku());
+        return mapToDetailDTO(saved);
+    }
+
+    @Transactional
+    public ProductDetailDTO updateProduct(Long id, UpdateProductRequest request) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found with id: " + id));
+
+        if (request.getName() != null && !request.getName().isBlank()) product.setName(request.getName());
+        if (request.getCategoryCode() != null && !request.getCategoryCode().isBlank()) {
+            Category category = categoryRepository.findByCode(request.getCategoryCode())
+                    .orElseThrow(() -> new IllegalArgumentException("Category not found: " + request.getCategoryCode()));
+            product.setCategory(category);
+        }
+        if (request.getSubCategory() != null) product.setSubCategory(request.getSubCategory());
+        if (request.getGender() != null) product.setGender(request.getGender());
+        if (request.getBasePrice() != null) product.setBasePrice(request.getBasePrice());
+        if (request.getOriginalPrice() != null) product.setOriginalPrice(request.getOriginalPrice());
+        if (request.getMaterial() != null) product.setMaterial(request.getMaterial());
+        if (request.getOrigin() != null) product.setOrigin(request.getOrigin());
+        if (request.getBadge() != null) product.setBadge(request.getBadge());
+        if (request.getDescription() != null) product.setDescription(request.getDescription());
+        if (request.getFeatured() != null) product.setFeatured(request.getFeatured());
+        if (request.getStatus() != null && !request.getStatus().isBlank()) {
+            product.setStatus(ProductStatus.valueOf(request.getStatus().toUpperCase()));
+        }
+
+        Product saved = productRepository.save(product);
+        log.info("Updated product successfully with ID: {}", saved.getId());
+        return mapToDetailDTO(saved);
+    }
+
+    @Transactional
+    public void deleteProduct(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found with id: " + id));
+        product.setStatus(ProductStatus.INACTIVE);
+        productRepository.save(product);
+        log.info("Deactivated product with ID: {}", id);
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<InventoryItemDTO> getInventory(boolean lowStockOnly, int page, int size) {
+        int pageIndex = Math.max(0, page);
+        int pageSize = Math.max(1, size);
+        Pageable pageable = PageRequest.of(pageIndex, pageSize);
+
+        Page<ProductVariant> variantsPage = productVariantRepository.findInventoryVariants(lowStockOnly, pageable);
+        List<InventoryItemDTO> dtoList = variantsPage.getContent().stream()
+                .map(v -> {
+                    Product p = v.getProduct();
+                    BigDecimal effectivePrice = v.getPriceOverride() != null ? v.getPriceOverride() : p.getBasePrice();
+                    String img = resolvePrimaryImage(p);
+                    return InventoryItemDTO.builder()
+                            .variantId(v.getId())
+                            .productId(p.getId())
+                            .productName(p.getName())
+                            .productSku(p.getSku())
+                            .variantSku(v.getSku())
+                            .size(v.getSize())
+                            .color(v.getColor())
+                            .colorHex(v.getColorHex())
+                            .stockQuantity(v.getStockQuantity())
+                            .effectivePrice(effectivePrice)
+                            .active(v.getActive())
+                            .lowStock(v.getStockQuantity() <= 10)
+                            .primaryImage(img)
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        return PageResponse.of(dtoList, pageIndex, pageSize, variantsPage.getTotalElements());
+    }
+
+    @Transactional
+    public InventoryItemDTO updateInventory(Long variantId, UpdateInventoryRequest request) {
+        ProductVariant variant = productVariantRepository.findById(variantId)
+                .orElseThrow(() -> new IllegalArgumentException("Variant not found with id: " + variantId));
+
+        if (request.getStockQuantity() != null) {
+            variant.setStockQuantity(Math.max(0, request.getStockQuantity()));
+        } else if (request.getDeltaQuantity() != null) {
+            int newQty = Math.max(0, variant.getStockQuantity() + request.getDeltaQuantity());
+            variant.setStockQuantity(newQty);
+        }
+
+        if (request.getPriceOverride() != null) {
+            variant.setPriceOverride(request.getPriceOverride());
+        }
+        if (request.getActive() != null) {
+            variant.setActive(request.getActive());
+        }
+
+        ProductVariant saved = productVariantRepository.save(variant);
+        Product p = saved.getProduct();
+        BigDecimal effectivePrice = saved.getPriceOverride() != null ? saved.getPriceOverride() : p.getBasePrice();
+        log.info("Updated inventory for variant ID: {}, new stock: {}", variantId, saved.getStockQuantity());
+
+        return InventoryItemDTO.builder()
+                .variantId(saved.getId())
+                .productId(p.getId())
+                .productName(p.getName())
+                .productSku(p.getSku())
+                .variantSku(saved.getSku())
+                .size(saved.getSize())
+                .color(saved.getColor())
+                .colorHex(saved.getColorHex())
+                .stockQuantity(saved.getStockQuantity())
+                .effectivePrice(effectivePrice)
+                .active(saved.getActive())
+                .lowStock(saved.getStockQuantity() <= 10)
+                .primaryImage(resolvePrimaryImage(p))
+                .build();
+    }
+
+    public long countLowStockVariants(int threshold) {
+        return productVariantRepository.countLowStock(threshold);
     }
 }

@@ -21,4 +21,13 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT pv FROM ProductVariant pv WHERE pv.id = :id")
     Optional<ProductVariant> findByIdWithLock(@Param("id") Long id);
+
+    @Query("SELECT pv FROM ProductVariant pv JOIN FETCH pv.product p WHERE (:lowStockOnly = false OR pv.stockQuantity <= 10) ORDER BY pv.stockQuantity ASC")
+    org.springframework.data.domain.Page<ProductVariant> findInventoryVariants(
+            @Param("lowStockOnly") boolean lowStockOnly,
+            org.springframework.data.domain.Pageable pageable
+    );
+
+    @Query("SELECT COUNT(pv) FROM ProductVariant pv WHERE pv.stockQuantity <= :threshold AND pv.active = true")
+    long countLowStock(@Param("threshold") int threshold);
 }
