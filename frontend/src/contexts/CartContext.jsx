@@ -54,6 +54,11 @@ export const CartProvider = ({ children }) => {
     const selectedColor = color || product.colors?.[0]?.name || 'Tiêu chuẩn';
     const itemUniqueId = `${product.id}-${size}-${selectedColor}`;
 
+    const matchingVariant = product.variants?.find(
+      (v) => v.size?.toUpperCase() === (size || 'M').toUpperCase() && (!color || v.color?.toLowerCase() === selectedColor.toLowerCase())
+    ) || product.sizes?.find((s) => s.size?.toUpperCase() === (size || 'M').toUpperCase());
+    const variantId = matchingVariant?.id || matchingVariant?.variantId || 1;
+
     setCartItems((prev) => {
       const existingIndex = prev.findIndex((item) => item.id === itemUniqueId);
 
@@ -67,6 +72,7 @@ export const CartProvider = ({ children }) => {
           {
             id: itemUniqueId,
             productId: product.id,
+            variantId,
             product,
             size,
             color: selectedColor,

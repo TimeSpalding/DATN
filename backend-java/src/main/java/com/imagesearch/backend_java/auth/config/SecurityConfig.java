@@ -62,6 +62,13 @@ public class SecurityConfig {
                         .requestMatchers("/images/{imageId}").permitAll()
                         .requestMatchers("/images/trash/{imageId}").permitAll()
                         .requestMatchers("/images/download/{imageId}").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/categories/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/products/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/orders/checkout").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/orders/my-orders").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/orders/**").permitAll()
+                        .requestMatchers("/cart/**").authenticated()
+                        .requestMatchers("/admin/orders/**").hasRole("ADMIN")
                         .requestMatchers(
                                 "/search-history/**",
                                 "/bookmarks/**",

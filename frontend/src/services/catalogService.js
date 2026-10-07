@@ -1,3 +1,4 @@
+import apiClient from './apiClient';
 import { CATALOG_PRODUCTS } from '../mocks/catalogData';
 
 const LOCAL_STORAGE_CUSTOM_PRODUCTS = 'latelier_custom_products';
@@ -23,9 +24,38 @@ export const catalogService = {
     page = 1,
     limit = 12
   } = {}) => {
-    // Simulate realistic async network delay (150ms)
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    try {
+      const response = await apiClient.get('/products', {
+        params: {
+          category,
+          search: search || undefined,
+          sort,
+          minPrice: minPrice > 0 ? minPrice : undefined,
+          maxPrice: maxPrice < 5000000 ? maxPrice : undefined,
+          size,
+          gender,
+          page,
+          limit
+        }
+      });
+      if (response.data && response.data.success && response.data.data) {
+        const pageData = response.data.data;
+        return {
+          success: true,
+          data: pageData.content || [],
+          pagination: {
+            page: (pageData.page || 0) + 1,
+            limit: pageData.size || limit,
+            total: pageData.totalElements || 0,
+            totalPages: pageData.totalPages || 1
+          }
+        };
+      }
+    } catch (err) {
+      console.warn('Backend products API unavailable, falling back to local catalog data:', err.message);
+    }
 
+    // Fallback to local mock data
     let items = getMergedProducts();
 
     if (category && category !== 'all') {
@@ -36,13 +66,13 @@ export const catalogService = {
       items = items.filter((p) => p.gender === gender || p.gender === 'unisex');
     }
 
-    if (search.trim()) {
+    if (search && search.trim()) {
       const q = search.toLowerCase().trim();
       items = items.filter(
         (p) =>
           p.name.toLowerCase().includes(q) ||
           p.sku.toLowerCase().includes(q) ||
-          p.material.toLowerCase().includes(q)
+          p.material?.toLowerCase().includes(q)
       );
     }
 
@@ -55,10 +85,9 @@ export const catalogService = {
     }
 
     if (size && size !== 'all') {
-      items = items.filter((p) => p.sizes.some((s) => s.size === size && s.stock > 0));
+      items = items.filter((p) => p.sizes?.some((s) => s.size === size && s.stock > 0));
     }
 
-    // Sorting
     switch (sort) {
       case 'price-asc':
         items.sort((a, b) => a.rawPrice - b.rawPrice);
@@ -95,9 +124,17 @@ export const catalogService = {
   },
 
   getProductById: async (id) => {
-    await new Promise((resolve) => setTimeout(resolve, 80));
+    try {
+      const response = await apiClient.get(`/products/${id}`);
+      if (response.data && response.data.success && response.data.data) {
+        return { success: true, data: response.data.data };
+      }
+    } catch (err) {
+      console.warn(`Backend product ${id} API error, falling back to mock:`, err.message);
+    }
+
     const all = getMergedProducts();
-    const product = all.find((p) => p.id === id);
+    const product = all.find((p) => String(p.id) === String(id) || p.sku === id);
     if (!product) {
       throw new Error(`Không tìm thấy sản phẩm mã ${id}`);
     }
@@ -105,22 +142,40 @@ export const catalogService = {
   },
 
   getFeaturedProducts: async (limit = 4) => {
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    try {
+      const response = await apiClient.get('/products', {
+        params: { sort: 'popular', limit }
+      });
+      if (response.data && response.data.success && response.data.data) {
+        return { success: true, data: response.data.data.content || [] };
+      }
+    } catch (err) {
+      console.warn('Backend featured products API error, falling back to mock:', err.message);
+    }
+
     const all = getMergedProducts();
     const featured = all.filter((p) => p.featured).slice(0, limit);
     return { success: true, data: featured };
   },
 
   getRelatedProducts: async (currentId, category, limit = 4) => {
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    try {
+      const response = await apiClient.get(`/products/${currentId}/related`);
+      if (response.data && response.data.success && response.data.data) {
+        return { success: true, data: response.data.data };
+      }
+    } catch (err) {
+      console.warn('Backend related products API error, falling back to mock:', err.message);
+    }
+
     const all = getMergedProducts();
     const related = all
-      .filter((p) => p.id !== currentId && (p.category === category || p.featured))
+      .filter((p) => String(p.id) !== String(currentId) && (p.category === category || p.featured))
       .slice(0, limit);
     return { success: true, data: related };
   },
 
-  // Admin capabilities for managing products in mock store
+  // Admin capabilities for managing products
   addProduct: async (newProduct) => {
     const current = JSON.parse(localStorage.getItem(LOCAL_STORAGE_CUSTOM_PRODUCTS) || '[]');
     const productWithId = {
