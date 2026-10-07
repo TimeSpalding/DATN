@@ -28,6 +28,8 @@ public interface ImageRepository extends JpaRepository<ImageEntity, Long> {
 
     Long countByDeletedFalse();
 
+    Long countByUploadedByAndDeletedFalse(com.imagesearch.backend_java.auth.entity.User user);
+
     Long countByIndexStatus(ImageIndexStatus indexStatus);
 
     Long countByIndexStatusAndDeletedFalse(ImageIndexStatus indexStatus);

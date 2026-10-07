@@ -22,4 +22,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Page<Order> findByOrderStatusOrderByCreatedAtDesc(OrderStatus orderStatus, Pageable pageable);
 
     long countByOrderStatus(OrderStatus orderStatus);
+
+    long countByUserId(Long userId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o WHERE o.orderStatus <> 'CANCELLED'")
+    java.math.BigDecimal sumTotalRevenue();
 }
