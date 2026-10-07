@@ -30,4 +30,7 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
 
     @Query("SELECT COUNT(pv) FROM ProductVariant pv WHERE pv.stockQuantity <= :threshold AND pv.active = true")
     long countLowStock(@Param("threshold") int threshold);
+
+    @Query("SELECT COUNT(pv) FROM ProductVariant pv WHERE pv.stockQuantity = 0 AND pv.active = true")
+    long countOutOfStock();
 }

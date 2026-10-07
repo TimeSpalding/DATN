@@ -23,6 +23,8 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
     Page<Product> findByStatus(ProductStatus status, Pageable pageable);
 
+    long countByStatus(ProductStatus status);
+
     @Query("SELECT p FROM Product p WHERE p.category = :category AND p.id <> :id AND p.status = 'ACTIVE' ORDER BY p.rating DESC")
     List<Product> findRelatedProducts(@Param("category") Category category, @Param("id") Long id, Pageable pageable);
 
