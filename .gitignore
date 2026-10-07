@@ -1,43 +1,182 @@
-# OS / Editor
-.DS_Store
-Thumbs.db
-.vscode/
-.idea/
+# ==============================================================================
+# HỆ THỐNG QUẢN LÝ CỬA HÀNG THỜI TRANG ĐA PHƯƠNG THỨC & THỬ ĐỒ ẢO
+# Root .gitignore - Cấu hình bỏ qua tệp tin toàn dự án
+# ==============================================================================
 
-# Root env files
+# ------------------------------------------------------------------------------
+# 1. Hệ điều hành và tệp tạm hệ thống (OS & Temporary Files)
+# ------------------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+
+# ------------------------------------------------------------------------------
+# 2. Môi trường phát triển và cấu hình trình soạn thảo (IDEs & Editors)
+# ------------------------------------------------------------------------------
+# JetBrains (IntelliJ IDEA, PyCharm, WebStorm)
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# Eclipse / Spring Tool Suite (STS)
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# ------------------------------------------------------------------------------
+# 3. Biến môi trường và chứng chỉ bảo mật (Environment & Secrets)
+# ------------------------------------------------------------------------------
 .env
 .env.*
 !.env.example
-.env.ci
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+*.cert
+*.crt
+*.pfx
+*.p12
 
-# Python
-**/__pycache__/
-**/*.py[cod]
-**/.pytest_cache/
-**/.mypy_cache/
-**/.ruff_cache/
-**/venv/
-**/.venv/
-
-# Java / Maven
-**/target/
-**/build/
-
-# Node (future frontend)
+# ------------------------------------------------------------------------------
+# 4. Frontend (Node.js / React / Vite)
+# ------------------------------------------------------------------------------
+node_modules/
 **/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.pnpm-store/
+frontend/dist/
+frontend/dist-ssr/
+**/dist/
+**/dist-ssr/
+.eslintcache
+.stylelintcache
+*.tsbuildinfo
 
-# Logs
-**/*.log
+# ------------------------------------------------------------------------------
+# 5. Backend Java (Spring Boot / Maven / Gradle)
+# ------------------------------------------------------------------------------
+target/
+**/target/
+build/
+**/build/
+.gradle/
+**/bin/
+*.class
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+hs_err_pid*
+replay_pid*
 
-# Runtime data
+# ------------------------------------------------------------------------------
+# 6. Backend AI (Python / FastAPI / PyTorch)
+# ------------------------------------------------------------------------------
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.pytest_cache/
+**/.pytest_cache/
+.mypy_cache/
+**/.mypy_cache/
+.ruff_cache/
+**/.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+venv/
+**/venv/
+.venv/
+**/.venv/
+env/
+**/env/
+ENV/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ------------------------------------------------------------------------------
+# 7. Mô hình AI, trọng số và bộ nhớ đệm (AI Models, Weights & Caches)
+# ------------------------------------------------------------------------------
 backend-ai/uploads/
 backend-ai/models/
+backend-ai/base_model_cache/
+backend-ai/ocr_model_cache/
+base_model_cache/
+**/base_model_cache/
+ocr_model_cache/
+**/ocr_model_cache/
+lora-weights/
+**/lora-weights/
+.cache/
+**/.cache/
+*.onnx
+*.bin
+*.pt
+*.pth
+*.safetensors
+*.ckpt
 
+# ------------------------------------------------------------------------------
+# 8. Dữ liệu Docker và tệp nhật ký (Docker Volumes & Runtime Logs)
+# ------------------------------------------------------------------------------
+postgres-data/
+qdrant-data/
+minio-data/
+docker-compose.override.yml
+*.log
+logs/
+**/logs/
+
+# ------------------------------------------------------------------------------
+# 9. Tài liệu đánh giá hiện trạng và báo cáo nháp nội bộ
+# ------------------------------------------------------------------------------
+danh-gia-hien-trang*.md
 yeucau.md
-
-frontend/frontend-summary-report.md
-frontend/frontend-technical-report.md
-
-# docker-compose.override.yml
-
+frontend/*-report.md
 frontend/baocaoFE.md

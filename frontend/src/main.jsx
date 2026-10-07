@@ -4,25 +4,24 @@ import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
-// 1. Import AOS và file CSS
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 
 import App from './App';
 import { AuthProvider } from './contexts/AuthContext';
+import { CartProvider } from './contexts/CartContext';
+import { WishlistProvider } from './contexts/WishlistContext';
 import './index.css';
 
-// Khởi tạo Query Client để quản lý cache
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnWindowFocus: false, // Không tự gọi lại API khi user chuyển tab
-      retry: 1, // Thử lại 1 lần nếu lỗi mạng
+      refetchOnWindowFocus: false,
+      retry: 1,
     },
   },
 });
 
-// Khởi tạo AOS một lần lúc load trang
 AOS.init({
   duration: 600, 
   once: true,    
@@ -34,10 +33,13 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <App />
+          <WishlistProvider>
+            <CartProvider>
+              <App />
+            </CartProvider>
+          </WishlistProvider>
         </AuthProvider>
       </BrowserRouter>
-      {/* Nút debug màu đỏ ở góc dưới màn hình */}
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   </React.StrictMode>
