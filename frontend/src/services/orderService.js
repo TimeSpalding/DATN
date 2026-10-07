@@ -228,8 +228,9 @@ export const orderService = {
 
   updateOrderStatus: async (orderId, newStatus) => {
     try {
-      if (typeof orderId === 'number') {
-        const res = await apiClient.put(`/admin/orders/${orderId}/status`, { orderStatus: newStatus });
+      const numId = Number(orderId);
+      if (!isNaN(numId) && numId > 0) {
+        const res = await apiClient.put(`/admin/orders/${numId}/status`, { orderStatus: newStatus.toUpperCase() });
         if (res.data && res.data.success && res.data.data) {
           return { success: true, data: res.data.data };
         }

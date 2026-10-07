@@ -177,6 +177,27 @@ export const catalogService = {
 
   // Admin capabilities for managing products
   addProduct: async (newProduct) => {
+    try {
+      const payload = {
+        name: newProduct.name,
+        categoryCode: newProduct.category || 'upper',
+        subCategory: newProduct.subCategory || 'shirt',
+        basePrice: Number(newProduct.rawPrice) || 350000,
+        originalPrice: Number(newProduct.originalPrice) || Number(newProduct.rawPrice) || 350000,
+        material: newProduct.material || 'Cotton',
+        origin: newProduct.origin || 'Việt Nam',
+        badge: newProduct.badge || 'Mới về',
+        image: newProduct.image || '/samples/cloth-1.jpg',
+        description: newProduct.description || ''
+      };
+      const response = await apiClient.post('/admin/products', payload);
+      if (response.data && response.data.success) {
+        return { success: true, data: response.data.data };
+      }
+    } catch (err) {
+      console.warn('Backend addProduct API failed, falling back to local simulation:', err.message);
+    }
+
     const current = JSON.parse(localStorage.getItem(LOCAL_STORAGE_CUSTOM_PRODUCTS) || '[]');
     const productWithId = {
       ...newProduct,
@@ -194,9 +215,42 @@ export const catalogService = {
   },
 
   deleteProduct: async (id) => {
+    try {
+      if (typeof id === 'number' || !isNaN(Number(id))) {
+        await apiClient.delete(`/admin/products/${id}`);
+        return { success: true };
+      }
+    } catch (err) {
+      console.warn('Backend deleteProduct API failed, falling back to local simulation:', err.message);
+    }
+
     const current = JSON.parse(localStorage.getItem(LOCAL_STORAGE_CUSTOM_PRODUCTS) || '[]');
     const filtered = current.filter((p) => p.id !== id);
     localStorage.setItem(LOCAL_STORAGE_CUSTOM_PRODUCTS, JSON.stringify(filtered));
     return { success: true };
+  },
+
+  getInventory: async ({ lowStockOnly = false, page = 0, size = 20 } = {}) => {
+    try {
+      const response = await apiClient.get('/admin/inventory', {
+        params: { lowStockOnly, page, size }
+      });
+      if (response.data && response.data.success) {
+        return response.data.data;
+      }
+    } catch (err) {
+      console.warn('Backend getInventory API failed:', err.message);
+    }
+    return { content: [], totalElements: 0 };
+  },
+
+  updateInventory: async (variantId, { stockQuantity, deltaQuantity, priceOverride, active }) => {
+    const response = await apiClient.put(`/admin/inventory/${variantId}`, {
+      stockQuantity,
+      deltaQuantity,
+      priceOverride,
+      active
+    });
+    return response.data?.data;
   }
 };

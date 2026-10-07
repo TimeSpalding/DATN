@@ -22,6 +22,11 @@ export const getAdminStats = async () => {
   return unwrapResponse(response);
 };
 
+export const getAdminDashboardOverview = async () => {
+  const response = await apiClient.get("/admin/dashboard/overview");
+  return unwrapResponse(response);
+};
+
 export const triggerIndexingJob = async (imageIds) => {
   const payload = Array.isArray(imageIds) && imageIds.length > 0
     ? { imageIds, startImmediately: true }
