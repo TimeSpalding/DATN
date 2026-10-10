@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Trash2, Edit2, ShoppingBag, Eye, X, Check } from 'lucide-react';
+import { Plus, Search, Trash2, Edit2, ShoppingBag, Eye, X, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { catalogService } from '../../services/catalogService';
+import { resolveImageUrl } from '../../utils/imageUrl';
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newProduct, setNewProduct] = useState({
     name: '',
@@ -19,11 +23,15 @@ export default function AdminProducts() {
     description: '',
   });
 
-  const loadProducts = async () => {
+  const loadProducts = async (targetPage = page) => {
     setLoading(true);
     try {
-      const res = await catalogService.getProducts({ page: 1, limit: 50, search: searchTerm });
+      const res = await catalogService.getProducts({ page: targetPage, limit: 20, search: searchTerm });
       setProducts(res?.data || []);
+      if (res?.pagination) {
+        setTotalPages(res.pagination.totalPages || 1);
+        setTotalCount(res.pagination.total || 0);
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -32,8 +40,13 @@ export default function AdminProducts() {
   };
 
   useEffect(() => {
-    loadProducts();
+    setPage(1);
+    loadProducts(1);
   }, [searchTerm]);
+
+  useEffect(() => {
+    loadProducts(page);
+  }, [page]);
 
   const handleDelete = async (id) => {
     if (!window.confirm('Bạn có chắc muốn xóa sản phẩm này?')) return;
@@ -125,9 +138,13 @@ export default function AdminProducts() {
                   <tr key={prod.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="p-3">
                       <img
-                        src={prod.image}
+                        src={resolveImageUrl(prod.image)}
                         alt={prod.name}
                         className="w-12 h-16 object-cover rounded-lg bg-slate-100 border border-slate-200"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = '/samples/cloth-1.jpg';
+                        }}
                       />
                     </td>
                     <td className="p-3 font-mono font-bold text-slate-900">{prod.sku}</td>
@@ -155,6 +172,43 @@ export default function AdminProducts() {
             </tbody>
           </table>
         </div>
+
+        {/* Admin Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="p-4 border-t border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <span className="text-slate-500">
+              Trang <strong>{page}</strong> / <strong>{totalPages}</strong> (Tổng <strong>{totalCount.toLocaleString('vi-VN')}</strong> sản phẩm)
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-semibold ${
+                  page <= 1
+                    ? 'border-slate-200 text-slate-300 bg-slate-100 cursor-not-allowed'
+                    : 'border-slate-300 bg-white text-slate-700 hover:border-slate-950 cursor-pointer'
+                }`}
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+                <span>Trước</span>
+              </button>
+              <button
+                type="button"
+                disabled={page >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-semibold ${
+                  page >= totalPages
+                    ? 'border-slate-200 text-slate-300 bg-slate-100 cursor-not-allowed'
+                    : 'border-slate-300 bg-white text-slate-700 hover:border-slate-950 cursor-pointer'
+                }`}
+              >
+                <span>Sau</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Add Product Modal */}

@@ -11,7 +11,7 @@ export default function AdminOrders() {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const res = await orderService.getOrders();
+      const res = await orderService.getAllOrdersAdmin();
       setOrders(res?.data || []);
     } catch (e) {
       console.error(e);
@@ -35,8 +35,9 @@ export default function AdminOrders() {
 
   const filteredOrders = orders.filter((o) => {
     const q = searchTerm.toLowerCase();
+    const orderCode = (o.orderNumber || String(o.id)).toLowerCase();
     return (
-      o.id.toLowerCase().includes(q) ||
+      orderCode.includes(q) ||
       o.customer?.fullName?.toLowerCase().includes(q) ||
       o.customer?.phone?.includes(q)
     );
@@ -97,10 +98,10 @@ export default function AdminOrders() {
                 </tr>
               ) : (
                 filteredOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="p-3 font-mono font-bold text-blue-900">{order.id}</td>
-                    <td className="p-3 font-semibold text-slate-900">{order.customer?.fullName}</td>
-                    <td className="p-3 text-slate-500">{order.customer?.phone}</td>
+                  <tr key={order.id || order.orderNumber} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="p-3 font-mono font-bold text-blue-900">{order.orderNumber || order.id}</td>
+                    <td className="p-3 font-semibold text-slate-900">{order.customer?.fullName || 'Khách vãng lai'}</td>
+                    <td className="p-3 text-slate-500">{order.customer?.phone || 'N/A'}</td>
                     <td className="p-3 font-extrabold text-slate-950">
                       {(order.totalAmount || 0).toLocaleString('vi-VN')}₫
                     </td>
@@ -114,21 +115,24 @@ export default function AdminOrders() {
                     </td>
                     <td className="p-3">
                       <select
-                        value={order.status}
+                        value={order.orderStatus?.toLowerCase() || order.status?.toLowerCase() || 'pending'}
                         onChange={(e) => handleStatusChange(order.id, e.target.value)}
                         className={`px-2.5 py-1 rounded-full text-[11px] font-bold border cursor-pointer focus:outline-none ${
-                          order.status === 'delivered'
+                          (order.orderStatus?.toLowerCase() || order.status) === 'delivered'
                             ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                            : order.status === 'shipping'
+                            : (order.orderStatus?.toLowerCase() || order.status) === 'shipping'
                             ? 'bg-blue-50 text-blue-800 border-blue-200'
-                            : order.status === 'processing'
+                            : (order.orderStatus?.toLowerCase() || order.status) === 'processing'
                             ? 'bg-amber-50 text-amber-800 border-amber-200'
-                            : order.status === 'cancelled'
+                            : (order.orderStatus?.toLowerCase() || order.status) === 'confirmed'
+                            ? 'bg-indigo-50 text-indigo-800 border-indigo-200'
+                            : (order.orderStatus?.toLowerCase() || order.status) === 'cancelled'
                             ? 'bg-rose-50 text-rose-800 border-rose-200'
                             : 'bg-slate-100 text-slate-800 border-slate-200'
                         }`}
                       >
                         <option value="pending">Chờ xác nhận</option>
+                        <option value="confirmed">Đã xác nhận</option>
                         <option value="processing">Đang đóng gói</option>
                         <option value="shipping">Đang giao hàng</option>
                         <option value="delivered">Đã giao hàng</option>

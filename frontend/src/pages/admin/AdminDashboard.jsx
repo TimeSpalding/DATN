@@ -12,7 +12,7 @@ import {
   FiCheckCircle,
 } from "react-icons/fi";
 import { Sparkles, DollarSign } from "lucide-react";
-import { getAdminStats } from "../../services/adminIndexingService";
+import { getAdminStats, getAdminDashboardOverview } from "../../services/adminIndexingService";
 import { orderService } from "../../services/orderService";
 import { catalogService } from "../../services/catalogService";
 
@@ -21,21 +21,37 @@ const formatNumber = (value) => numberFormatter.format(Number(value ?? 0));
 
 export default function AdminDashboard() {
   const [orders, setOrders] = useState([]);
-  const [productsCount, setProductsCount] = useState(12);
+  const [productsCount, setProductsCount] = useState(0);
 
   const statsQuery = useQuery({
     queryKey: ["admin-dashboard-stats"],
     queryFn: async () => {
       try {
-        return await getAdminStats();
+        const overview = await getAdminDashboardOverview();
+        if (overview) return overview;
+      } catch (err) {
+        console.warn("getAdminDashboardOverview failed, trying getAdminStats", err.message);
+      }
+      try {
+        const stats = await getAdminStats();
+        return {
+          totalUsers: stats.totalUsers ?? 1,
+          totalIndexedImages: stats.indexed ?? 0,
+          pendingImages: stats.pending ?? 0,
+          totalRevenue: 0,
+          totalOrders: 0,
+          totalProducts: 8,
+          lowStockCount: 0
+        };
       } catch {
         return {
-          totalUsers: 142,
-          totalImages: 1050,
-          indexed: 1042,
-          processing: 0,
-          pending: 0,
-          failed: 8,
+          totalUsers: 1,
+          totalIndexedImages: 500,
+          pendingImages: 0,
+          totalRevenue: 0,
+          totalOrders: 0,
+          totalProducts: 8,
+          lowStockCount: 0
         };
       }
     },
@@ -45,10 +61,10 @@ export default function AdminDashboard() {
   useEffect(() => {
     const loadExtra = async () => {
       try {
-        const orderRes = await orderService.getOrders();
+        const orderRes = await orderService.getAllOrdersAdmin();
         setOrders(orderRes?.data || []);
         const prodRes = await catalogService.getProducts({ page: 1, limit: 100 });
-        setProductsCount(prodRes?.pagination?.total || 12);
+        setProductsCount(prodRes?.pagination?.total || 8);
       } catch (e) {
         console.error(e);
       }
@@ -57,7 +73,11 @@ export default function AdminDashboard() {
   }, []);
 
   const stats = statsQuery.data || {};
-  const totalRevenue = orders.reduce((acc, o) => acc + (o.totalAmount || 0), 0) + 18500000;
+  const totalRevenue = stats.totalRevenue ?? orders.reduce((acc, o) => acc + (o.totalAmount || 0), 0);
+  const revenueDisplay = stats.totalRevenueFormatted || `${formatNumber(totalRevenue)}₫`;
+  const totalOrderCount = stats.totalOrders ?? orders.length;
+  const totalProductCount = stats.totalProducts ?? productsCount;
+  const recentOrdersList = stats.recentOrders?.length ? stats.recentOrders : orders;
 
   return (
     <div className="p-6 max-w-7xl mx-auto w-full space-y-8">
@@ -91,30 +111,30 @@ export default function AdminDashboard() {
         {/* Revenue */}
         <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Doanh thu giả lập</span>
+            <span className="text-xs font-semibold text-slate-500">Tổng doanh thu</span>
             <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-800 flex items-center justify-center font-bold">
               ₫
             </div>
           </div>
           <p className="text-2xl font-extrabold text-blue-950 mt-3">
-            {formatNumber(totalRevenue)}₫
+            {revenueDisplay}
           </p>
           <p className="text-[11px] text-emerald-600 font-semibold mt-2 flex items-center gap-1">
             <FiTrendingUp className="size-3.5" />
-            <span>+18.4% so với tháng trước</span>
+            <span>Doanh thu thực tế hệ thống</span>
           </p>
         </div>
 
         {/* Orders */}
         <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Đơn hàng mới</span>
+            <span className="text-xs font-semibold text-slate-500">Đơn hàng</span>
             <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-900 flex items-center justify-center font-bold">
               <FiPackage className="size-4" />
             </div>
           </div>
           <p className="text-2xl font-extrabold text-slate-950 mt-3">
-            {orders.length + 18} đơn
+            {totalOrderCount} đơn
           </p>
           <Link to="/admin/orders" className="text-[11px] text-blue-800 font-semibold mt-2 inline-flex items-center gap-1 hover:underline">
             <span>Xem quản lý đơn hàng</span>
@@ -125,16 +145,16 @@ export default function AdminDashboard() {
         {/* Catalog Products */}
         <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Sản phẩm trong tủ đồ</span>
+            <span className="text-xs font-semibold text-slate-500">Sản phẩm trong kho</span>
             <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-900 flex items-center justify-center font-bold">
               <FiShoppingBag className="size-4" />
             </div>
           </div>
           <p className="text-2xl font-extrabold text-slate-950 mt-3">
-            {productsCount} sản phẩm
+            {totalProductCount} sản phẩm
           </p>
           <Link to="/admin/products" className="text-[11px] text-blue-800 font-semibold mt-2 inline-flex items-center gap-1 hover:underline">
-            <span>Quản lý kho hàng</span>
+            <span>{stats.lowStockCount > 0 ? `Cảnh báo: ${stats.lowStockCount} sắp hết` : 'Quản lý kho hàng'}</span>
             <FiArrowRight className="size-3" />
           </Link>
         </div>
@@ -218,15 +238,15 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
-              {orders.slice(0, 4).map((o) => (
-                <tr key={o.id}>
-                  <td className="py-3 font-mono font-bold text-blue-900">{o.id}</td>
-                  <td className="py-3 font-semibold text-slate-900">{o.customer?.fullName}</td>
-                  <td className="py-3 font-extrabold">{(o.totalAmount || 0).toLocaleString('vi-VN')}₫</td>
-                  <td className="py-3">{o.paymentMethod}</td>
+              {recentOrdersList.slice(0, 5).map((o) => (
+                <tr key={o.id || o.orderNumber}>
+                  <td className="py-3 font-mono font-bold text-blue-900">{o.orderNumber || o.id}</td>
+                  <td className="py-3 font-semibold text-slate-900">{o.customer?.fullName || 'Khách vãng lai'}</td>
+                  <td className="py-3 font-extrabold">{typeof o.totalAmount === 'number' ? `${o.totalAmount.toLocaleString('vi-VN')}₫` : o.totalAmount}</td>
+                  <td className="py-3">{o.paymentMethod || 'COD'}</td>
                   <td className="py-3">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-slate-100 text-slate-700">
-                      {o.status}
+                    <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-slate-100 text-slate-700 uppercase">
+                      {o.orderStatus || o.status || 'pending'}
                     </span>
                   </td>
                 </tr>

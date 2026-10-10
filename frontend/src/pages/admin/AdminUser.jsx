@@ -1,13 +1,13 @@
-import { getAdminUsers } from "../../services/adminUserService"
-import { keepPreviousData, useQuery } from "@tanstack/react-query"
+import { getAdminUsers, updateAdminUserStatus, updateAdminUserRole } from "../../services/adminUserService"
+import { keepPreviousData, useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
-import { data } from "react-router-dom";
 
 const PAGE_SIZE = 20;
 
 export const AdminUser = () => {
-
     const [page, setPage] = useState(0);
+    const queryClient = useQueryClient();
+
     const dataUser = useQuery({
         queryKey: ["admin-user", page],
         queryFn: () => getAdminUsers({
@@ -17,17 +17,39 @@ export const AdminUser = () => {
         placeholderData: keepPreviousData,
     })
 
+    const statusMutation = useMutation({
+        mutationFn: ({ userId, status }) => updateAdminUserStatus(userId, status),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-user"] })
+    });
+
+    const roleMutation = useMutation({
+        mutationFn: ({ userId, role }) => updateAdminUserRole(userId, role),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-user"] })
+    });
+
     const listUser = dataUser.data?.content || [];
     const totalPages = dataUser.data?.totalPages;
     const totalElements = dataUser.data?.totalElements;
-
 
     const formatDate = (dateString) => {
         if (!dateString) return '';
         const safeDateString = dateString.endsWith('Z') ? dateString : `${dateString}Z`;
         const date = new Date(safeDateString);
-        
         return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + date.toLocaleDateString('vi-VN');
+    };
+
+    const handleToggleStatus = (user) => {
+        const nextStatus = user.status === 'ACTIVE' ? 'BLOCKED' : 'ACTIVE';
+        if (window.confirm(`Bạn có chắc muốn ${nextStatus === 'BLOCKED' ? 'khóa' : 'mở khóa'} tài khoản ${user.username}?`)) {
+            statusMutation.mutate({ userId: user.id, status: nextStatus });
+        }
+    };
+
+    const handleToggleRole = (user) => {
+        const nextRole = user.role === 'ADMIN' ? 'USER' : 'ADMIN';
+        if (window.confirm(`Bạn có chắc muốn chuyển vai trò của ${user.username} thành ${nextRole}?`)) {
+            roleMutation.mutate({ userId: user.id, role: nextRole });
+        }
     };
 
     return (
@@ -37,10 +59,10 @@ export const AdminUser = () => {
                 <div className="mb-4 sm:mb-6 flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
                     <div>
                         <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Quản lý người dùng</h1>
-                        <p className="text-xs sm:text-sm text-gray-500 mt-1">Danh sách tài khoản hệ thống</p>
+                        <p className="text-xs sm:text-sm text-gray-500 mt-1">Danh sách tài khoản và phân quyền hệ thống</p>
                     </div>
                     <span className="w-fit bg-blue-100 text-blue-800 text-xs sm:text-sm font-semibold px-3 py-1 sm:px-4 sm:py-1.5 rounded-full shadow-sm">
-                        Tổng số: {totalElements} user
+                        Tổng số: {totalElements ?? 0} user
                     </span>
                 </div>
 
@@ -54,18 +76,19 @@ export const AdminUser = () => {
                                 <th scope="col" className="px-3 sm:px-6 py-3 sm:py-4 font-semibold">Role</th>
                                 <th scope="col" className="px-3 sm:px-6 py-3 sm:py-4 font-semibold">Status</th>
                                 <th scope="col" className="px-3 sm:px-6 py-3 sm:py-4 font-semibold">Ngày tạo</th>
+                                <th scope="col" className="px-3 sm:px-6 py-3 sm:py-4 font-semibold text-right">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
                             {dataUser.isLoading ? (
                                 <tr>
-                                    <td colSpan="6" className="px-6 py-8 text-center text-gray-500 font-medium">
+                                    <td colSpan="7" className="px-6 py-8 text-center text-gray-500 font-medium">
                                         Đang tải dữ liệu...
                                     </td>
                                 </tr>
                             ) : listUser.length === 0 ? (
                                 <tr>
-                                    <td colSpan="6" className="px-6 py-8 text-center text-gray-500 font-medium">
+                                    <td colSpan="7" className="px-6 py-8 text-center text-gray-500 font-medium">
                                         Không tìm thấy dữ liệu người dùng
                                     </td>
                                 </tr>
@@ -82,12 +105,16 @@ export const AdminUser = () => {
                                             {user.email}
                                         </td>
                                         <td className="px-3 sm:px-6 py-3 sm:py-4">
-                                            <span className={`px-2 py-1 text-[10px] sm:text-xs font-bold rounded-md ${user.role === 'ADMIN'
-                                                ? 'bg-purple-100 text-purple-700 border border-purple-200'
-                                                : 'bg-gray-100 text-gray-700 border border-gray-200'
-                                                }`}>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleToggleRole(user)}
+                                                title="Bấm để đổi quyền"
+                                                className={`px-2 py-1 text-[10px] sm:text-xs font-bold rounded-md cursor-pointer transition ${user.role === 'ADMIN'
+                                                    ? 'bg-purple-100 text-purple-700 border border-purple-200 hover:bg-purple-200'
+                                                    : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
+                                                    }`}>
                                                 {user.role}
-                                            </span>
+                                            </button>
                                         </td>
                                         <td className="px-3 sm:px-6 py-3 sm:py-4">
                                             <div className="flex items-center gap-1.5 sm:gap-2">
@@ -101,6 +128,19 @@ export const AdminUser = () => {
                                         </td>
                                         <td className="px-3 sm:px-6 py-3 sm:py-4 text-gray-500">
                                             {formatDate(user.createdAt)}
+                                        </td>
+                                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
+                                            <button
+                                                type="button"
+                                                onClick={() => handleToggleStatus(user)}
+                                                className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg border cursor-pointer transition ${
+                                                    user.status === 'ACTIVE'
+                                                        ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
+                                                        : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                                                }`}
+                                            >
+                                                {user.status === 'ACTIVE' ? 'Khóa TK' : 'Kích hoạt'}
+                                            </button>
                                         </td>
                                     </tr>
                                 ))

@@ -1,10 +1,15 @@
+import apiClient from './apiClient';
+
 const ORDER_STORAGE_KEY = 'latelier_customer_orders';
 
 const INITIAL_MOCK_ORDERS = [
   {
     id: 'ORD-894210',
+    orderNumber: 'ORD-894210',
     createdAt: '2026-09-25T14:32:00Z',
-    status: 'delivered', // pending | processing | shipping | delivered | cancelled
+    orderStatus: 'delivered',
+    paymentStatus: 'paid',
+    paymentMethod: 'COD',
     customer: {
       fullName: 'Nguyễn Văn An',
       phone: '0912345678',
@@ -14,7 +19,6 @@ const INITIAL_MOCK_ORDERS = [
     items: [
       {
         id: 'polo-retro-knit-L-Navy',
-        productId: 'polo-retro-knit',
         name: 'Áo Polo Dệt Kim Họa Tiết Retro Khóa Zip',
         size: 'L',
         color: 'Xanh Navy Họa Tiết',
@@ -24,7 +28,6 @@ const INITIAL_MOCK_ORDERS = [
       },
       {
         id: 'graphic-tee-owl-M-White',
-        productId: 'graphic-tee-owl',
         name: 'Áo Thun Cổ Tròn Graphic Owl Heavyweight 280gsm',
         size: 'M',
         color: 'Trắng Ngà Off-White',
@@ -34,7 +37,6 @@ const INITIAL_MOCK_ORDERS = [
       }
     ],
     shippingMethod: 'standard',
-    paymentMethod: 'COD',
     subtotal: 1189000,
     shippingFee: 0,
     discountAmount: 118900,
@@ -45,8 +47,11 @@ const INITIAL_MOCK_ORDERS = [
   },
   {
     id: 'ORD-752109',
+    orderNumber: 'ORD-752109',
     createdAt: '2026-09-27T09:15:00Z',
-    status: 'shipping',
+    orderStatus: 'shipping',
+    paymentStatus: 'paid',
+    paymentMethod: 'VNPAY',
     customer: {
       fullName: 'Trần Thị Mai',
       phone: '0987654321',
@@ -56,7 +61,6 @@ const INITIAL_MOCK_ORDERS = [
     items: [
       {
         id: 'linen-maxi-dress-M-Beige',
-        productId: 'linen-maxi-dress',
         name: 'Váy Đầm Dài Linen Thắt Eo Nữ Tính',
         size: 'M',
         color: 'Beige Mộc',
@@ -66,7 +70,6 @@ const INITIAL_MOCK_ORDERS = [
       }
     ],
     shippingMethod: 'express',
-    paymentMethod: 'VNPAY',
     subtotal: 890000,
     shippingFee: 0,
     discountAmount: 0,
@@ -92,6 +95,33 @@ const getStoredOrders = () => {
 
 export const orderService = {
   createOrder: async ({ customer, items, shippingMethod, paymentMethod, subtotal, shippingFee, discountAmount, totalAmount, notes = '' }) => {
+    try {
+      const payload = {
+        recipientName: customer?.fullName || 'Khách hàng',
+        phoneNumber: customer?.phone || '0987654321',
+        shippingAddress: customer?.address || 'Hà Nội',
+        shippingMethod: shippingMethod || 'standard',
+        paymentMethod: paymentMethod || 'COD',
+        notes: notes || '',
+        items: items.map((i) => ({
+          variantId: i.variantId || (typeof i.id === 'number' ? i.id : 1),
+          quantity: i.quantity || 1,
+        })),
+      };
+
+      const res = await apiClient.post('/orders/checkout', payload);
+      if (res.data && res.data.success && res.data.data) {
+        const orderData = res.data.data;
+        const orders = getStoredOrders();
+        orders.unshift(orderData);
+        localStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify(orders));
+        return { success: true, data: orderData };
+      }
+    } catch (err) {
+      console.warn('Backend order checkout API error, falling back to local simulation:', err.message);
+    }
+
+    // Fallback simulation
     await new Promise((resolve) => setTimeout(resolve, 300));
 
     const orders = getStoredOrders();
@@ -99,26 +129,28 @@ export const orderService = {
 
     const newOrder = {
       id: orderId,
+      orderNumber: orderId,
       createdAt: new Date().toISOString(),
-      status: 'pending',
+      orderStatus: 'pending',
+      paymentStatus: 'pending',
+      paymentMethod,
       customer,
       items: items.map((i) => ({
         id: i.id,
         productId: i.productId,
-        name: i.product.name,
+        name: i.product?.name || i.name,
         size: i.size,
         color: i.color,
-        price: i.product.rawPrice,
+        price: i.product?.rawPrice || i.price,
         quantity: i.quantity,
-        image: i.product.image,
+        image: i.product?.image || i.image,
       })),
       shippingMethod,
-      paymentMethod,
       subtotal,
       shippingFee,
       discountAmount,
       totalAmount,
-      trackingNumber: `LAT-${Math.floor(1000000 + Math.random() * 9000000)}`,
+      trackingNumber: `VNPOST-${Math.floor(1000000 + Math.random() * 9000000)}`,
       estimatedDelivery: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       notes,
     };
@@ -133,7 +165,37 @@ export const orderService = {
   },
 
   getOrders: async () => {
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    try {
+      const res = await apiClient.get('/orders/my-orders');
+      if (res.data && res.data.success && res.data.data) {
+        return {
+          success: true,
+          data: res.data.data.content || [],
+        };
+      }
+    } catch (err) {
+      console.warn('Backend my-orders API error, falling back to local orders:', err.message);
+    }
+
+    return {
+      success: true,
+      data: getStoredOrders(),
+    };
+  },
+
+  getAllOrdersAdmin: async () => {
+    try {
+      const res = await apiClient.get('/admin/orders');
+      if (res.data && res.data.success && res.data.data) {
+        return {
+          success: true,
+          data: res.data.data.content || [],
+        };
+      }
+    } catch (err) {
+      console.warn('Backend admin orders API error, falling back to local orders:', err.message);
+    }
+
     return {
       success: true,
       data: getStoredOrders(),
@@ -141,9 +203,20 @@ export const orderService = {
   },
 
   getOrderById: async (orderId) => {
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    try {
+      const res = await apiClient.get(`/orders/${orderId}`);
+      if (res.data && res.data.success && res.data.data) {
+        return {
+          success: true,
+          data: res.data.data,
+        };
+      }
+    } catch (err) {
+      console.warn(`Backend order ${orderId} API error, falling back to local:`, err.message);
+    }
+
     const orders = getStoredOrders();
-    const order = orders.find((o) => o.id === orderId);
+    const order = orders.find((o) => o.id === orderId || o.orderNumber === orderId);
     if (!order) {
       throw new Error(`Không tìm thấy đơn hàng mã ${orderId}`);
     }
@@ -154,11 +227,23 @@ export const orderService = {
   },
 
   updateOrderStatus: async (orderId, newStatus) => {
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    try {
+      const numId = Number(orderId);
+      if (!isNaN(numId) && numId > 0) {
+        const res = await apiClient.put(`/admin/orders/${numId}/status`, { orderStatus: newStatus.toUpperCase() });
+        if (res.data && res.data.success && res.data.data) {
+          return { success: true, data: res.data.data };
+        }
+      }
+    } catch (err) {
+      console.warn('Backend updateOrderStatus API error:', err.message);
+    }
+
     const orders = getStoredOrders();
-    const index = orders.findIndex((o) => o.id === orderId);
+    const index = orders.findIndex((o) => o.id === orderId || o.orderNumber === orderId);
     if (index === -1) throw new Error('Order not found');
 
+    orders[index].orderStatus = newStatus;
     orders[index].status = newStatus;
     localStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify(orders));
     return { success: true, data: orders[index] };

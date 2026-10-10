@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Heart, Sparkles, ShoppingBag, Eye } from 'lucide-react';
 import { useWishlist } from '../../contexts/WishlistContext';
 import { useCart } from '../../contexts/CartContext';
+import { resolveImageUrl } from '../../utils/imageUrl';
 
 export default function ProductCard({ product, onTryOnNow }) {
   const navigate = useNavigate();
@@ -41,10 +42,14 @@ export default function ProductCard({ product, onTryOnNow }) {
       <div className="relative aspect-[3/4] bg-slate-100 overflow-hidden">
         <Link to={`/products/${product.id}`} className="block w-full h-full">
           <img
-            src={product.image}
+            src={resolveImageUrl(product.image)}
             alt={product.name}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             loading="lazy"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = '/samples/cloth-1.jpg';
+            }}
           />
         </Link>
 

@@ -1,13 +1,47 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Sparkles, Check, ArrowRight } from 'lucide-react';
 import { CATALOG_PRODUCTS } from '../../mocks/catalogData';
+import { catalogService } from '../../services/catalogService';
+import { resolveImageUrl } from '../../utils/imageUrl';
 
-export default function GarmentCatalog({ selectedGarmentId, onSelectGarment, onUploadCustomClick }) {
+export default function GarmentCatalog({ selectedGarmentId, onSelectGarment }) {
   const [filter, setFilter] = useState('all');
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredItems = filter === 'all' 
-    ? CATALOG_PRODUCTS.slice(0, 8) 
-    : CATALOG_PRODUCTS.filter(item => item.subCategory === filter || (filter === 'upper' && item.category === 'upper')).slice(0, 8);
+  useEffect(() => {
+    let isMounted = true;
+    const fetchItems = async () => {
+      setLoading(true);
+      try {
+        const catParam = filter === 'all' ? undefined : filter;
+        const res = await catalogService.getProducts({
+          category: catParam,
+          limit: 8,
+          page: 1,
+        });
+        if (isMounted && res?.data && res.data.length > 0) {
+          setItems(res.data);
+          setLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('Failed to load catalog products for studio showcase, fallback to mock', err);
+      }
+
+      if (isMounted) {
+        // Fallback
+        const fallbackItems = filter === 'all'
+          ? CATALOG_PRODUCTS.slice(0, 8)
+          : CATALOG_PRODUCTS.filter(item => item.subCategory === filter || (filter === 'upper' && item.category === 'upper')).slice(0, 8);
+        setItems(fallbackItems);
+        setLoading(false);
+      }
+    };
+
+    fetchItems();
+    return () => { isMounted = false; };
+  }, [filter]);
 
   return (
     <section id="catalog" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16 w-full">
@@ -37,17 +71,10 @@ export default function GarmentCatalog({ selectedGarmentId, onSelectGarment, onU
           </button>
           <button
             type="button"
-            onClick={() => setFilter('polo')}
-            className={`px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${filter === 'polo' ? 'bg-slate-950 text-white shadow-xs' : 'text-slate-600 hover:text-slate-950'}`}
+            onClick={() => setFilter('upper')}
+            className={`px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${filter === 'upper' ? 'bg-slate-950 text-white shadow-xs' : 'text-slate-600 hover:text-slate-950'}`}
           >
-            Polo
-          </button>
-          <button
-            type="button"
-            onClick={() => setFilter('shirt')}
-            className={`px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${filter === 'shirt' ? 'bg-slate-950 text-white shadow-xs' : 'text-slate-600 hover:text-slate-950'}`}
-          >
-            Sơ Mi
+            Áo &amp; Tops
           </button>
           <button
             type="button"
@@ -56,12 +83,23 @@ export default function GarmentCatalog({ selectedGarmentId, onSelectGarment, onU
           >
             Váy Đầm
           </button>
+          <button
+            type="button"
+            onClick={() => setFilter('outerwear')}
+            className={`px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${filter === 'outerwear' ? 'bg-slate-950 text-white shadow-xs' : 'text-slate-600 hover:text-slate-950'}`}
+          >
+            Áo Khoác
+          </button>
         </div>
       </div>
 
       {/* Product Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-        {filteredItems.map((item) => {
+        {loading ? (
+          [...Array(4)].map((_, i) => (
+            <div key={i} className="aspect-[3/4] rounded-2xl bg-slate-100 animate-pulse" />
+          ))
+        ) : items.map((item) => {
           const isSelected = selectedGarmentId === item.id;
 
           return (
@@ -79,16 +117,22 @@ export default function GarmentCatalog({ selectedGarmentId, onSelectGarment, onU
               {/* Product Image Stage */}
               <div className="relative aspect-[3/4] bg-slate-50 overflow-hidden">
                 <img
-                  src={item.image}
+                  src={resolveImageUrl(item.image)}
                   alt={item.name}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = '/samples/cloth-1.jpg';
+                  }}
                 />
 
                 {/* Badge */}
-                <span className="absolute top-2.5 left-2.5 text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 bg-white/95 backdrop-blur-md rounded-full text-slate-900 shadow-2xs border border-slate-200/50">
-                  {item.badge}
-                </span>
+                {item.badge && (
+                  <span className="absolute top-2.5 left-2.5 text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 bg-white/95 backdrop-blur-md rounded-full text-slate-900 shadow-2xs border border-slate-200/50">
+                    {item.badge}
+                  </span>
+                )}
 
                 {/* Selected Status Overlay */}
                 {isSelected && (
@@ -114,7 +158,7 @@ export default function GarmentCatalog({ selectedGarmentId, onSelectGarment, onU
               <div className="p-3.5 flex flex-col flex-1 justify-between">
                 <div>
                   <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block truncate">
-                    {item.material}
+                    {item.material || 'Vải cao cấp'}
                   </span>
                   <h3 className="font-semibold text-xs sm:text-sm text-slate-900 mt-1 leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-blue-800 transition-colors">
                     {item.name}

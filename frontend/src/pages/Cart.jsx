@@ -12,6 +12,7 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
+import { resolveImageUrl } from '../utils/imageUrl';
 
 export default function Cart() {
   const navigate = useNavigate();
@@ -145,9 +146,13 @@ export default function Cart() {
                 <div className="col-span-6 flex items-center gap-3.5 w-full">
                   <div className="w-20 h-26 rounded-xl bg-slate-100 overflow-hidden shrink-0 border border-slate-200">
                     <img
-                      src={item.product.image}
+                      src={resolveImageUrl(item.product.image)}
                       alt={item.product.name}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = '/samples/cloth-1.jpg';
+                      }}
                     />
                   </div>
                   <div className="min-w-0 flex-1">

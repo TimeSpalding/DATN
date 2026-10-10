@@ -13,6 +13,7 @@ import {
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { orderService } from '../services/orderService';
+import { resolveImageUrl } from '../utils/imageUrl';
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -400,9 +401,13 @@ export default function Checkout() {
               {cartItems.map((item) => (
                 <div key={item.id} className="py-3 flex items-center gap-3">
                   <img
-                    src={item.product.image}
+                    src={resolveImageUrl(item.product.image)}
                     alt={item.product.name}
                     className="w-12 h-16 rounded-lg object-cover bg-white border border-slate-200 shrink-0"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = '/samples/cloth-1.jpg';
+                    }}
                   />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-bold text-slate-900 truncate">{item.product.name}</p>

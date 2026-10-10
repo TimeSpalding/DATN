@@ -27,4 +27,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Page<User> findAllByStatusOrderByCreatedAtDesc(UserStatus status, Pageable pageable);
 
     Page<User> findAllByRoleAndStatusOrderByCreatedAtDesc(UserRole role, UserStatus status, Pageable pageable);
+
+    long countByStatus(UserStatus status);
+
+    long countByCreatedAtAfter(java.time.LocalDateTime dateTime);
 }
