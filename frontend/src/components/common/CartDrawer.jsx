@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { X, ShoppingBag, Plus, Minus, Trash2, ArrowRight, Truck } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
+import { resolveImageUrl } from '../../utils/imageUrl';
 
 export default function CartDrawer() {
   const navigate = useNavigate();
@@ -105,9 +106,13 @@ export default function CartDrawer() {
                   {/* Thumbnail */}
                   <div className="w-18 h-24 rounded-xl bg-slate-100 overflow-hidden shrink-0 border border-slate-200">
                     <img
-                      src={item.product.image}
+                      src={resolveImageUrl(item.product.image)}
                       alt={item.product.name}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = '/samples/cloth-1.jpg';
+                      }}
                     />
                   </div>
 

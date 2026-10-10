@@ -19,6 +19,7 @@ import { catalogService } from '../services/catalogService';
 import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
 import ProductCard from '../components/common/ProductCard';
+import { resolveImageUrl } from '../utils/imageUrl';
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -140,7 +141,15 @@ export default function ProductDetail() {
                     selectedImage === img ? 'border-slate-950 shadow-xs' : 'border-slate-200 opacity-70 hover:opacity-100'
                   }`}
                 >
-                  <img src={img} alt={`${product.name} ${idx + 1}`} className="w-full h-full object-cover" />
+                  <img
+                    src={resolveImageUrl(img)}
+                    alt={`${product.name} ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = '/samples/cloth-1.jpg';
+                    }}
+                  />
                 </button>
               ))}
             </div>
@@ -149,9 +158,13 @@ export default function ProductDetail() {
           {/* Main Stage Image */}
           <div className="flex-1 relative aspect-[3/4] rounded-3xl overflow-hidden bg-slate-50 border border-slate-200">
             <img
-              src={selectedImage}
+              src={resolveImageUrl(selectedImage || product.image)}
               alt={product.name}
               className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = '/samples/cloth-1.jpg';
+              }}
             />
 
             {/* Badges */}

@@ -124,12 +124,15 @@ export default function AdminOrders() {
                             ? 'bg-blue-50 text-blue-800 border-blue-200'
                             : (order.orderStatus?.toLowerCase() || order.status) === 'processing'
                             ? 'bg-amber-50 text-amber-800 border-amber-200'
+                            : (order.orderStatus?.toLowerCase() || order.status) === 'confirmed'
+                            ? 'bg-indigo-50 text-indigo-800 border-indigo-200'
                             : (order.orderStatus?.toLowerCase() || order.status) === 'cancelled'
                             ? 'bg-rose-50 text-rose-800 border-rose-200'
                             : 'bg-slate-100 text-slate-800 border-slate-200'
                         }`}
                       >
                         <option value="pending">Chờ xác nhận</option>
+                        <option value="confirmed">Đã xác nhận</option>
                         <option value="processing">Đang đóng gói</option>
                         <option value="shipping">Đang giao hàng</option>
                         <option value="delivered">Đã giao hàng</option>
