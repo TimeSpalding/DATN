@@ -72,6 +72,20 @@ out/
 *.pfx
 *.p12
 
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+project_code.tar.gz
+
 # ------------------------------------------------------------------------------
 # 4. Frontend (Node.js / React / Vite)
 # ------------------------------------------------------------------------------
