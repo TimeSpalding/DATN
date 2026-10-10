@@ -80,10 +80,11 @@ public class AdminDashboardService {
         List<Category> categories = categoryRepository.findAll();
         List<AdminDashboardDTO.CategoryStatDTO> categoryStats = new ArrayList<>();
         for (Category cat : categories) {
+            long count = productRepository.countByCategoryAndStatus(cat, ProductStatus.ACTIVE);
             categoryStats.add(AdminDashboardDTO.CategoryStatDTO.builder()
                     .categoryCode(cat.getCode())
                     .categoryName(cat.getName())
-                    .productCount(0) // dynamic placeholder or can be count
+                    .productCount(count)
                     .build());
         }
 

@@ -2,7 +2,9 @@ package com.imagesearch.backend_java.ecommerce.service;
 
 import com.imagesearch.backend_java.ecommerce.dto.CategoryDTO;
 import com.imagesearch.backend_java.ecommerce.entity.Category;
+import com.imagesearch.backend_java.ecommerce.enums.ProductStatus;
 import com.imagesearch.backend_java.ecommerce.repository.CategoryRepository;
+import com.imagesearch.backend_java.ecommerce.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,7 @@ import java.util.stream.Collectors;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final ProductRepository productRepository;
 
     @Transactional(readOnly = true)
     public List<CategoryDTO> getAllCategories() {
@@ -56,6 +59,7 @@ public class CategoryService {
     }
 
     public CategoryDTO mapToDTO(Category entity) {
+        long count = productRepository.countByCategoryAndStatus(entity, ProductStatus.ACTIVE);
         return CategoryDTO.builder()
                 .id(entity.getId())
                 .code(entity.getCode())
@@ -63,6 +67,7 @@ public class CategoryService {
                 .parentId(entity.getParent() != null ? entity.getParent().getId() : null)
                 .active(entity.getActive())
                 .sortOrder(entity.getSortOrder())
+                .productCount(count)
                 .build();
     }
 }

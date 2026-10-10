@@ -16,4 +16,5 @@ public class CategoryDTO {
     private Long parentId;
     private Boolean active;
     private Integer sortOrder;
+    private Long productCount;
 }
