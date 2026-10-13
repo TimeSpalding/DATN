@@ -2,6 +2,7 @@ package com.imagesearch.backend_java.search.service;
 
 import com.imagesearch.backend_java.search.config.QdrantProperties;
 import com.imagesearch.backend_java.search.config.SearchConfig;
+import com.imagesearch.backend_java.search.dto.request.ComposedEmbeddingRequest;
 import com.imagesearch.backend_java.search.dto.request.EmbeddingRequest;
 import com.imagesearch.backend_java.search.dto.response.EmbeddingResponse;
 import com.imagesearch.backend_java.search.network.OkHttpHelper;
@@ -51,6 +52,27 @@ public class AiEmbeddingClient {
                 .text(text)
                 .build();
         return getFullEmbeddingResponse(buildUrl(searchConfig.getTextEmbeddingPath()), request, "text:" + text);
+    }
+
+    /**
+     * Gọi backend-ai /api/v1/embeddings/composed để sinh composed embedding
+     * từ ảnh gốc (kiểu dáng) + text mô tả điều chỉnh (màu, họa tiết...).
+     */
+    public EmbeddingResponse getComposedEmbedding(ComposedEmbeddingRequest composedRequest) throws IOException {
+        if (mockEmbedding) {
+            String seed = "composed:" + composedRequest.getModificationText();
+            return EmbeddingResponse.builder()
+                    .embedding(createMockEmbedding(seed))
+                    .build();
+        }
+        EmbeddingResponse response = okHttpHelper.httpPost(
+                buildUrl(searchConfig.getComposedEmbeddingPath()),
+                null, composedRequest, EmbeddingResponse.class, null, null
+        );
+        if (response == null || response.getEmbedding() == null || response.getEmbedding().isEmpty()) {
+            throw new IOException("Composed embedding response is empty");
+        }
+        return response;
     }
 
     private List<Float> getEmbedding(String url, EmbeddingRequest request, String mockSeed) throws IOException {

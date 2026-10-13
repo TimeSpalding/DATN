@@ -84,7 +84,12 @@ export const CompactSearchBar = ({ className = "" }) => {
     setTempImageUrl(null);
 
     searchStore.imageFile = croppedFile;
-    navigate('/search-result?type=image&page=1&size=20', { replace: true });
+    if (query.trim()) {
+      // Vừa có ảnh vừa có text mô tả -> Tìm kiếm lai (Composed Search)!
+      navigate(`/search-result?type=composed&text=${encodeURIComponent(query.trim())}&page=1&size=20`, { replace: true });
+    } else {
+      navigate('/search-result?type=image&page=1&size=20', { replace: true });
+    }
 
     if (fileInputRef.current) {
       fileInputRef.current.value = ""; 
@@ -121,7 +126,7 @@ export const CompactSearchBar = ({ className = "" }) => {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Nhập mô tả để tìm kiếm..."
+            placeholder="Nhập mô tả tìm kiếm (hoặc kèm ảnh để tìm kiếm lai)..."
             className="flex-1 w-full bg-transparent px-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none md:text-base"
           />
 

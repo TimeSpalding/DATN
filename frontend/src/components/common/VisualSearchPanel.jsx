@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaAlignLeft, FaFont, FaImage, FaSearch, FaUpload, FaTimes } from 'react-icons/fa';
+import { FaAlignLeft, FaFont, FaImage, FaSearch, FaUpload, FaTimes, FaSlidersH } from 'react-icons/fa';
 import { MAX_FILE_SIZE } from '../../config/constants';
 import SearchModeTabs from './SearchModeTabs';
 import { searchStore } from '../../utils/searchStore';
@@ -13,17 +13,17 @@ const searchModes = [
     icon: FaImage,
   },
   {
+    id: 'composed',
+    label: 'Tìm kiếm lai (Ảnh + Text)',
+    icon: FaSlidersH,
+    placeholder: 'Ví dụ: đổi sang áo kẻ, màu xanh rêu, tay ngắn...',
+  },
+  {
     id: 'description',
     label: 'Tìm bằng mô tả',
     icon: FaAlignLeft,
     placeholder: 'Nhập mô tả hình ảnh bạn muốn tìm...',
   },
-  // {
-  //   id: 'ocr',
-  //   label: 'Tìm chữ trong ảnh',
-  //   icon: FaFont,
-  //   placeholder: 'Nhập nội dung chữ xuất hiện trong ảnh...',
-  // },
 ];
 
 export default function VisualSearchPanel() {
@@ -153,6 +153,27 @@ export default function VisualSearchPanel() {
     });
   };
 
+  const handleComposedSearch = () => {
+    if (!selectedFile) {
+      setFileError('Vui lòng chọn ảnh mẫu trước khi tìm kiếm.');
+      return;
+    }
+    if (!query.trim()) {
+      setFileError('Vui lòng nhập mô tả bạn muốn điều chỉnh (vd: áo kẻ, màu xanh rêu...).');
+      return;
+    }
+
+    searchStore.imageFile = selectedFile;
+
+    navigate(`/search-result?type=composed&text=${encodeURIComponent(query.trim())}&page=1&size=20`, {
+      state: {
+        type: 'composed',
+        imageFile: selectedFile,
+        modificationText: query.trim(),
+      },
+    });
+  };
+
   const handleTextSearch = () => {
     const trimmedQuery = query.trim();
 
@@ -184,6 +205,7 @@ export default function VisualSearchPanel() {
   };
 
   const isImageMode = activeMode.id === 'image';
+  const isComposedMode = activeMode.id === 'composed';
 
   return (
     <section className="w-full max-w-[896px] overflow-hidden rounded-2xl bg-white pb-8 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] outline outline-1 outline-gray-300/30">
@@ -205,11 +227,11 @@ export default function VisualSearchPanel() {
       />
 
       <div className="px-4 pt-8 sm:px-8">
-        {isImageMode ? (
+        {isImageMode || isComposedMode ? (
           <div
             onDragOver={(event) => event.preventDefault()}
             onDrop={handleDrop}
-            className="group flex min-h-[320px] flex-col items-center justify-center rounded-2xl border-2 border-indigo-700/20 bg-gray-50 px-4 py-16 text-center transition-all duration-200 hover:border-indigo-600 hover:bg-indigo-50/30"
+            className="group flex min-h-[320px] flex-col items-center justify-center rounded-2xl border-2 border-indigo-700/20 bg-gray-50 px-4 py-12 text-center transition-all duration-200 hover:border-indigo-600 hover:bg-indigo-50/30"
           >
             <input
               ref={fileInputRef}
@@ -220,19 +242,14 @@ export default function VisualSearchPanel() {
             />
 
             {previewUrl ? (
-              // <img
-              //   src={previewUrl}
-              //   alt="Ảnh đã chọn"
-              //   className="mb-5 h-36 w-36 rounded-xl object-cover shadow-sm"
-              // />
               <div
-                className="relative mb-5 cursor-pointer"
+                className="relative mb-4 cursor-pointer"
                 onClick={() => fileInputRef.current?.click()}
               >
                 <img
                   src={previewUrl}
                   alt="Ảnh đã chọn"
-                  className="h-36 w-36 rounded-xl object-cover shadow-sm"
+                  className="h-36 w-36 rounded-xl object-cover shadow-sm border border-gray-200"
                 />
 
                 <button
@@ -252,59 +269,80 @@ export default function VisualSearchPanel() {
               </div>
             )}
 
-            {/* <h2 className="text-lg font-semibold leading-7 text-zinc-900">
-              Kéo thả ảnh vào đây hoặc chọn ảnh từ máy
-            </h2>
-            <p className="mt-2 text-xs leading-4 text-gray-700">
-              Hỗ trợ JPG, PNG, WebP. Tối đa 10MB.
-            </p> */}
-
             {selectedFile && (
-              <p className="mt-3 max-w-full truncate text-sm font-medium text-indigo-700">
+              <p className="mt-1 max-w-full truncate text-xs font-medium text-indigo-700">
                 {selectedFile.name}
               </p>
             )}
 
+            {/* Ô nhập điều chỉnh thuộc tính dành riêng cho Tìm kiếm lai */}
+            {isComposedMode && (
+              <div className="mt-3 w-full max-w-md text-left">
+                <label className="block text-xs font-bold text-indigo-950 mb-1.5">
+                  Mô tả điều chỉnh từ ảnh này (màu sắc, họa tiết, kiểu dáng):
+                </label>
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    if (fileError) setFileError('');
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleComposedSearch();
+                    }
+                  }}
+                  placeholder="Ví dụ: áo kẻ, màu xanh rêu, tay ngắn..."
+                  className="w-full rounded-xl border border-indigo-300 bg-white px-4 py-2.5 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-xs"
+                />
+              </div>
+            )}
+
             {fileError && (
-              <p className="mt-3 text-sm font-medium text-red-600">
+              <p className="mt-2 text-xs font-semibold text-red-600">
                 {fileError}
               </p>
             )}
 
-            {/* <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="mt-6 rounded-full bg-indigo-700 px-6 py-2.5 text-sm font-medium tracking-tight text-white shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] transition hover:bg-indigo-800"
-            >
-              Chọn tệp
-            </button> */}
-
             {selectedFile ? (
-              <div className="">
-                <p className="mt-2 text-xs leading-4 text-gray-700 text-[20px]">
-                  Click vào ảnh để chọn ảnh khác!
+              <div className="mt-2 flex flex-col items-center">
+                <p className="text-[11px] leading-4 text-gray-500">
+                  Click vào ảnh để chọn lại ảnh khác
                 </p>
-                <button
-                  type="button"
-                  onClick={handleImageSearch}
-                  className="cursor-pointer mt-3 inline-flex items-center justify-center gap-2 rounded-full border border-indigo-700 px-6 py-2.5 text-sm font-medium tracking-tight text-white transition hover:bg-gray-100 hover:text-indigo-700 bg-indigo-700"
-                >
-                  <FaSearch className="h-4 w-4" />
-                  Tìm kiếm
-                </button>
+                {isComposedMode ? (
+                  <button
+                    type="button"
+                    onClick={handleComposedSearch}
+                    className="cursor-pointer mt-3 inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 px-7 py-3 text-sm font-semibold tracking-tight text-white shadow-md transition hover:from-violet-700 hover:to-indigo-700"
+                  >
+                    <FaSlidersH className="h-4 w-4" />
+                    Tìm kiếm lai (Ảnh + Text)
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleImageSearch}
+                    className="cursor-pointer mt-3 inline-flex items-center justify-center gap-2 rounded-full border border-indigo-700 px-6 py-2.5 text-sm font-medium tracking-tight text-white transition hover:bg-gray-100 hover:text-indigo-700 bg-indigo-700"
+                  >
+                    <FaSearch className="h-4 w-4" />
+                    Tìm kiếm
+                  </button>
+                )}
               </div>
             ) : (
-              <div className="">
-                <h2 className="text-lg font-semibold leading-7 text-zinc-900">
-                  Kéo thả ảnh vào đây hoặc chọn ảnh từ máy
+              <div className="mt-2">
+                <h2 className="text-base sm:text-lg font-semibold leading-7 text-zinc-900">
+                  {isComposedMode ? "1. Kéo thả hoặc chọn ảnh mẫu làm dáng áo" : "Kéo thả ảnh vào đây hoặc chọn ảnh từ máy"}
                 </h2>
-                <p className="mt-2 text-xs leading-4 text-gray-700">
+                <p className="mt-1 text-xs leading-4 text-gray-500">
                   Hỗ trợ JPG, PNG, WebP. Tối đa 10MB.
                 </p>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="cursor-pointer mt-6 rounded-full bg-indigo-700 px-6 py-2.5 text-sm font-medium tracking-tight text-white shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] transition hover:bg-indigo-800"
+                  className="cursor-pointer mt-4 rounded-full bg-indigo-700 px-6 py-2.5 text-sm font-medium tracking-tight text-white shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] transition hover:bg-indigo-800"
                 >
                   Chọn tệp
                 </button>
