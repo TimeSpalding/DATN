@@ -194,3 +194,9 @@ danh-gia-hien-trang*.md
 yeucau.md
 frontend/*-report.md
 frontend/baocaoFE.md
+
+# ------------------------------------------------------------------------------
+# Datacard and docs
+# ------------------------------------------------------------------------------
+datacard/
+docs/
