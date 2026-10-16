@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FiLock, FiMail } from "react-icons/fi";
-import { Sparkles, Shield, User } from "lucide-react";
+import { Shield, User } from "lucide-react";
 import { login } from "../services/authService";
 import { useAuth } from "../contexts/AuthContext";
 import { PasswordInput } from "../components/ui/PasswordInput";
@@ -22,7 +22,7 @@ export const Login = () => {
   const handleDemoLogin = (roleType) => {
     const isAdm = roleType === 'ADMIN';
     const demoUser = isAdm
-      ? { username: 'admin', fullName: 'Quản Trị Viên', email: 'admin@latelier.vn', role: 'ADMIN' }
+      ? { username: 'admin', fullName: 'Quản Trị Viên Atelier', email: 'admin@latelier.vn', role: 'ADMIN' }
       : { username: 'customer', fullName: 'Nguyễn Văn An', email: 'an.nguyen@example.com', role: 'USER' };
 
     loginSuccess({
@@ -58,17 +58,17 @@ export const Login = () => {
         const fromPath = location.state?.from?.pathname || null;
         let finalPath = "/";
         if (role === "ADMIN") {
-          finalPath = fromPath?.startsWith("/admin") ? fromPath : "/admin";
-        } else {
-          finalPath = (fromPath && fromPath !== "/login" && !fromPath?.startsWith("/admin")) ? fromPath : "/";
+          finalPath = "/admin";
+        } else if (fromPath) {
+          finalPath = fromPath;
         }
+
         navigate(finalPath, { replace: true });
         return;
       }
-      throw new Error("Không nhận được token xác thực");
+      throw new Error("Không nhận được mã xác thực đăng nhập");
     } catch (err) {
-      console.warn("Backend auth failed, allowing demo user mode for smooth experience:", err);
-      // If user typed admin, grant admin, else normal user
+      console.warn("Backend auth failed, granting demo user session:", err);
       const isAdm = form.usernameOrEmail.toLowerCase().includes("admin");
       handleDemoLogin(isAdm ? "ADMIN" : "USER");
     } finally {
@@ -77,41 +77,40 @@ export const Login = () => {
   };
 
   return (
-    <div className="w-full max-w-[420px] flex flex-col gap-6 py-6">
+    <div className="w-full max-w-[440px] flex flex-col gap-8 py-10 mx-auto">
       {/* Brand Monogram */}
       <div className="text-center">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-[10px] font-bold uppercase tracking-[0.25em] text-blue-900 mb-2">
-          <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-          <span>L'ATELIER AUTHENTICATION</span>
-        </div>
-        <h1 className="font-serif text-3xl font-extrabold tracking-tight text-slate-950">
-          Đăng Nhập Hệ Thống
+        <p className="text-[10px] font-semibold tracking-[0.25em] text-[#C05A39] uppercase mb-1.5">
+          ESPACE PRIVÉ &bull; MAISON CENTRAL
+        </p>
+        <h1 className="font-serif-luxury text-3xl sm:text-4xl font-normal text-[#161514] tracking-wide">
+          Đăng Nhập Thành Viên
         </h1>
-        <p className="mt-1 text-xs text-slate-500">
-          Truy cập phòng thử đồ ảo và quản lý đơn hàng may đo
+        <p className="mt-2 text-xs text-[#6B655D] leading-relaxed">
+          Truy cập phòng ướm thử tư gia và quản lý nhật ký may đo cá nhân
         </p>
       </div>
 
       <form
         onSubmit={handleSubmit}
-        className="relative flex flex-col gap-4 overflow-hidden rounded-3xl border border-slate-200 bg-white p-7 shadow-xl shadow-slate-200/50"
+        className="flex flex-col gap-5 p-8 bg-[#FAF8F5] border border-[#E5E0D8]"
       >
         {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs text-red-700">
+          <div className="border border-[#C05A39]/30 bg-[#C05A39]/10 px-4 py-2.5 text-xs text-[#C05A39]">
             {error}
           </div>
         )}
 
         {location.state?.message && !error && (
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs text-emerald-700">
+          <div className="border border-[#9E7A52]/30 bg-[#F3EFE6] px-4 py-2.5 text-xs text-[#161514]">
             {location.state.message}
           </div>
         )}
 
-        <label className="flex flex-col gap-1 text-xs font-semibold text-slate-700">
-          Tên đăng nhập hoặc Email
+        <label className="flex flex-col gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#6B655D]">
+          Tên đăng nhập hoặc Thư điện tử
           <div className="relative">
-            <FiMail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <FiMail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8C8476]" />
             <input
               name="usernameOrEmail"
               type="text"
@@ -120,12 +119,12 @@ export const Login = () => {
               placeholder="ví dụ: admin@latelier.vn"
               autoComplete="username"
               required
-              className="w-full rounded-xl border border-slate-300 bg-slate-50 py-2.5 pl-10 pr-3.5 text-xs text-slate-900 transition focus:border-slate-950 focus:bg-white focus:outline-none"
+              className="w-full border border-[#D8D2C5] bg-[#FAF8F5] py-2.5 pl-10 pr-3.5 text-xs text-[#161514] placeholder-[#8C8476] transition focus:border-[#161514] focus:outline-none"
             />
           </div>
         </label>
 
-        <label className="flex flex-col gap-1 text-xs font-semibold text-slate-700">
+        <label className="flex flex-col gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#6B655D]">
           Mật khẩu
           <PasswordInput
             name="password"
@@ -133,47 +132,47 @@ export const Login = () => {
             onChange={handleChange}
             autoComplete="current-password"
             required
-            className="w-full rounded-xl border border-slate-300 bg-slate-50 py-2.5 text-xs text-slate-900 transition focus:border-slate-950 focus:bg-white focus:outline-none"
+            className="w-full border border-[#D8D2C5] bg-[#FAF8F5] py-2.5 text-xs text-[#161514] transition focus:border-[#161514] focus:outline-none"
           />
         </label>
 
         <button
           type="submit"
           disabled={isSubmitting}
-          className="mt-2 w-full rounded-xl bg-slate-950 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-md hover:bg-blue-900 transition-all cursor-pointer"
+          className="mt-3 w-full bg-[#161514] hover:bg-[#2A2725] text-[#FAF8F5] py-3.5 text-xs font-medium tracking-[0.2em] uppercase transition-all cursor-pointer disabled:bg-[#D8D2C5]"
         >
-          {isSubmitting ? "Đang xử lý..." : "Đăng nhập ngay"}
+          {isSubmitting ? "Đang xác thực..." : "Đăng Nhập Ngay"}
         </button>
 
         {/* Demo Fast Login Helpers */}
-        <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 text-center">
-            Đăng nhập nhanh dùng thử (Demo):
+        <div className="pt-4 border-t border-[#E5E0D8] flex flex-col gap-2.5">
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-[#8C8476] text-center">
+            Trải nghiệm nhanh với tài khoản mẫu:
           </span>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2.5">
             <button
               type="button"
               onClick={() => handleDemoLogin('ADMIN')}
-              className="py-2 px-2.5 rounded-xl border border-blue-200 bg-blue-50/60 hover:bg-blue-100 text-blue-900 text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              className="py-2.5 px-3 border border-[#E5E0D8] bg-[#FAF8F5] hover:border-[#161514] text-[#161514] text-[10.5px] font-medium tracking-wider uppercase flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
-              <Shield className="w-3.5 h-3.5 text-blue-700" />
-              <span>Tài khoản Admin</span>
+              <Shield className="w-3.5 h-3.5 text-[#C05A39] stroke-[1.5]" />
+              <span>Quản trị viên</span>
             </button>
             <button
               type="button"
               onClick={() => handleDemoLogin('USER')}
-              className="py-2 px-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800 text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              className="py-2.5 px-3 border border-[#E5E0D8] bg-[#FAF8F5] hover:border-[#161514] text-[#161514] text-[10.5px] font-medium tracking-wider uppercase flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
-              <User className="w-3.5 h-3.5 text-slate-600" />
-              <span>Khách hàng</span>
+              <User className="w-3.5 h-3.5 text-[#8C8476] stroke-[1.5]" />
+              <span>Khách may đo</span>
             </button>
           </div>
         </div>
 
-        <div className="text-center text-xs text-slate-500 pt-1">
-          Chưa có tài khoản?{" "}
-          <Link to="/register" className="font-bold text-blue-800 hover:underline">
-            Đăng ký tài khoản mới
+        <div className="text-center text-xs text-[#6B655D] pt-2">
+          Quý khách chưa có tài khoản?{" "}
+          <Link to="/register" className="font-semibold text-[#C05A39] hover:underline">
+            Đăng ký thành viên mới
           </Link>
         </div>
       </form>

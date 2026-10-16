@@ -465,55 +465,52 @@ export const SearchResult = () => {
   }
 
   return (
-    <section className="mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8">
-
-      <div className="flex w-full items-center mb-4">
-
+    <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+      <div className="flex w-full items-center mb-6">
         <CompactSearchBar className="w-full md:flex-1" />
       </div>
 
-      <div className="flex flex-col gap-4 border-b border-gray-200 pb-6">
-
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-6 border-b border-[#E5E0D8] pb-8 mb-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-xl sm:text-3xl font-semibold leading-10 text-zinc-900">
-              Kết quả tìm kiếm
+            <p className="text-[10px] font-semibold tracking-[0.25em] text-[#C05A39] uppercase mb-1.5">
+              LE CONCIERGE &bull; RÉSULTATS DE RECHERCHE
+            </p>
+            <h1 className="font-serif-luxury text-3xl sm:text-4xl font-normal text-[#161514] tracking-wide">
+              Kết Quả Định Vị Thị Giác
             </h1>
-            <div className="mt-2 flex flex-wrap items-center gap-3">
+            <div className="mt-3 flex flex-wrap items-center gap-4">
               {isImageSearch || isSimilarSearch ? (
                 <div className="flex items-center gap-3">
-                  <span className="text-base leading-7 text-gray-700">
+                  <span className="text-xs text-[#6B655D] uppercase tracking-wider">
                     {descriptionLabel}:
                   </span>
 
-                  <div
-                    className="h-30 w-30 overflow-hidden rounded-xl border border-gray-200 bg-gray-50 shadow-sm"
-                  >
+                  <div className="h-20 w-20 overflow-hidden border border-[#E5E0D8] bg-[#F3EFE6]">
                     <ImageWithFallback
                       src={previewImageUrl}
-                      // src={URL.createObjectURL(imageFile)}
                       imageId={imageFile?.name}
                       alt={imageFile?.name}
-                      className="h-full w-full object-cover p-1"
+                      className="h-full w-full object-cover"
                     />
                   </div>
                 </div>
               ) : (
-                <p className="text-base leading-7 text-gray-700">
+                <p className="text-xs text-[#6B655D] uppercase tracking-wider">
                   {descriptionLabel}:{" "}
-                  <span className="font-medium text-zinc-900">
-                    {descriptionValue}
+                  <span className="font-serif-luxury text-base text-[#161514] font-medium lowercase italic">
+                    &ldquo;{descriptionValue}&rdquo;
                   </span>
                 </p>
               )}
 
-              <span className="inline-flex items-center gap-2 rounded-full bg-indigo-700/10 px-3 py-1 text-sm font-medium text-indigo-700">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 border border-[#161514] bg-[#FAF8F5] text-[10px] font-medium tracking-widest uppercase text-[#161514]">
                 {type === "image" ? (
-                  <FaImage className="h-3.5 w-3.5" />
+                  <FaImage className="h-2.5 w-2.5" />
                 ) : mode === "OCR" ? (
-                  <FaFont className="h-3.5 w-3.5" />
+                  <FaFont className="h-2.5 w-2.5" />
                 ) : (
-                  <FaAlignLeft className="h-3.5 w-3.5" />
+                  <FaAlignLeft className="h-2.5 w-2.5" />
                 )}
                 {modeLabel}
               </span>
@@ -521,49 +518,45 @@ export const SearchResult = () => {
           </div>
 
           {searchData.processingTimeMs && (
-            <div className="rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-600">
+            <div className="px-3.5 py-2 border border-[#E5E0D8] bg-[#FAF8F5] text-[11px] text-[#8C8476] uppercase tracking-wider">
               Thời gian xử lý:{" "}
-              <span className="font-semibold text-zinc-900">
+              <strong className="text-[#161514]">
                 {searchData.processingTimeMs}ms
-              </span>
+              </strong>
             </div>
           )}
         </div>
 
         {canAdminBulkDelete && searchData.results.length > 0 && (
-          <div className={`mb-6 flex flex-col gap-3 rounded-2xl border p-3.5 shadow-sm transition-all sm:flex-row sm:items-center sm:justify-between sm:p-4 ${selectedCount > 0
-              ? "border-indigo-200 bg-indigo-50/80"
-              : "border-gray-200 bg-white"
+          <div className={`flex flex-col gap-3 border p-4 transition-all sm:flex-row sm:items-center sm:justify-between ${selectedCount > 0
+              ? "border-[#161514] bg-[#F3EFE6]"
+              : "border-[#E5E0D8] bg-[#FAF8F5]"
             }`}>
-
             <div className="flex items-center justify-between">
-              <label className="inline-flex cursor-pointer items-center gap-3 text-sm font-medium text-gray-700 hover:text-gray-900">
-                <div className="relative flex shrink-0 items-center">
-                  <input
-                    type="checkbox"
-                    checked={allVisibleSelected}
-                    onChange={toggleSelectAllVisible}
-                    disabled={deleteSelectedMutation.isPending || visibleImageIds.length === 0}
-                    className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border-2 border-gray-300 transition-all checked:border-indigo-500 checked:bg-indigo-500 hover:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
-                  />
-                  <FiCheck className="pointer-events-none absolute left-1/2 top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 transition-opacity peer-checked:opacity-100" strokeWidth={3} />
-                </div>
-                <span className="truncate">
-                  Chọn toàn bộ <span className="hidden sm:inline">({searchData.results.length} ảnh)</span>
+              <label className="inline-flex cursor-pointer items-center gap-3 text-xs font-medium text-[#161514]">
+                <input
+                  type="checkbox"
+                  checked={allVisibleSelected}
+                  onChange={toggleSelectAllVisible}
+                  disabled={deleteSelectedMutation.isPending || visibleImageIds.length === 0}
+                  className="h-4 w-4 cursor-pointer border border-[#D8D2C5] accent-[#161514]"
+                />
+                <span className="uppercase tracking-wider text-[11px]">
+                  Chọn toàn bộ ({searchData.results.length} ảnh)
                 </span>
               </label>
 
               {selectedCount > 0 && (
-                <span className="text-sm font-semibold text-indigo-600 sm:hidden">
+                <span className="text-xs font-semibold text-[#C05A39] sm:hidden">
                   Đã chọn: {selectedCount}
                 </span>
               )}
             </div>
 
-            <div className="flex w-full items-center gap-2 sm:w-auto sm:gap-3">
+            <div className="flex w-full items-center gap-3 sm:w-auto">
               {selectedCount > 0 && (
-                <span className="hidden text-sm font-semibold text-indigo-600 sm:inline-block">
-                  Đã chọn {selectedCount}
+                <span className="hidden text-xs font-semibold text-[#C05A39] sm:inline-block">
+                  Đã chọn: {selectedCount}
                 </span>
               )}
 
@@ -571,7 +564,7 @@ export const SearchResult = () => {
                 type="button"
                 onClick={() => setSelectedImageIds([])}
                 disabled={selectedCount === 0 || deleteSelectedMutation.isPending}
-                className="flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-all hover:bg-gray-50 hover:text-gray-900 disabled:pointer-events-none disabled:opacity-50 sm:flex-none sm:px-4 sm:py-2"
+                className="flex-1 border border-[#D8D2C5] bg-[#FAF8F5] px-4 py-2 text-xs font-medium uppercase tracking-wider text-[#161514] hover:border-[#161514] disabled:opacity-40 sm:flex-none cursor-pointer"
               >
                 Bỏ chọn
               </button>
@@ -580,24 +573,15 @@ export const SearchResult = () => {
                 type="button"
                 onClick={handleDeleteSelected}
                 disabled={selectedCount === 0 || deleteSelectedMutation.isPending}
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-red-500 px-3 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-red-600 active:scale-95 disabled:pointer-events-none disabled:opacity-50 sm:flex-none sm:px-4 sm:py-2"
+                className="flex-1 inline-flex items-center justify-center gap-2 border border-[#C05A39] bg-[#C05A39] px-4 py-2 text-xs font-medium uppercase tracking-wider text-[#FAF8F5] hover:bg-[#A64B2E] disabled:opacity-40 sm:flex-none cursor-pointer"
               >
-                <FiTrash2 className="h-4 w-4 shrink-0" />
-                <span className="truncate">
-                  {deleteSelectedMutation.isPending
-                    ? "Đang xử lý..."
-                    : <>
-                      <span className="sm:hidden">Xóa</span>
-                      <span className="hidden sm:inline">Xóa đã chọn</span>
-                    </>
-                  }
-                </span>
+                <FiTrash2 className="h-3.5 w-3.5" />
+                <span>{deleteSelectedMutation.isPending ? "Đang xử lý..." : "Xóa đã chọn"}</span>
               </button>
             </div>
           </div>
         )}
       </div>
-
 
       {searchQuery.isLoading ? (
         <Masonry
@@ -617,12 +601,12 @@ export const SearchResult = () => {
           })}
         </Masonry>
       ) : searchQuery.isError ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
+        <div className="border border-[#C05A39]/30 bg-[#C05A39]/10 p-6 text-xs text-[#C05A39]">
           Không thể tải kết quả tìm kiếm. Vui lòng thử lại sau.
         </div>
       ) : searchData.results.length === 0 ? (
-        <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center text-gray-600">
-          Không tìm thấy kết quả phù hợp.
+        <div className="border border-[#E5E0D8] bg-[#FAF8F5] p-16 text-center text-xs text-[#6B655D]">
+          Không tìm thấy thiết kế hoặc hình ảnh phù hợp với tiêu chí tra cứu.
         </div>
       ) : (
         <>
@@ -652,39 +636,37 @@ export const SearchResult = () => {
             ))}
           </Masonry>
 
-          {/* Cảm biến cuộn và Loading Indicator cho trang tiếp theo */}
-
-          <div ref={loadMoreRef} className="flex justify-center py-6">
+          <div ref={loadMoreRef} className="flex justify-center py-10">
             {searchQuery.isFetchingNextPage ? (
-              <div className="flex items-center gap-3 rounded-full bg-white px-4 py-2 shadow">
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
-                <span className="text-sm text-gray-600">
-                  Đang tải thêm kết quả...
+              <div className="flex items-center gap-3 px-5 py-2.5 border border-[#161514] bg-[#FAF8F5]">
+                <div className="h-4 w-4 animate-spin border border-[#161514] border-t-transparent" />
+                <span className="text-xs uppercase tracking-widest text-[#161514]">
+                  Đang tải thêm tác phẩm...
                 </span>
               </div>
             ) : searchQuery.hasNextPage ? (
-              <div className="flex items-center gap-2 text-sm text-gray-500">
+              <div className="flex items-center gap-2 text-xs text-[#8C8476] uppercase tracking-wider">
                 <FiArrowDown className="animate-bounce" />
-                <span>Cuộn xuống để tải thêm</span>
+                <span>Cuộn xuống để xem thêm</span>
               </div>
             ) : (
-              <div className="flex items-center gap-2 text-sm font-medium text-green-600">
-                <FaCheckCircle />
+              <div className="flex items-center gap-2 text-xs text-[#8C8476] uppercase tracking-wider">
+                <FaCheckCircle className="text-[#C05A39]" />
                 <span>
-                  Đã hiển thị toàn bộ {searchData.totalElements} kết quả
+                  Đã hiển thị toàn bộ {searchData.totalElements} kết quả định vị
                 </span>
               </div>
             )}
           </div>
 
-          {/* Nút cuộn lên đầu trang */}
           {showScrollTop && (
             <button
               type="button"
               onClick={scrollToTop}
-              className="fixed bottom-20 cursor-pointer right-8 z-[999] h-12 w-12 flex items-center justify-center rounded-full bg-indigo-600 p-2 text-white shadow-md transition hover:bg-indigo-700"
+              className="fixed bottom-8 right-8 z-[999] h-10 w-10 flex items-center justify-center border border-[#161514] bg-[#161514] text-[#FAF8F5] hover:bg-[#C05A39] hover:border-[#C05A39] transition-all cursor-pointer shadow-lg"
+              title="Lên đầu trang"
             >
-              <FaArrowUp className="h-5 w-5" />
+              <FaArrowUp className="h-3.5 w-3.5" />
             </button>
           )}
         </>
