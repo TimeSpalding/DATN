@@ -1,88 +1,232 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,600&display=swap');
-
 @import "tailwindcss";
 
 @theme {
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-serif: 'Playfair Display', Georgia, Cambria, 'Times New Roman', serif;
+  --font-serif: 'Cormorant Garamond', 'Playfair Display', Georgia, Cambria, serif;
+  --font-sans: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-brand: 'Cinzel', serif;
+  --font-editorial: 'Playfair Display', Georgia, serif;
   
-  --color-brand-navy-950: #070d1e;
-  --color-brand-navy-900: #0c1836;
-  --color-brand-navy-800: #142852;
-  --color-brand-navy-700: #1e3a8a;
-  --color-brand-navy-600: #2563eb;
-  --color-brand-navy-500: #3b82f6;
-  
-  --color-brand-accent: #c59b27;
-  --color-brand-accent-hover: #b0881c;
-  --color-brand-accent-light: #fdf8eb;
+  --color-atelier-ecru: #FAF8F5;
+  --color-atelier-linen: #F3EFE6;
+  --color-atelier-sand: #EAE5D9;
+  --color-atelier-stone: #D8D2C5;
+  --color-atelier-taupe: #8C8476;
+  --color-atelier-noir: #161514;
+  --color-atelier-charcoal: #262422;
+  --color-atelier-muted: #6B655D;
+  --color-atelier-terracotta: #C05A39;
+  --color-atelier-terracotta-hover: #A64B2E;
+  --color-atelier-bronze: #9E7A52;
+  --color-atelier-border: #E5E0D8;
 }
 
 :root {
-  --color-primary: #0f172a;
-  --color-primary-navy: #1e3a8a;
-  --color-accent-gold: #c59b27;
+  --color-bg-base: #FAF8F5;
+  --color-text-main: #1C1B19;
+  --color-text-muted: #6B655D;
+  --color-accent-terracotta: #C05A39;
+  --color-accent-bronze: #9E7A52;
+  --color-border-subtle: #E5E0D8;
+  --color-surface-dark: #161514;
 }
 
 body {
   font-family: var(--font-sans);
-  color: #0f172a;
-  background-color: #ffffff;
+  color: #1C1B19;
+  background-color: #FAF8F5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.01em;
 }
 
-.font-brand {
-  font-family: 'Cinzel', serif;
-  letter-spacing: 0.15em;
+/* Grand Hotel Central Editorial Typography Classes */
+.font-serif-luxury {
+  font-family: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
 }
 
 .font-editorial {
   font-family: 'Playfair Display', Georgia, serif;
 }
 
-/* Custom scrollbars */
+.font-brand {
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.22em;
+}
+
+.tracking-luxury {
+  letter-spacing: 0.25em;
+}
+
+.tracking-loose-caps {
+  letter-spacing: 0.18em;
+}
+
+/* Editorial Framing & Hairlines */
+.border-atelier {
+  border-color: #E5E0D8;
+}
+
+.border-atelier-dark {
+  border-color: #2E2B27;
+}
+
+.bg-atelier-ecru {
+  background-color: #FAF8F5;
+}
+
+.bg-atelier-linen {
+  background-color: #F3EFE6;
+}
+
+.bg-atelier-noir {
+  background-color: #161514;
+}
+
+.bg-atelier-charcoal {
+  background-color: #262422;
+}
+
+.text-atelier-terracotta {
+  color: #C05A39;
+}
+
+.bg-atelier-terracotta {
+  background-color: #C05A39;
+}
+
+.bg-atelier-terracotta:hover {
+  background-color: #A64B2E;
+}
+
+/* Bespoke Buttons (Inspired by Grand Hotel Central's Book Now button) */
+.btn-terracotta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: #C05A39;
+  color: #FFFFFF;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  padding: 0.875rem 2rem;
+  border-radius: 0px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+}
+
+.btn-terracotta:hover {
+  background-color: #A64B2E;
+  color: #FFFFFF;
+  transform: translateY(-1px);
+}
+
+.btn-noir {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: #161514;
+  color: #FAF8F5;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  padding: 0.875rem 2rem;
+  border-radius: 0px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+}
+
+.btn-noir:hover {
+  background-color: #2B2825;
+  color: #FFFFFF;
+  transform: translateY(-1px);
+}
+
+.btn-outline-luxury {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: transparent;
+  color: #161514;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  padding: 0.875rem 2rem;
+  border: 1px solid #161514;
+  border-radius: 0px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.btn-outline-luxury:hover {
+  background-color: #161514;
+  color: #FAF8F5;
+}
+
+.btn-outline-light {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: transparent;
+  color: #FAF8F5;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  padding: 0.875rem 2rem;
+  border: 1px solid rgba(250, 248, 245, 0.5);
+  border-radius: 0px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.btn-outline-light:hover {
+  background-color: #FAF8F5;
+  color: #161514;
+  border-color: #FAF8F5;
+}
+
+/* Subtle Editorial Animations */
+@keyframes fadeInSlide {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-editorial-fade {
+  animation: fadeInSlide 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Custom Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #FAF8F5;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 9999px;
+  background: #D8D2C5;
+  border-radius: 0px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-/* Animations */
-@keyframes spinSlow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.animate-spin-slow {
-  animation: spinSlow 8s linear infinite;
-}
-
-@keyframes pulseSubtle {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.85; transform: scale(0.98); }
-}
-
-.animate-pulse-subtle {
-  animation: pulseSubtle 3s ease-in-out infinite;
-}
-
-input[type="password"]::-ms-reveal,
-input[type="password"]::-ms-clear {
-  display: none;
+  background: #8C8476;
 }
 
 html {

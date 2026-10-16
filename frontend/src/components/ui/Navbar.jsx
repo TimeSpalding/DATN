@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Heart, Search, Sparkles, User, Menu, X, LogOut, Shield, Clock, Bookmark, Package } from 'lucide-react';
+import { ShoppingBag, Heart, Search, User, Menu, X, LogOut, Shield, Clock, Bookmark, Package, Compass } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 import { useWishlist } from '../../contexts/WishlistContext';
@@ -28,32 +28,35 @@ export default function Navbar() {
   };
 
   const navLinkClass = ({ isActive }) =>
-    `text-xs font-bold tracking-wider uppercase transition-colors py-1 ${
-      isActive ? 'text-blue-900 border-b-2 border-blue-900' : 'text-slate-600 hover:text-slate-950'
+    `text-[11px] font-medium tracking-[0.2em] uppercase transition-all py-1.5 border-b ${
+      isActive
+        ? 'text-[#161514] border-[#161514] font-semibold'
+        : 'text-[#6B655D] border-transparent hover:text-[#161514] hover:border-[#D8D2C5]'
     }`;
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200">
-      {/* Top Announcement Bar */}
-      <div className="bg-slate-950 text-slate-200 text-[10px] font-medium tracking-[0.18em] uppercase py-1.5 px-4 text-center flex items-center justify-center gap-2">
-        <Sparkles className="w-3 h-3 text-amber-400" />
-        <span>Phòng Thử Đồ Trực Tuyến &bull; Miễn Phí Đổi Size Tận Nhà Trong 30 Ngày &bull; Hotline: 1800 6868</span>
+    <header className="sticky top-0 z-40 bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#E5E0D8] transition-all">
+      {/* Top Heritage Utility Bar */}
+      <div className="bg-[#161514] text-[#D8D2C5] text-[10px] font-medium tracking-[0.22em] uppercase py-2 px-4 text-center">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <span className="hidden md:inline text-[#A8A196]">
+            HAUTE COUTURE &bull; DIGITAL FITTING SUITE &bull; BARCELONA &amp; HÀ NỘI
+          </span>
+          <span className="mx-auto md:mx-0">
+            DỊCH VỤ ƯỚM THỬ TẠI GIA &bull; GIAO HÀNG VÀ CHỈNH SỬA TẬN TAY MIỄN PHÍ
+          </span>
+          <span className="hidden lg:inline text-[#A8A196]">
+            CONCIERGE: +84 (0) 24 3868 6868
+          </span>
+        </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-16 py-3 flex items-center justify-between gap-4">
-        {/* Left: Brand logo & Navigation */}
-        <div className="flex items-center gap-8 lg:gap-10">
-          <Link to="/" className="flex flex-col group">
-            <span className="font-serif text-xl sm:text-2xl font-bold tracking-[0.2em] text-slate-950 uppercase transition-colors group-hover:text-blue-900">
-              L'ATELIER
-            </span>
-            <span className="text-[8.5px] tracking-[0.28em] text-slate-400 uppercase font-semibold -mt-0.5">
-              Studio &bull; Fitting Lab
-            </span>
-          </Link>
-
-          {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        {/* Main Header Layout: Balanced Editorial Presentation */}
+        <div className="flex items-center justify-between gap-4">
+          
+          {/* Left: Primary Collections Navigation */}
+          <nav className="hidden lg:flex items-center gap-7">
             <NavLink to="/" className={navLinkClass}>
               Trang Chủ
             </NavLink>
@@ -61,233 +64,272 @@ export default function Navbar() {
               Bộ Sưu Tập
             </NavLink>
             <NavLink to="/catalog?category=upper" className={navLinkClass}>
-              Áo Nam &amp; Nữ
+              Áo &amp; Tops
             </NavLink>
-            <NavLink to="/catalog?category=lower" className={navLinkClass}>
-              Quần &amp; Váy
-            </NavLink>
-            
-            {/* Try-On Highlight Pill */}
-            <NavLink
-              to="/try-on"
-              className={({ isActive }) =>
-                `inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase transition-all ${
-                  isActive
-                    ? 'bg-slate-950 text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-900 border border-slate-200 hover:bg-slate-950 hover:text-white'
-                }`
-              }
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>Phòng Thử Đồ Ảo</span>
+            <NavLink to="/catalog?category=dress" className={navLinkClass}>
+              Đầm &amp; Váy
             </NavLink>
           </nav>
-        </div>
 
-        {/* Right utility actions */}
-        <div className="flex items-center gap-2 sm:gap-3.5 text-slate-700">
-          {/* Visual Search Shortcut */}
-          <Link
-            to="/search-result"
-            className="p-2 hover:text-slate-950 hover:bg-slate-100 rounded-full transition-colors hidden sm:flex cursor-pointer"
-            title="Tìm kiếm hình ảnh thông minh"
-          >
-            <Search className="w-4 h-4" />
-          </Link>
-
-          {/* Wishlist Button */}
-          <Link
-            to="/bookmarks"
-            className="p-2 hover:text-slate-950 hover:bg-slate-100 rounded-full transition-colors relative cursor-pointer"
-            title="Sản phẩm đã lưu"
-          >
-            <Heart className="w-4 h-4" />
-            {wishlistCount > 0 && (
-              <span className="absolute top-1 right-1 w-4 h-4 bg-rose-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-                {wishlistCount}
+          {/* Center: Grand Logo & Maison Identity */}
+          <div className="flex flex-col items-center text-center">
+            <Link to="/" className="group flex flex-col items-center">
+              <span className="font-brand text-xl sm:text-2xl lg:text-3xl font-medium tracking-[0.24em] text-[#161514] uppercase transition-colors group-hover:text-[#C05A39]">
+                GRAND ATELIER
               </span>
-            )}
-          </Link>
+              <span className="text-[8.5px] tracking-[0.32em] text-[#8C8476] uppercase font-medium -mt-0.5">
+                CENTRAL &bull; MAISON DE COUTURE
+              </span>
+            </Link>
+          </div>
 
-          {/* Shopping Bag Trigger Button */}
-          <button
-            type="button"
-            onClick={openCart}
-            className="flex items-center gap-2 bg-slate-950 text-white px-3.5 py-1.5 rounded-full text-[11px] font-bold tracking-wider uppercase transition-all hover:bg-blue-950 shadow-xs cursor-pointer"
-            title="Mở túi đồ"
-          >
-            <ShoppingBag className="w-3.5 h-3.5 text-amber-400" />
-            <span className="hidden sm:inline">Túi Đồ</span>
-            <span className="w-4 h-4 bg-white/20 rounded-full flex items-center justify-center text-[10px]">
-              {totalItemsCount}
-            </span>
-          </button>
+          {/* Right: Bespoke Services & Utilities */}
+          <div className="flex items-center gap-5 sm:gap-6 text-[#161514]">
+            {/* Desktop Experience Links */}
+            <nav className="hidden xl:flex items-center gap-6 mr-2">
+              <NavLink
+                to="/try-on"
+                className={({ isActive }) =>
+                  `text-[11px] font-medium tracking-[0.2em] uppercase transition-all py-1 border-b ${
+                    isActive
+                      ? 'text-[#C05A39] border-[#C05A39] font-semibold'
+                      : 'text-[#6B655D] border-transparent hover:text-[#C05A39]'
+                  }`
+                }
+              >
+                Phòng Thử Đồ Tư Gia
+              </NavLink>
 
-          {/* User Account / Auth Dropdown */}
-          <div className="relative">
-            {isAuthenticated ? (
-              <div>
-                <button
-                  type="button"
-                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                  className="flex items-center gap-2 pl-2 pr-1 py-1 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
-                >
-                  <div className="w-7 h-7 rounded-full bg-blue-900 text-white flex items-center justify-center text-xs font-bold uppercase">
-                    {displayName.charAt(0)}
-                  </div>
-                  <span className="hidden md:inline text-xs font-semibold text-slate-800 max-w-[100px] truncate">
-                    {displayName}
-                  </span>
-                </button>
+              <NavLink
+                to="/search-result"
+                className={({ isActive }) =>
+                  `text-[11px] font-medium tracking-[0.2em] uppercase transition-all py-1 border-b ${
+                    isActive
+                      ? 'text-[#161514] border-[#161514] font-semibold'
+                      : 'text-[#6B655D] border-transparent hover:text-[#161514]'
+                  }`
+                }
+              >
+                Visual Concierge
+              </NavLink>
 
-                {/* Dropdown Menu */}
-                {userDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 animate-fade-in">
-                    <div className="px-4 py-2 border-b border-slate-100">
-                      <p className="text-xs font-bold text-slate-900 truncate">{displayName}</p>
-                      <p className="text-[10px] text-slate-400 capitalize">{role || 'Thành viên'}</p>
-                    </div>
+              <NavLink
+                to="/about"
+                className={navLinkClass}
+              >
+                Câu Chuyện
+              </NavLink>
+            </nav>
 
-                    <Link
-                      to="/orders"
-                      onClick={() => setUserDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 font-medium"
-                    >
-                      <Package className="w-4 h-4 text-blue-700" />
-                      <span>Đơn hàng của tôi</span>
-                    </Link>
+            {/* Visual Search Icon */}
+            <Link
+              to="/search-result"
+              className="p-1.5 text-[#161514] hover:text-[#C05A39] transition-colors"
+              title="Visual Concierge — Tìm kiếm qua hình ảnh"
+            >
+              <Search className="w-4 h-4 stroke-[1.75]" />
+            </Link>
 
-                    <Link
-                      to="/bookmarks"
-                      onClick={() => setUserDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 font-medium"
-                    >
-                      <Bookmark className="w-4 h-4 text-rose-500" />
-                      <span>Sản phẩm đã lưu</span>
-                    </Link>
+            {/* Wishlist Button */}
+            <Link
+              to="/bookmarks"
+              className="p-1.5 text-[#161514] hover:text-[#C05A39] transition-colors relative"
+              title="Danh sách yêu thích"
+            >
+              <Heart className="w-4 h-4 stroke-[1.75]" />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[#C05A39] text-white text-[8.5px] font-medium rounded-full flex items-center justify-center">
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
 
-                    <Link
-                      to="/search-history"
-                      onClick={() => setUserDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 font-medium"
-                    >
-                      <Clock className="w-4 h-4 text-slate-500" />
-                      <span>Lịch sử tìm kiếm</span>
-                    </Link>
-
-                    {role === 'ADMIN' && (
-                      <Link
-                        to="/admin"
-                        onClick={() => setUserDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-4 py-2 text-xs text-indigo-700 hover:bg-indigo-50 font-bold border-t border-slate-100 mt-1"
-                      >
-                        <Shield className="w-4 h-4 text-indigo-600" />
-                        <span>Admin Dashboard</span>
-                      </Link>
-                    )}
-
-                    <div className="border-t border-slate-100 mt-1 pt-1">
-                      <button
-                        type="button"
-                        onClick={handleLogout}
-                        className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-rose-600 hover:bg-rose-50 font-medium cursor-pointer"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        <span>Đăng xuất</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="hidden sm:flex items-center gap-2">
-                <Link
-                  to="/login"
-                  className="px-3.5 py-1.5 rounded-full text-xs font-bold text-slate-700 hover:text-slate-950 hover:bg-slate-100 transition-colors uppercase tracking-wider"
-                >
-                  Đăng nhập
-                </Link>
-                <Link
-                  to="/register"
-                  className="px-3.5 py-1.5 rounded-full bg-slate-100 text-slate-900 border border-slate-200 text-xs font-bold hover:bg-slate-200 transition-colors uppercase tracking-wider"
-                >
-                  Đăng ký
-                </Link>
-              </div>
-            )}
-
-            {/* Mobile Hamburger Toggle */}
+            {/* Shopping Bag Trigger Button */}
             <button
               type="button"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-1.5 text-slate-700 hover:text-slate-950 lg:hidden rounded-lg hover:bg-slate-100 transition-colors"
+              onClick={openCart}
+              className="flex items-center gap-2 bg-[#161514] text-[#FAF8F5] px-3.5 py-1.5 text-[10.5px] font-medium tracking-[0.16em] uppercase transition-all hover:bg-[#C05A39] cursor-pointer"
+              title="Mở túi đồ"
             >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              <ShoppingBag className="w-3.5 h-3.5 stroke-[1.75]" />
+              <span className="hidden sm:inline">Túi Đồ</span>
+              <span className="text-[10px] opacity-80">({totalItemsCount})</span>
             </button>
+
+            {/* User Account / Auth Dropdown */}
+            <div className="relative">
+              {isAuthenticated ? (
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                    className="flex items-center gap-2 p-1 text-[#161514] hover:text-[#C05A39] transition-colors cursor-pointer"
+                  >
+                    <div className="w-6 h-6 border border-[#161514] text-[#161514] flex items-center justify-center text-[10px] font-medium uppercase">
+                      {displayName.charAt(0)}
+                    </div>
+                    <span className="hidden lg:inline text-[11px] font-medium tracking-wider text-[#161514] max-w-[90px] truncate">
+                      {displayName}
+                    </span>
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {userDropdownOpen && (
+                    <div className="absolute right-0 mt-3 w-56 bg-[#FAF8F5] border border-[#E5E0D8] shadow-xl py-2 z-50">
+                      <div className="px-4 py-2 border-b border-[#E5E0D8]">
+                        <p className="text-xs font-semibold text-[#161514] truncate">{displayName}</p>
+                        <p className="text-[10px] tracking-widest text-[#8C8476] uppercase mt-0.5">{role || 'Thành viên Maison'}</p>
+                      </div>
+
+                      <Link
+                        to="/orders"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2 text-xs text-[#2A2724] hover:bg-[#F3EFE6] font-normal"
+                      >
+                        <Package className="w-3.5 h-3.5 text-[#8C8476]" />
+                        <span>Đơn hàng &amp; May đo</span>
+                      </Link>
+
+                      <Link
+                        to="/bookmarks"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2 text-xs text-[#2A2724] hover:bg-[#F3EFE6] font-normal"
+                      >
+                        <Bookmark className="w-3.5 h-3.5 text-[#8C8476]" />
+                        <span>Bộ sưu tập đã lưu</span>
+                      </Link>
+
+                      <Link
+                        to="/search-history"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2 text-xs text-[#2A2724] hover:bg-[#F3EFE6] font-normal"
+                      >
+                        <Clock className="w-3.5 h-3.5 text-[#8C8476]" />
+                        <span>Nhật ký tìm kiếm</span>
+                      </Link>
+
+                      {role === 'ADMIN' && (
+                        <Link
+                          to="/admin"
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-4 py-2 text-xs text-[#C05A39] hover:bg-[#F3EFE6] font-medium border-t border-[#E5E0D8] mt-1"
+                        >
+                          <Shield className="w-3.5 h-3.5 text-[#C05A39]" />
+                          <span>Quản trị Atelier</span>
+                        </Link>
+                      )}
+
+                      <div className="border-t border-[#E5E0D8] mt-1 pt-1">
+                        <button
+                          type="button"
+                          onClick={handleLogout}
+                          className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-[#8C8476] hover:text-[#C05A39] hover:bg-[#F3EFE6] font-normal cursor-pointer"
+                        >
+                          <LogOut className="w-3.5 h-3.5" />
+                          <span>Đăng xuất</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="hidden sm:flex items-center gap-3">
+                  <Link
+                    to="/login"
+                    className="text-[11px] font-medium tracking-[0.18em] uppercase text-[#161514] hover:text-[#C05A39] transition-colors"
+                  >
+                    Đăng nhập
+                  </Link>
+                  <span className="text-[#D8D2C5]">/</span>
+                  <Link
+                    to="/register"
+                    className="text-[11px] font-medium tracking-[0.18em] uppercase text-[#6B655D] hover:text-[#161514] transition-colors"
+                  >
+                    Đăng ký
+                  </Link>
+                </div>
+              )}
+
+              {/* Mobile Hamburger Toggle */}
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="p-1.5 text-[#161514] lg:hidden hover:text-[#C05A39] transition-colors"
+                aria-label="Menu"
+              >
+                {mobileMenuOpen ? <X className="w-5 h-5 stroke-[1.5]" /> : <Menu className="w-5 h-5 stroke-[1.5]" />}
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-slate-200 bg-white px-4 py-5 flex flex-col gap-3 shadow-lg">
+        <div className="lg:hidden border-t border-[#E5E0D8] bg-[#FAF8F5] px-6 py-6 flex flex-col gap-4 shadow-xl">
           <NavLink
             to="/"
             onClick={() => setMobileMenuOpen(false)}
-            className="text-sm font-bold text-slate-800 py-1.5 border-b border-slate-100"
+            className="text-xs font-medium tracking-[0.2em] uppercase text-[#161514] py-2 border-b border-[#E5E0D8]"
           >
             Trang Chủ
           </NavLink>
           <NavLink
             to="/catalog"
             onClick={() => setMobileMenuOpen(false)}
-            className="text-sm font-bold text-slate-800 py-1.5 border-b border-slate-100"
+            className="text-xs font-medium tracking-[0.2em] uppercase text-[#161514] py-2 border-b border-[#E5E0D8]"
           >
-            Bộ Sưu Tập
+            Bộ Sưu Tập Đầy Đủ
           </NavLink>
           <NavLink
             to="/catalog?category=upper"
             onClick={() => setMobileMenuOpen(false)}
-            className="text-sm font-bold text-slate-800 py-1.5 border-b border-slate-100"
+            className="text-xs font-medium tracking-[0.2em] uppercase text-[#161514] py-2 border-b border-[#E5E0D8]"
           >
-            Áo Nam &amp; Nữ
+            Áo &amp; Tops
           </NavLink>
           <NavLink
-            to="/catalog?category=lower"
+            to="/catalog?category=dress"
             onClick={() => setMobileMenuOpen(false)}
-            className="text-sm font-bold text-slate-800 py-1.5 border-b border-slate-100"
+            className="text-xs font-medium tracking-[0.2em] uppercase text-[#161514] py-2 border-b border-[#E5E0D8]"
           >
-            Quần &amp; Váy
+            Đầm &amp; Váy
           </NavLink>
           <NavLink
             to="/try-on"
             onClick={() => setMobileMenuOpen(false)}
-            className="text-sm font-bold text-blue-900 py-1.5 border-b border-slate-100 flex items-center gap-2"
+            className="text-xs font-medium tracking-[0.2em] uppercase text-[#C05A39] py-2 border-b border-[#E5E0D8]"
           >
-            <Sparkles className="w-4 h-4 text-amber-500" />
-            <span>Phòng Thử Đồ Ảo (Virtual Try-On)</span>
+            Phòng Thử Đồ Tư Gia (Fitting Suite)
           </NavLink>
           <NavLink
             to="/search-result"
             onClick={() => setMobileMenuOpen(false)}
-            className="text-sm font-bold text-slate-800 py-1.5 border-b border-slate-100"
+            className="text-xs font-medium tracking-[0.2em] uppercase text-[#161514] py-2 border-b border-[#E5E0D8]"
           >
-            Tìm Kiếm Hình Ảnh AI
+            Visual Concierge
+          </NavLink>
+          <NavLink
+            to="/about"
+            onClick={() => setMobileMenuOpen(false)}
+            className="text-xs font-medium tracking-[0.2em] uppercase text-[#161514] py-2 border-b border-[#E5E0D8]"
+          >
+            Câu Chuyện Maison
           </NavLink>
 
           {!isAuthenticated && (
-            <div className="flex gap-2 pt-2">
+            <div className="flex gap-3 pt-3">
               <Link
                 to="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex-1 py-2 text-center text-xs font-bold uppercase rounded-xl border border-slate-300 text-slate-800"
+                className="flex-1 py-3 text-center text-[11px] font-medium tracking-[0.18em] uppercase border border-[#161514] text-[#161514]"
               >
                 Đăng nhập
               </Link>
               <Link
                 to="/register"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex-1 py-2 text-center text-xs font-bold uppercase rounded-xl bg-slate-950 text-white"
+                className="flex-1 py-3 text-center text-[11px] font-medium tracking-[0.18em] uppercase bg-[#161514] text-[#FAF8F5]"
               >
                 Đăng ký
               </Link>

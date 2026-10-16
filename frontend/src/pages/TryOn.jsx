@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { History, Clock, Trash2, ArrowUpRight, Sparkles, AlertCircle } from 'lucide-react';
+import { Clock, Trash2, ArrowRight } from 'lucide-react';
 import FittingStudio from '../components/common/FittingStudio';
 import GarmentCatalog from '../components/common/GarmentCatalog';
 import StudioBenefits from '../components/common/StudioBenefits';
@@ -39,51 +39,52 @@ export default function TryOn() {
     try {
       await deleteTryOnHistory(id);
       setHistoryItems((prev) => prev.filter((item) => item.id !== id));
-      showToast('Đã xóa phiên thử đồ khỏi lịch sử', 'info');
+      showToast('Đã xóa phiên thử đồ khỏi nhật ký', 'info');
     } catch {
       showToast('Không thể xóa phiên thử đồ', 'error');
     }
   };
 
   return (
-    <div className="w-full flex flex-col items-center pt-4 pb-16">
-      {/* Fitting Studio Master Stage */}
+    <div className="w-full flex flex-col items-center pt-6 pb-20 bg-[#FAF8F5]">
+      
+      {/* 1. Fitting Studio Master Stage */}
       <FittingStudio initialGarment={activeGarment} />
 
-      {/* History Drawer Trigger */}
-      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-        <div className="flex items-center justify-between border-t border-slate-200 pt-6">
+      {/* 2. History Drawer Trigger */}
+      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+        <div className="flex items-center justify-between border-t border-[#E5E0D8] pt-8">
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-blue-800" />
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-800">
-              Lịch Sử Các Phiên Thử Đồ
+            <Clock className="w-4 h-4 text-[#8C8476]" />
+            <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#161514]">
+              NHẬT KÝ CÁC PHIÊN ƯỚM THỬ TƯ GIA
             </span>
           </div>
 
           <button
             type="button"
             onClick={() => setShowHistory(!showHistory)}
-            className="px-4 py-1.5 rounded-full text-xs font-semibold border border-slate-300 hover:border-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+            className="px-4 py-2 text-[10.5px] font-medium tracking-wider uppercase border border-[#161514] text-[#161514] hover:bg-[#161514] hover:text-[#FAF8F5] transition-all cursor-pointer"
           >
-            {showHistory ? 'Thu gọn lịch sử' : 'Xem lịch sử thử đồ'}
+            {showHistory ? 'Thu gọn nhật ký' : 'Mở nhật ký thử đồ'}
           </button>
         </div>
 
         {/* History Accordion Body */}
         {showHistory && (
-          <div className="mt-4 p-5 rounded-2xl bg-slate-50 border border-slate-200">
+          <div className="mt-6 p-6 bg-[#F7F5F0] border border-[#E5E0D8]">
             {loadingHistory ? (
-              <p className="text-xs text-slate-500 text-center py-6">Đang tải lịch sử...</p>
+              <p className="text-xs text-[#8C8476] text-center py-6">Đang tải nhật ký...</p>
             ) : historyItems.length === 0 ? (
-              <p className="text-xs text-slate-500 text-center py-6">Chưa có phiên thử đồ nào được lưu.</p>
+              <p className="text-xs text-[#8C8476] text-center py-6">Chưa có phiên ướm thử nào được lưu trong kho dữ liệu.</p>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                 {historyItems.map((item) => (
                   <div
                     key={item.id}
-                    className="relative group rounded-xl overflow-hidden bg-white border border-slate-200 shadow-2xs"
+                    className="relative group bg-[#FAF8F5] border border-[#E5E0D8]"
                   >
-                    <div className="aspect-[3/4] bg-slate-100 overflow-hidden">
+                    <div className="aspect-[3/4] bg-[#F3EFE6] overflow-hidden">
                       <img
                         src={item.resultImageUrl}
                         alt="Phiên thử đồ"
@@ -91,12 +92,12 @@ export default function TryOn() {
                       />
                     </div>
 
-                    <div className="p-3 flex items-center justify-between text-[11px] text-slate-500">
+                    <div className="p-3 flex items-center justify-between text-[10px] tracking-wider text-[#8C8476] uppercase">
                       <span>{new Date(item.createdAt).toLocaleDateString('vi-VN')}</span>
                       <button
                         type="button"
                         onClick={() => handleDeleteRecord(item.id)}
-                        className="p-1 text-slate-400 hover:text-rose-600 transition-colors"
+                        className="p-1 text-[#8C8476] hover:text-[#C05A39] transition-colors"
                         title="Xóa phiên thử đồ"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -110,7 +111,7 @@ export default function TryOn() {
         )}
       </div>
 
-      {/* Quick Curated Garment Tray to Pick More Outfits */}
+      {/* 3. Quick Curated Garment Tray to Pick More Outfits */}
       <GarmentCatalog
         selectedGarmentId={activeGarment?.id}
         onSelectGarment={(garment) => {
@@ -120,7 +121,7 @@ export default function TryOn() {
         }}
       />
 
-      {/* Store Benefits */}
+      {/* 4. Atelier Pillars */}
       <StudioBenefits />
     </div>
   );

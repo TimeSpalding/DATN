@@ -18,6 +18,7 @@ import { BookmarkTrash } from '../pages/BookmarkTrash';
 import { SearchHistory } from '../pages/SearchHistory';
 import { Login } from '../pages/Login';
 import { Register } from '../pages/Register';
+import AboutStory from '../pages/AboutStory';
 
 // Admin Portal Pages
 import AdminDashboard from '../pages/admin/AdminDashboard';
@@ -122,6 +123,14 @@ export default function AppRoutes() {
         element={
           <MainLayout>
             <SearchResult />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/about"
+        element={
+          <MainLayout>
+            <AboutStory />
           </MainLayout>
         }
       />

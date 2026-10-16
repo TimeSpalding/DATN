@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
-  Sparkles,
   ShoppingBag,
   Heart,
   Truck,
@@ -13,21 +12,23 @@ import {
   ArrowRight,
   Ruler,
   X,
-  Share2,
+  Compass,
 } from 'lucide-react';
 import { catalogService } from '../services/catalogService';
 import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
 import ProductCard from '../components/common/ProductCard';
 import { resolveImageUrl } from '../utils/imageUrl';
+import { enrichProduct } from '../utils/productEnricher';
 
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addToCart, showToast } = useCart();
+  const { addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
 
   const [product, setProduct] = useState(null);
+  const [enriched, setEnriched] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState('');
   const [selectedSize, setSelectedSize] = useState('M');
@@ -44,6 +45,8 @@ export default function ProductDetail() {
         const res = await catalogService.getProductById(id);
         const prod = res?.data;
         setProduct(prod);
+        const enrichedProd = enrichProduct(prod);
+        setEnriched(enrichedProd);
         setSelectedImage(prod.image);
         setSelectedColor(prod.colors?.[0]?.name || 'Tiêu chuẩn');
         setSelectedSize(prod.sizes?.[0]?.size || 'M');
@@ -64,21 +67,21 @@ export default function ProductDetail() {
 
   if (loading) {
     return (
-      <div className="w-full max-w-7xl mx-auto px-4 py-20 flex flex-col items-center justify-center">
-        <div className="w-12 h-12 rounded-full border-2 border-slate-200 border-t-slate-950 animate-spin" />
-        <p className="text-xs text-slate-500 font-semibold mt-4">Đang tải thông tin sản phẩm...</p>
+      <div className="w-full max-w-7xl mx-auto px-4 py-28 flex flex-col items-center justify-center">
+        <div className="w-10 h-10 border border-[#E5E0D8] border-t-[#C05A39] animate-spin" />
+        <p className="text-xs text-[#8C8476] tracking-widest uppercase mt-4">Đang truy xuất thông số may đo...</p>
       </div>
     );
   }
 
-  if (!product) {
+  if (!product || !enriched) {
     return (
-      <div className="w-full max-w-md mx-auto px-4 py-24 text-center">
-        <h2 className="text-lg font-bold text-slate-900">Không tìm thấy sản phẩm</h2>
-        <p className="text-xs text-slate-500 mt-2">Sản phẩm có thể đã ngừng kinh doanh hoặc đường dẫn không đúng.</p>
+      <div className="w-full max-w-md mx-auto px-4 py-28 text-center">
+        <h2 className="font-serif-luxury text-2xl text-[#161514]">Không tìm thấy thiết kế</h2>
+        <p className="text-xs text-[#8C8476] mt-2">Mẫu trang phục có thể đã ngừng lưu trữ hoặc đường dẫn không hợp lệ.</p>
         <Link
           to="/catalog"
-          className="mt-6 inline-flex px-6 py-2.5 bg-slate-950 text-white text-xs font-bold uppercase rounded-full"
+          className="btn-noir mt-6"
         >
           Quay lại cửa hàng
         </Link>
@@ -102,43 +105,46 @@ export default function ProductDetail() {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Breadcrumb Navigation */}
-      <nav className="flex items-center gap-2 text-xs text-slate-500 mb-8">
-        <Link to="/" className="hover:text-slate-900 transition-colors">
-          Trang chủ
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      
+      {/* 1. Breadcrumbs */}
+      <nav className="flex items-center gap-2 text-[10.5px] tracking-[0.18em] uppercase text-[#8C8476] mb-10 font-medium">
+        <Link to="/" className="hover:text-[#161514] transition-colors">
+          Trang Chủ
         </Link>
         <span>/</span>
-        <Link to="/catalog" className="hover:text-slate-900 transition-colors">
-          Bộ sưu tập
+        <Link to="/catalog" className="hover:text-[#161514] transition-colors">
+          Bộ Sưu Tập
         </Link>
         <span>/</span>
         <Link
           to={`/catalog?category=${product.category}`}
-          className="hover:text-slate-900 transition-colors capitalize"
+          className="hover:text-[#161514] transition-colors"
         >
-          {product.category === 'upper' ? 'Áo' : product.category === 'lower' ? 'Quần & Váy' : 'Đầm & Đồ Bộ'}
+          {product.category === 'upper' ? 'Áo & Tops' : product.category === 'lower' ? 'Quần & Váy' : 'Đầm & Outerwear'}
         </Link>
         <span>/</span>
-        <span className="text-slate-950 font-bold truncate max-w-[200px] sm:max-w-none">
+        <span className="text-[#161514] font-semibold truncate max-w-[200px] sm:max-w-none">
           {product.name}
         </span>
       </nav>
 
-      {/* Main Product Showcase (2 Columns) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14">
-        {/* Left: Gallery Column */}
-        <div className="flex flex-col-reverse sm:flex-row gap-4">
+      {/* 2. Main Product Showcase (2 Columns) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14">
+        
+        {/* Left: Gallery Column (Col 1-7) */}
+        <div className="lg:col-span-7 flex flex-col-reverse sm:flex-row gap-4">
+          
           {/* Thumbnails */}
           {product.gallery && product.gallery.length > 1 && (
-            <div className="flex sm:flex-col gap-3 overflow-x-auto sm:overflow-y-auto max-h-[500px]">
+            <div className="flex sm:flex-col gap-3 overflow-x-auto sm:overflow-y-auto max-h-[560px] pb-2 sm:pb-0">
               {product.gallery.map((img, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => setSelectedImage(img)}
-                  className={`w-18 h-24 rounded-xl overflow-hidden border-2 shrink-0 transition-all cursor-pointer ${
-                    selectedImage === img ? 'border-slate-950 shadow-xs' : 'border-slate-200 opacity-70 hover:opacity-100'
+                  className={`w-20 h-28 overflow-hidden border shrink-0 transition-all cursor-pointer ${
+                    selectedImage === img ? 'border-[#161514] opacity-100' : 'border-[#E5E0D8] opacity-60 hover:opacity-100'
                   }`}
                 >
                   <img
@@ -155,8 +161,8 @@ export default function ProductDetail() {
             </div>
           )}
 
-          {/* Main Stage Image */}
-          <div className="flex-1 relative aspect-[3/4] rounded-3xl overflow-hidden bg-slate-50 border border-slate-200">
+          {/* Main Stage Image (3:4 Editorial Portrait) */}
+          <div className="flex-1 relative aspect-[3/4] bg-[#F3EFE6] border border-[#E5E0D8] overflow-hidden">
             <img
               src={resolveImageUrl(selectedImage || product.image)}
               alt={product.name}
@@ -168,14 +174,14 @@ export default function ProductDetail() {
             />
 
             {/* Badges */}
-            <div className="absolute top-4 left-4 flex flex-col gap-1.5">
+            <div className="absolute top-4 left-4 flex flex-col gap-1.5 pointer-events-none">
               {product.badge && (
-                <span className="text-[10px] font-bold tracking-wider uppercase px-3 py-1 bg-slate-950 text-white rounded-full shadow-xs">
+                <span className="text-[9.5px] font-semibold tracking-[0.2em] uppercase px-3 py-1 bg-[#161514] text-[#FAF8F5]">
                   {product.badge}
                 </span>
               )}
               {product.discountPercent > 0 && (
-                <span className="text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 bg-rose-600 text-white rounded-full shadow-xs">
+                <span className="text-[9.5px] font-semibold tracking-[0.16em] uppercase px-2.5 py-0.5 bg-[#C05A39] text-[#FAF8F5]">
                   -{product.discountPercent}%
                 </span>
               )}
@@ -185,66 +191,66 @@ export default function ProductDetail() {
             <button
               type="button"
               onClick={() => toggleWishlist(product.id)}
-              className={`absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+              className={`absolute top-4 right-4 w-9 h-9 flex items-center justify-center transition-all cursor-pointer ${
                 isFavorited
-                  ? 'bg-rose-50 text-rose-600 border border-rose-200 shadow-xs'
-                  : 'bg-white/80 backdrop-blur-md text-slate-700 hover:bg-white border border-slate-200 shadow-xs'
+                  ? 'bg-[#FAF8F5] text-[#C05A39] border border-[#E5E0D8]'
+                  : 'bg-[#FAF8F5]/80 backdrop-blur-xs text-[#6B655D] hover:bg-[#FAF8F5] hover:text-[#161514] border border-[#E5E0D8]'
               }`}
+              title={isFavorited ? 'Xóa khỏi danh sách yêu thích' : 'Lưu thiết kế'}
             >
-              <Heart className={`w-5 h-5 ${isFavorited ? 'fill-rose-600' : ''}`} />
+              <Heart className={`w-4 h-4 stroke-[1.75] ${isFavorited ? 'fill-[#C05A39]' : ''}`} />
             </button>
           </div>
         </div>
 
-        {/* Right: Specifications & CTAs Column */}
-        <div className="flex flex-col justify-between">
+        {/* Right: Specifications & Tailoring Notes Column (Col 8-12) */}
+        <div className="lg:col-span-5 flex flex-col justify-between">
           <div>
-            {/* SKU & Brand Line */}
-            <div className="flex items-center justify-between text-xs text-slate-400 font-semibold mb-2">
-              <span className="tracking-widest uppercase">MÃ SP: {product.sku}</span>
-              <span className="text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 font-bold">
-                Còn hàng ({product.sizes?.reduce((a, b) => a + b.stock, 0) || 45} chiếc)
+            {/* Atelier Code & Stock Line */}
+            <div className="flex items-center justify-between text-[10.5px] tracking-[0.2em] uppercase text-[#8C8476] font-medium mb-3">
+              <span>MÃ THIẾT KẾ: {enriched.atelierCode}</span>
+              <span className="text-[#C05A39] font-semibold">
+                SẴN CỠ MAY ĐO ({product.sizes?.reduce((a, b) => a + b.stock, 0) || 45} CHIẾC)
               </span>
             </div>
 
             {/* Product Title */}
-            <h1 className="font-serif text-2xl sm:text-3xl font-bold text-slate-950 tracking-tight leading-tight">
+            <h1 className="font-serif-luxury text-3xl sm:text-4xl font-normal text-[#161514] tracking-wide leading-tight">
               {product.name}
             </h1>
 
-            {/* Rating & Review summary */}
-            <div className="flex items-center gap-2 mt-2.5 text-xs text-slate-500">
-              <div className="flex text-amber-500 font-bold">
-                {product.rating || '4.9'} / 5.0
-              </div>
-              <span>&bull;</span>
-              <span className="underline cursor-pointer">{product.reviewsCount || 48} Đánh giá đã xác thực</span>
-              <span>&bull;</span>
-              <span>Đã bán 180+</span>
-            </div>
+            {/* Editorial Tagline */}
+            <p className="text-[11px] font-medium tracking-[0.16em] text-[#8C8476] uppercase mt-2">
+              {enriched.editorialTagline}
+            </p>
 
-            {/* Price Row */}
-            <div className="mt-5 p-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+            {/* Price Line */}
+            <div className="mt-6 py-4 border-y border-[#E5E0D8] flex items-baseline justify-between">
               <div className="flex items-baseline gap-3">
-                <span className="text-2xl sm:text-3xl font-extrabold text-blue-900">
+                <span className="font-serif-luxury text-3xl text-[#161514]">
                   {product.price}
                 </span>
                 {product.originalPrice && product.originalPrice > product.rawPrice && (
-                  <span className="text-sm text-slate-400 line-through">
+                  <span className="text-sm text-[#8C8476] line-through">
                     {product.originalPrice.toLocaleString('vi-VN')}₫
                   </span>
                 )}
               </div>
-              <span className="text-[11px] font-semibold text-slate-500">
-                Đã bao gồm thuế VAT
+              <span className="text-[10px] tracking-[0.18em] uppercase text-[#8C8476] font-medium">
+                ĐÃ GỒM THUẾ VAT &bull; MIỄN PHÍ VẬN CHUYỂN
               </span>
             </div>
 
-            {/* Color Swatches */}
+            {/* Sensory Short Excerpt */}
+            <p className="text-xs sm:text-sm text-[#6B655D] mt-5 leading-relaxed font-normal">
+              {enriched.sensoryDescription}
+            </p>
+
+            {/* Color Selection */}
             {product.colors && product.colors.length > 0 && (
-              <div className="mt-6">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-900 mb-2.5">
-                  <span>Màu Sắc: <strong className="text-blue-900">{selectedColor}</strong></span>
+              <div className="mt-6 pt-5 border-t border-[#E5E0D8]">
+                <div className="flex items-center justify-between text-[11px] tracking-[0.16em] uppercase font-medium text-[#161514] mb-3">
+                  <span>SẮC THÁI SỢI DỆT: <strong>{selectedColor}</strong></span>
                 </div>
                 <div className="flex items-center gap-3">
                   {product.colors.map((c) => (
@@ -252,14 +258,14 @@ export default function ProductDetail() {
                       key={c.name}
                       type="button"
                       onClick={() => setSelectedColor(c.name)}
-                      className={`relative w-8 h-8 rounded-full border-2 transition-all flex items-center justify-center cursor-pointer ${
-                        selectedColor === c.name ? 'ring-2 ring-slate-950 ring-offset-2 border-slate-950' : 'border-slate-300'
+                      className={`relative w-8 h-8 border transition-all flex items-center justify-center cursor-pointer ${
+                        selectedColor === c.name ? 'ring-1 ring-[#161514] ring-offset-2 border-[#161514]' : 'border-[#D8D2C5]'
                       }`}
                       style={{ backgroundColor: c.hex }}
                       title={c.name}
                     >
                       {selectedColor === c.name && (
-                        <Check className={`w-3.5 h-3.5 ${['#ffffff', '#fdfbf7', '#f5f5f4', '#f5ebe0', '#fef3c7'].includes(c.hex.toLowerCase()) ? 'text-slate-950' : 'text-white'}`} />
+                        <Check className={`w-3.5 h-3.5 ${['#ffffff', '#fdfbf7', '#f5f5f4', '#f5ebe0', '#fef3c7'].includes(c.hex.toLowerCase()) ? 'text-[#161514]' : 'text-white'}`} />
                       )}
                     </button>
                   ))}
@@ -268,16 +274,16 @@ export default function ProductDetail() {
             )}
 
             {/* Size Selector */}
-            <div className="mt-6">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-900 mb-2.5">
-                <span>Chọn Kích Cỡ (Size):</span>
+            <div className="mt-6 pt-5 border-t border-[#E5E0D8]">
+              <div className="flex items-center justify-between text-[11px] tracking-[0.16em] uppercase font-medium text-[#161514] mb-3">
+                <span>CHỌN KÍCH CỠ (SIZE):</span>
                 <button
                   type="button"
                   onClick={() => setShowSizeModal(true)}
-                  className="flex items-center gap-1 text-blue-800 hover:underline cursor-pointer font-semibold"
+                  className="flex items-center gap-1 text-[#C05A39] hover:underline cursor-pointer lowercase tracking-normal"
                 >
                   <Ruler className="w-3.5 h-3.5" />
-                  <span>Bảng quy đổi size</span>
+                  <span>quy chuẩn size</span>
                 </button>
               </div>
 
@@ -288,17 +294,17 @@ export default function ProductDetail() {
                     type="button"
                     onClick={() => setSelectedSize(sz.size)}
                     disabled={sz.stock <= 0}
-                    className={`py-2.5 rounded-xl border text-xs font-bold transition-all flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
+                    className={`py-3 border text-xs font-semibold tracking-wider uppercase transition-all flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
                       selectedSize === sz.size
-                        ? 'bg-slate-950 text-white border-slate-950 shadow-xs'
+                        ? 'bg-[#161514] text-[#FAF8F5] border-[#161514]'
                         : sz.stock <= 0
-                        ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
-                        : 'bg-white text-slate-800 border-slate-300 hover:border-slate-950'
+                        ? 'bg-[#F3EFE6] text-[#A8A196] border-[#E5E0D8] cursor-not-allowed'
+                        : 'bg-[#FAF8F5] text-[#161514] border-[#E5E0D8] hover:border-[#161514]'
                     }`}
                   >
                     <span>{sz.size}</span>
-                    <span className="text-[9px] font-normal opacity-75">
-                      {sz.stock > 0 ? `Còn ${sz.stock}` : 'Hết'}
+                    <span className="text-[8.5px] font-normal opacity-70">
+                      {sz.stock > 0 ? `Còn ${sz.stock}` : 'Hết hàng'}
                     </span>
                   </button>
                 ))}
@@ -306,149 +312,170 @@ export default function ProductDetail() {
             </div>
 
             {/* Quantity Selector */}
-            <div className="mt-6 flex items-center gap-4">
-              <span className="text-xs font-bold text-slate-900">Số lượng:</span>
-              <div className="inline-flex items-center border border-slate-300 rounded-xl bg-white">
+            <div className="mt-6 pt-5 border-t border-[#E5E0D8] flex items-center gap-4">
+              <span className="text-[11px] tracking-[0.16em] uppercase font-medium text-[#161514]">SỐ LƯỢNG:</span>
+              <div className="inline-flex items-center border border-[#E5E0D8] bg-[#FAF8F5]">
                 <button
                   type="button"
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-8 h-8 flex items-center justify-center text-slate-600 hover:text-slate-950 cursor-pointer"
+                  className="w-8 h-8 flex items-center justify-center text-[#6B655D] hover:text-[#161514] cursor-pointer"
                 >
-                  <Minus className="w-3.5 h-3.5" />
+                  <Minus className="w-3 h-3" />
                 </button>
-                <span className="w-10 text-center text-xs font-bold text-slate-900">
+                <span className="w-10 text-center text-xs font-semibold text-[#161514]">
                   {quantity}
                 </span>
                 <button
                   type="button"
                   onClick={() => setQuantity(quantity + 1)}
-                  className="w-8 h-8 flex items-center justify-center text-slate-600 hover:text-slate-950 cursor-pointer"
+                  className="w-8 h-8 flex items-center justify-center text-[#6B655D] hover:text-[#161514] cursor-pointer"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-3 h-3" />
                 </button>
               </div>
             </div>
 
-            {/* Action Buttons */}
+            {/* Action Buttons: Terracotta Fitting Suite CTA */}
             <div className="mt-8 flex flex-col gap-3">
-              {/* Highlight Virtual Try-on CTA Button */}
               <button
                 type="button"
                 onClick={handleLaunchTryOn}
-                className="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-900 to-slate-900 hover:from-blue-950 hover:to-black text-white text-xs sm:text-sm font-bold tracking-wider uppercase flex items-center justify-center gap-2 shadow-lg shadow-blue-950/20 transition-all hover:-translate-y-0.5 cursor-pointer"
+                className="btn-terracotta w-full py-4 text-xs font-semibold tracking-[0.2em] cursor-pointer"
               >
-                <Sparkles className="w-4 h-4 text-amber-400" />
-                <span>Ướm Thử Sản Phẩm Này (AI Virtual Try-On)</span>
-                <ArrowRight className="w-4 h-4 text-slate-400" />
+                <span>Ướm Thử Thiết Kế Này (Fitting Suite)</span>
+                <ArrowRight className="w-4 h-4 ml-1" />
               </button>
 
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={handleAddToCart}
-                  className="py-3.5 rounded-2xl bg-white hover:bg-slate-50 border-2 border-slate-950 text-slate-950 text-xs font-bold tracking-wider uppercase flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  className="btn-outline-luxury w-full py-3.5 text-xs font-semibold tracking-[0.18em]"
                 >
-                  <ShoppingBag className="w-4 h-4 text-blue-800" />
-                  <span>Thêm Vào Giỏ</span>
+                  <ShoppingBag className="w-3.5 h-3.5 mr-1" />
+                  <span>Thêm Vào Túi</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleBuyNow}
-                  className="py-3.5 rounded-2xl bg-slate-950 hover:bg-blue-900 text-white text-xs font-bold tracking-wider uppercase flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
+                  className="btn-noir w-full py-3.5 text-xs font-semibold tracking-[0.18em]"
                 >
-                  <span>Mua Ngay</span>
+                  <span>Đặt May Ngay</span>
                 </button>
               </div>
             </div>
 
             {/* Trust Assurances */}
-            <div className="mt-8 pt-6 border-t border-slate-200 grid grid-cols-3 gap-3 text-center">
+            <div className="mt-8 pt-6 border-t border-[#E5E0D8] grid grid-cols-3 gap-3 text-center">
               <div className="flex flex-col items-center">
-                <Truck className="w-5 h-5 text-blue-700 mb-1" />
-                <span className="text-[11px] font-bold text-slate-800">Freeship từ 500k</span>
-                <span className="text-[10px] text-slate-400">Giao 2-3 ngày</span>
+                <Truck className="w-4 h-4 text-[#8C8476] mb-1.5" />
+                <span className="text-[10px] tracking-[0.15em] font-medium uppercase text-[#161514]">Miễn Phí Giao Hàng</span>
+                <span className="text-[10px] text-[#8C8476] mt-0.5">Vận chuyển tận nhà</span>
               </div>
               <div className="flex flex-col items-center">
-                <RotateCcw className="w-5 h-5 text-blue-700 mb-1" />
-                <span className="text-[11px] font-bold text-slate-800">Đổi trả 30 ngày</span>
-                <span className="text-[10px] text-slate-400">Tận nhà miễn phí</span>
+                <RotateCcw className="w-4 h-4 text-[#8C8476] mb-1.5" />
+                <span className="text-[10px] tracking-[0.15em] font-medium uppercase text-[#161514]">Đổi Size 30 Ngày</span>
+                <span className="text-[10px] text-[#8C8476] mt-0.5">Tận tay miễn phí</span>
               </div>
               <div className="flex flex-col items-center">
-                <ShieldCheck className="w-5 h-5 text-emerald-600 mb-1" />
-                <span className="text-[11px] font-bold text-slate-800">Chính hãng 100%</span>
-                <span className="text-[10px] text-slate-400">Bảo hành sợi vải</span>
+                <ShieldCheck className="w-4 h-4 text-[#8C8476] mb-1.5" />
+                <span className="text-[10px] tracking-[0.15em] font-medium uppercase text-[#161514]">Sợi Dệt Sinh Thái</span>
+                <span className="text-[10px] text-[#8C8476] mt-0.5">Chuẩn OEKO-TEX</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Product Details & Specifications Tabs */}
-      <div className="mt-16 border-t border-slate-200 pt-10">
-        <div className="flex items-center gap-8 border-b border-slate-200 text-xs font-bold uppercase tracking-wider">
+      {/* 3. Deep Editorial Craftsmanship & Invisible Details Tabs */}
+      <div className="mt-20 border-t border-[#E5E0D8] pt-12">
+        <div className="flex items-center gap-8 border-b border-[#E5E0D8] text-xs font-medium uppercase tracking-[0.2em]">
           <button
             type="button"
             onClick={() => setActiveTab('desc')}
-            className={`pb-3 transition-colors cursor-pointer ${
-              activeTab === 'desc' ? 'border-b-2 border-slate-950 text-slate-950' : 'text-slate-400 hover:text-slate-800'
+            className={`pb-4 transition-colors cursor-pointer border-b-2 ${
+              activeTab === 'desc' ? 'border-[#161514] text-[#161514] font-semibold' : 'border-transparent text-[#8C8476] hover:text-[#161514]'
             }`}
           >
-            Mô Tả &amp; Thông Số Kỹ Thuật
+            Kỹ Nghệ May Đo &amp; Sợi Dệt
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('care')}
-            className={`pb-3 transition-colors cursor-pointer ${
-              activeTab === 'care' ? 'border-b-2 border-slate-950 text-slate-950' : 'text-slate-400 hover:text-slate-800'
+            className={`pb-4 transition-colors cursor-pointer border-b-2 ${
+              activeTab === 'care' ? 'border-[#161514] text-[#161514] font-semibold' : 'border-transparent text-[#8C8476] hover:text-[#161514]'
             }`}
           >
-            Chất Liệu &amp; Bảo Quản
+            Nghi Thức Bảo Quản Maison
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('reviews')}
-            className={`pb-3 transition-colors cursor-pointer ${
-              activeTab === 'reviews' ? 'border-b-2 border-slate-950 text-slate-950' : 'text-slate-400 hover:text-slate-800'
+            className={`pb-4 transition-colors cursor-pointer border-b-2 ${
+              activeTab === 'reviews' ? 'border-[#161514] text-[#161514] font-semibold' : 'border-transparent text-[#8C8476] hover:text-[#161514]'
             }`}
           >
-            Đánh Giá Của Khách Hàng ({product.reviewsCount || 48})
+            Cảm Nhận Của Khách Hàng ({product.reviewsCount || 48})
           </button>
         </div>
 
-        <div className="py-6 max-w-3xl text-xs sm:text-sm leading-relaxed text-slate-600">
+        <div className="py-8 max-w-4xl text-xs sm:text-sm leading-relaxed text-[#6B655D]">
           {activeTab === 'desc' && (
-            <div className="space-y-4">
-              <p>{product.description}</p>
-              <div className="mt-4 border border-slate-200 rounded-2xl overflow-hidden divide-y divide-slate-200">
-                <div className="grid grid-cols-3 p-3 bg-slate-50 font-semibold text-slate-800">
-                  <span>Chất liệu</span>
-                  <span className="col-span-2 font-normal text-slate-600">{product.material}</span>
+            <div className="space-y-6">
+              <div>
+                <h4 className="font-serif-luxury text-xl text-[#161514] font-normal mb-2">
+                  Những Chi Tiết Thủ Công Vô Hình Của Trang Phục
+                </h4>
+                <p>{enriched.stylistNote}</p>
+              </div>
+
+              {/* Bespoke Specifications Table */}
+              <div className="border border-[#E5E0D8] bg-[#FAF8F5] divide-y divide-[#E5E0D8] text-xs">
+                <div className="grid grid-cols-3 p-3.5">
+                  <span className="font-medium text-[#161514] tracking-wider uppercase text-[10.5px]">Thành Phần Sợi Dệt</span>
+                  <span className="col-span-2 text-[#2A2724]">{enriched.enrichedFabric.composition} ({enriched.enrichedFabric.origin})</span>
                 </div>
-                <div className="grid grid-cols-3 p-3 bg-white font-semibold text-slate-800">
-                  <span>Xuất xứ</span>
-                  <span className="col-span-2 font-normal text-slate-600">{product.origin || 'Việt Nam'}</span>
+                <div className="grid grid-cols-3 p-3.5 bg-[#F7F5F0]">
+                  <span className="font-medium text-[#161514] tracking-wider uppercase text-[10.5px]">Cấu Trúc &amp; Trọng Lượng</span>
+                  <span className="col-span-2 text-[#2A2724]">{enriched.enrichedFabric.weave} &bull; {enriched.enrichedFabric.weight}</span>
                 </div>
-                <div className="grid grid-cols-3 p-3 bg-slate-50 font-semibold text-slate-800">
-                  <span>Kiểu dáng (Fit)</span>
-                  <span className="col-span-2 font-normal text-slate-600">Regular Fit may đo chuẩn người châu Á</span>
+                <div className="grid grid-cols-3 p-3.5">
+                  <span className="font-medium text-[#161514] tracking-wider uppercase text-[10.5px]">Kỹ Thuật May Đường Sườn</span>
+                  <span className="col-span-2 text-[#2A2724]">{enriched.enrichedTailoring.seam}</span>
                 </div>
-                <div className="grid grid-cols-3 p-3 bg-white font-semibold text-slate-800">
-                  <span>Khả năng tương thích AI</span>
-                  <span className="col-span-2 font-normal text-slate-600">Hỗ trợ thử đồ ảo độ phân giải 4K trên gương kỹ thuật số</span>
+                <div className="grid grid-cols-3 p-3.5 bg-[#F7F5F0]">
+                  <span className="font-medium text-[#161514] tracking-wider uppercase text-[10.5px]">Khuy &amp; Chi Tiết Kim Loại</span>
+                  <span className="col-span-2 text-[#2A2724]">{enriched.enrichedTailoring.hardware}</span>
+                </div>
+                <div className="grid grid-cols-3 p-3.5">
+                  <span className="font-medium text-[#161514] tracking-wider uppercase text-[10.5px]">Cấu Trúc Dựng Phom</span>
+                  <span className="col-span-2 text-[#2A2724]">{enriched.enrichedTailoring.collar}</span>
+                </div>
+                <div className="grid grid-cols-3 p-3.5 bg-[#F7F5F0]">
+                  <span className="font-medium text-[#161514] tracking-wider uppercase text-[10.5px]">Lớp Lót Trong</span>
+                  <span className="col-span-2 text-[#2A2724]">{enriched.enrichedTailoring.lining}</span>
+                </div>
+                <div className="grid grid-cols-3 p-3.5">
+                  <span className="font-medium text-[#161514] tracking-wider uppercase text-[10.5px]">Tiêu Chuẩn Kiểm Định</span>
+                  <span className="col-span-2 text-[#2A2724]">{enriched.certifications.join(' · ')}</span>
                 </div>
               </div>
             </div>
           )}
 
           {activeTab === 'care' && (
-            <div className="space-y-3">
-              <p>Để trang phục giữ được độ bền màu và cấu trúc sợi vải hoàn hảo:</p>
-              <ul className="list-disc pl-5 space-y-1.5 text-slate-600">
-                <li>Giặt máy ở chế độ nhẹ nhàng với nhiệt độ nước không quá 30°C.</li>
-                <li>Không sử dụng chất tẩy mạnh chứa clo để tránh làm biến đổi sợi vải tự nhiên.</li>
-                <li>Phơi trong bóng râm, tránh ánh nắng mặt trời gắt trực tiếp làm cứng nếp vải.</li>
-                <li>Ủi ở nhiệt độ trung bình (dưới 150°C), khuyến khích dùng bàn là hơi nước.</li>
+            <div className="space-y-4">
+              <h4 className="font-serif-luxury text-xl text-[#161514] font-normal mb-2">
+                Nghi Thức Giữ Gìn &amp; Chăm Sóc Sợi Vải Tự Nhiên
+              </h4>
+              <p>
+                Trang phục may đo từ sợi thiên nhiên mang vẻ đẹp sống động và bền bỉ khi được chăm sóc với những nghi thức chuẩn mực:
+              </p>
+              <ul className="list-disc pl-5 space-y-2 text-[#6B655D]">
+                {enriched.careRitual.map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                ))}
               </ul>
             </div>
           )}
@@ -456,18 +483,18 @@ export default function ProductDetail() {
           {activeTab === 'reviews' && (
             <div className="space-y-4">
               {[
-                { name: 'Hoàng Minh', date: '25/09/2026', comment: 'Chất vải rất mịn, đường may tinh tế. Tôi dùng tính năng ướm thử đồ ảo thấy chuẩn kích cỡ nên đặt luôn, nhận hàng mặc vừa như in!', rating: 5 },
-                { name: 'Thu Thảo', date: '22/09/2026', comment: 'Màu sắc thực tế rất sang trọng đúng như ảnh studio. Đóng gói hộp rất chuyên nghiệp.', rating: 5 },
+                { name: 'Nguyễn Hoàng Minh', date: 'Tháng 10, 2026', comment: 'Chất vải mát mịn, đường may French seam bên trong sạch sẽ không một sợi chỉ thừa. Ướm thử trên phòng đo thấy chuẩn vóc dáng nên tôi đặt luôn, nhận áo mặc vừa vặn như may đo tại tiệm.', rating: 5 },
+                { name: 'Trần Thu Thảo', date: 'Tháng 10, 2026', comment: 'Sắc thái màu cát rất trang nhã đúng như ảnh. Đóng gói hộp cứng rất thơm và sang trọng.', rating: 5 },
               ].map((rev, i) => (
-                <div key={i} className="p-4 rounded-xl border border-slate-200 bg-slate-50/50">
+                <div key={i} className="p-5 border border-[#E5E0D8] bg-[#FAF8F5]">
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="font-bold text-slate-900">{rev.name}</span>
-                    <span className="text-[11px] text-slate-400">{rev.date}</span>
+                    <span className="font-serif-luxury text-base text-[#161514]">{rev.name}</span>
+                    <span className="text-[10.5px] tracking-wider text-[#8C8476]">{rev.date}</span>
                   </div>
-                  <div className="flex text-amber-500 font-bold mb-1">
+                  <div className="flex text-[#C05A39] text-xs mb-2">
                     {'★'.repeat(rev.rating)}
                   </div>
-                  <p className="text-slate-600 text-xs">{rev.comment}</p>
+                  <p className="text-[#6B655D] text-xs leading-relaxed">{rev.comment}</p>
                 </div>
               ))}
             </div>
@@ -475,13 +502,18 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      {/* Related Products Grid */}
+      {/* 4. Related Products Grid */}
       {relatedProducts.length > 0 && (
-        <div className="mt-16 border-t border-slate-200 pt-10">
-          <h2 className="font-serif text-xl sm:text-2xl font-bold text-slate-950 mb-6">
-            Sản Phẩm Tương Tự Bạn Có Thể Thích
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+        <div className="mt-20 border-t border-[#E5E0D8] pt-12">
+          <div className="mb-8">
+            <p className="text-[10px] font-semibold tracking-[0.25em] text-[#C05A39] uppercase mb-1">
+              GỢI Ý TỪ STYLIST
+            </p>
+            <h2 className="font-serif-luxury text-2xl sm:text-3xl font-normal text-[#161514]">
+              Những Thiết Kế Đồng Điệu Cùng Phong Cách
+            </h2>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
             {relatedProducts.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
@@ -489,78 +521,79 @@ export default function ProductDetail() {
         </div>
       )}
 
-      {/* Size Guide Modal */}
+      {/* 5. Size Guide Modal */}
       {showSizeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-950 flex items-center gap-2">
-                <Ruler className="w-4 h-4 text-blue-800" />
-                <span>Bảng Quy Đổi Kích Cỡ Chuẩn</span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#161514]/70 backdrop-blur-xs">
+          <div className="bg-[#FAF8F5] max-w-lg w-full p-8 border border-[#E5E0D8] shadow-2xl">
+            <div className="flex items-center justify-between pb-4 border-b border-[#E5E0D8]">
+              <h3 className="font-serif-luxury text-xl font-normal text-[#161514] flex items-center gap-2">
+                <Ruler className="w-4 h-4 text-[#C05A39]" />
+                <span>Quy Chuẩn Đo Vóc Dáng Của Maison</span>
               </h3>
               <button
                 type="button"
                 onClick={() => setShowSizeModal(false)}
-                className="p-1 text-slate-400 hover:text-slate-950"
+                className="p-1 text-[#8C8476] hover:text-[#161514]"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="py-4 text-xs">
-              <table className="w-full text-left border-collapse border border-slate-200">
+            <div className="py-5 text-xs text-[#6B655D]">
+              <table className="w-full text-left border-collapse border border-[#E5E0D8]">
                 <thead>
-                  <tr className="bg-slate-100 text-slate-900 font-bold">
-                    <th className="p-2 border border-slate-200">Size</th>
-                    <th className="p-2 border border-slate-200">Chiều cao</th>
-                    <th className="p-2 border border-slate-200">Cân nặng</th>
-                    <th className="p-2 border border-slate-200">Vòng ngực</th>
+                  <tr className="bg-[#F7F5F0] text-[#161514] font-medium tracking-wider text-[11px] uppercase">
+                    <th className="p-2.5 border border-[#E5E0D8]">Size</th>
+                    <th className="p-2.5 border border-[#E5E0D8]">Chiều cao</th>
+                    <th className="p-2.5 border border-[#E5E0D8]">Cân nặng</th>
+                    <th className="p-2.5 border border-[#E5E0D8]">Vòng ngực</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200 text-slate-700">
+                <tbody className="divide-y divide-[#E5E0D8]">
                   <tr>
-                    <td className="p-2 font-bold border border-slate-200">S</td>
-                    <td className="p-2 border border-slate-200">1m55 - 1m65</td>
-                    <td className="p-2 border border-slate-200">48 - 56kg</td>
-                    <td className="p-2 border border-slate-200">84 - 88cm</td>
+                    <td className="p-2.5 font-medium border border-[#E5E0D8]">S</td>
+                    <td className="p-2.5 border border-[#E5E0D8]">1m55 - 1m65</td>
+                    <td className="p-2.5 border border-[#E5E0D8]">48 - 56kg</td>
+                    <td className="p-2.5 border border-[#E5E0D8]">84 - 88cm</td>
                   </tr>
                   <tr>
-                    <td className="p-2 font-bold border border-slate-200">M</td>
-                    <td className="p-2 border border-slate-200">1m65 - 1m72</td>
-                    <td className="p-2 border border-slate-200">57 - 65kg</td>
-                    <td className="p-2 border border-slate-200">89 - 94cm</td>
+                    <td className="p-2.5 font-medium border border-[#E5E0D8]">M</td>
+                    <td className="p-2.5 border border-[#E5E0D8]">1m65 - 1m72</td>
+                    <td className="p-2.5 border border-[#E5E0D8]">57 - 65kg</td>
+                    <td className="p-2.5 border border-[#E5E0D8]">89 - 94cm</td>
                   </tr>
                   <tr>
-                    <td className="p-2 font-bold border border-slate-200">L</td>
-                    <td className="p-2 border border-slate-200">1m72 - 1m78</td>
-                    <td className="p-2 border border-slate-200">66 - 74kg</td>
-                    <td className="p-2 border border-slate-200">95 - 100cm</td>
+                    <td className="p-2.5 font-medium border border-[#E5E0D8]">L</td>
+                    <td className="p-2.5 border border-[#E5E0D8]">1m72 - 1m78</td>
+                    <td className="p-2.5 border border-[#E5E0D8]">66 - 74kg</td>
+                    <td className="p-2.5 border border-[#E5E0D8]">95 - 100cm</td>
                   </tr>
                   <tr>
-                    <td className="p-2 font-bold border border-slate-200">XL</td>
-                    <td className="p-2 border border-slate-200">1m78 - 1m85</td>
-                    <td className="p-2 border border-slate-200">75 - 84kg</td>
-                    <td className="p-2 border border-slate-200">101 - 108cm</td>
+                    <td className="p-2.5 font-medium border border-[#E5E0D8]">XL</td>
+                    <td className="p-2.5 border border-[#E5E0D8]">1m78 - 1m85</td>
+                    <td className="p-2.5 border border-[#E5E0D8]">75 - 84kg</td>
+                    <td className="p-2.5 border border-[#E5E0D8]">101 - 108cm</td>
                   </tr>
                 </tbody>
               </table>
-              <p className="mt-3 text-[11px] text-slate-500">
-                Nếu vóc dáng của bạn nằm giữa 2 size, chúng tôi khuyên bạn nên chọn size lớn hơn để có cảm giác thoải mái nhất.
+              <p className="mt-4 text-[11px] text-[#8C8476] leading-relaxed">
+                Đặc quyền may đo: Nếu vóc dáng của quý khách cần căn chỉnh lai gấu hoặc vai áo, Concierge của chúng tôi sẽ hỗ trợ điều chỉnh hoàn toàn miễn phí tại showroom.
               </p>
             </div>
 
-            <div className="pt-3 border-t border-slate-200 text-right">
+            <div className="pt-4 border-t border-[#E5E0D8] text-right">
               <button
                 type="button"
                 onClick={() => setShowSizeModal(false)}
-                className="px-5 py-2 bg-slate-950 text-white rounded-xl text-xs font-bold uppercase"
+                className="btn-noir py-2 px-6 text-xs"
               >
-                Đã hiểu
+                Đã Hiểu
               </button>
             </div>
           </div>
         </div>
       )}
+
     </div>
   );
 }

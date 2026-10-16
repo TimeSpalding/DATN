@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Equal, AlertCircle, Camera, Sparkles, Scissors, Zap, ShieldCheck } from 'lucide-react';
+import { Plus, Equal, AlertCircle, Camera } from 'lucide-react';
 import ImageUploader from './ImageUploader';
 import ResultViewer from './ResultViewer';
 import TryOnButton from './TryOnButton';
@@ -58,7 +58,7 @@ export default function FittingStudio({ initialGarment = null }) {
     return () => clearInterval(timer);
   }, [loading]);
 
-  // If initialGarment changes from outside (e.g. user clicked "Thử đồ ảo" in product card)
+  // If initialGarment changes from outside
   useEffect(() => {
     if (initialGarment) {
       loadGarmentPreset(initialGarment);
@@ -95,7 +95,7 @@ export default function FittingStudio({ initialGarment = null }) {
     setPersonPreview(setObjectPreview(personObjectUrlRef, file));
     setIsCustomModel(true);
     setSelectedModelId('custom');
-    showToast('Đã tải lên ảnh người mẫu của bạn!');
+    showToast('Đã tải lên ảnh chân dung của quý khách');
   };
 
   const handleCustomClothUpload = (file) => {
@@ -105,18 +105,18 @@ export default function FittingStudio({ initialGarment = null }) {
     setSelectedGarment({
       id: `custom-${Date.now()}`,
       name: file.name.replace(/\.[^/.]+$/, ''),
-      price: 'Mẫu Tải Lên',
+      price: 'Thiết Kế Tùy Chọn',
       category: category,
-      rawPrice: 350000,
+      rawPrice: 450000,
       image: clothPreview
     });
-    showToast('Đã tải lên ảnh trang phục tùy chọn!');
+    showToast('Đã tải lên ảnh trang phục tùy chọn');
   };
 
   const handleSubmitTryOn = async (e) => {
     e.preventDefault();
     if (!personImg || !clothImg) {
-      setErrorMsg('Vui lòng chọn hoặc tải đủ ảnh Người Mẫu & Trang Phục');
+      setErrorMsg('Vui lòng chọn hoặc tải đủ ảnh Người Mặc & Trang Phục');
       return;
     }
 
@@ -137,13 +137,13 @@ export default function FittingStudio({ initialGarment = null }) {
 
       if (response?.data?.resultImageUrl) {
         setResultImgUrl(response.data.resultImageUrl);
-        showToast('Ướm thử thành công! Kết quả đã hiển thị trên gương số.');
+        showToast('Ướm thử hoàn tất. Kết quả hiển thị trên gương soi.');
       } else {
-        throw new Error('Không nhận được dữ liệu kết quả từ hệ thống AI.');
+        throw new Error('Không nhận được dữ liệu kết quả từ phòng đo.');
       }
     } catch (err) {
       console.error('TryOn execution error:', err);
-      setErrorMsg(err.message || 'Đã có lỗi xảy ra khi thực hiện thử đồ.');
+      setErrorMsg(err.message || 'Đã có sự cố khi kết nối phòng đo.');
     } finally {
       setLoading(false);
     }
@@ -156,50 +156,42 @@ export default function FittingStudio({ initialGarment = null }) {
   };
 
   return (
-    <section id="studio" className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Studio Header */}
-      <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-10">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-[10px] font-bold uppercase tracking-[0.25em] text-blue-900 mb-3">
-          <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-          <span>PHÒNG THỬ ĐỒ KỸ THUẬT SỐ &bull; AI VIRTUAL TRY-ON</span>
-        </div>
+    <section id="studio" className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      {/* Studio Editorial Header */}
+      <div className="text-center max-w-2xl mx-auto mb-12">
+        <p className="text-[10px] font-semibold tracking-[0.25em] text-[#C05A39] uppercase mb-2">
+          SUITE D'ESSAYAGE &bull; PHÒNG ƯỚM THỬ TƯ GIA
+        </p>
 
-        <h2 className="font-serif text-2xl sm:text-3xl md:text-4xl font-bold text-slate-950 tracking-tight">
+        <h2 className="font-serif-luxury text-3xl sm:text-4xl md:text-5xl font-normal text-[#161514] tracking-wide">
           Gương Soi Thời Trang Kỹ Thuật Số
         </h2>
 
-        <p className="text-xs sm:text-sm text-slate-500 mt-2 leading-relaxed max-w-xl mx-auto">
-          Ướm thử trang phục thời gian thực trên vóc dáng thật với độ rủ và chi tiết sợi vải chuẩn xác trước khi quyết định mua sắm.
+        <div className="w-12 h-[1px] bg-[#C05A39] mx-auto my-4" />
+
+        <p className="text-xs sm:text-sm text-[#6B655D] leading-relaxed max-w-xl mx-auto">
+          Mô phỏng chân thực độ rủ sợi dệt, nếp gấp vải và phom dáng trang phục trên người mặc theo tiêu chuẩn đo đạc riêng tư của Maison.
         </p>
 
-        {/* Feature bullets */}
-        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mt-4 text-[11px] font-semibold text-slate-500">
-          <span className="flex items-center gap-1">
-            <Scissors className="w-3.5 h-3.5 text-blue-700" />
-            <span>Mô phỏng sợi vải 4K</span>
-          </span>
-          <span className="text-slate-300">&bull;</span>
-          <span className="flex items-center gap-1">
-            <Zap className="w-3.5 h-3.5 text-blue-700" />
-            <span>Xem trước trong giây lát</span>
-          </span>
-          <span className="text-slate-300">&bull;</span>
-          <span className="flex items-center gap-1">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Bảo mật hình ảnh 100%</span>
-          </span>
+        {/* Tailoring Sub-notes */}
+        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-4 text-[10.5px] font-medium tracking-wider uppercase text-[#8C8476]">
+          <span>Mô Phỏng Cấu Trúc Sợi Dệt</span>
+          <span>&bull;</span>
+          <span>Kết Xuất Trong Giây Lát</span>
+          <span>&bull;</span>
+          <span>Bảo Mật Hình Ảnh Tuyệt Đối</span>
         </div>
       </div>
 
-      {/* Main Studio Interactive Box */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 p-5 sm:p-7 lg:p-9 transition-all">
+      {/* Main Studio Stage Box */}
+      <div className="bg-[#FAF8F5] border border-[#E5E0D8] p-6 sm:p-8 lg:p-10 shadow-xs">
         <form onSubmit={handleSubmitTryOn}>
           {/* 3-Column Fitting Stage */}
-          <div className="grid grid-cols-1 items-start gap-5 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_2.5rem_minmax(0,1fr)_2.5rem_minmax(0,1fr)] lg:items-center lg:gap-4 xl:gap-6">
+          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_2.5rem_minmax(0,1fr)_2.5rem_minmax(0,1fr)] lg:items-center lg:gap-4 xl:gap-6">
             
             {/* 1. Model Column */}
             <ImageUploader
-              label="Người Mẫu"
+              label="01. Người Mặc"
               icon="person"
               file={personImg}
               preview={personPreview}
@@ -211,23 +203,23 @@ export default function FittingStudio({ initialGarment = null }) {
                 setIsCustomModel(false);
               }}
               headerRight={
-                <div className="inline-flex items-center p-0.5 rounded-full bg-slate-100 border border-slate-200 text-[9.5px] font-bold uppercase gap-0.5">
+                <div className="inline-flex items-center border border-[#E5E0D8] bg-[#F7F5F0] text-[9.5px] font-medium uppercase">
                   <button
                     type="button"
                     onClick={() => loadModelPreset(PRESET_MODELS[0])}
-                    className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${selectedModelId === 'studio-female' && !isCustomModel ? 'bg-slate-950 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-950'}`}
+                    className={`px-2.5 py-1 transition-all cursor-pointer ${selectedModelId === 'studio-female' && !isCustomModel ? 'bg-[#161514] text-[#FAF8F5]' : 'text-[#6B655D] hover:text-[#161514]'}`}
                   >
                     Nữ
                   </button>
                   <button
                     type="button"
                     onClick={() => loadModelPreset(PRESET_MODELS[1])}
-                    className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${selectedModelId === 'studio-male' && !isCustomModel ? 'bg-slate-950 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-950'}`}
+                    className={`px-2.5 py-1 transition-all cursor-pointer ${selectedModelId === 'studio-male' && !isCustomModel ? 'bg-[#161514] text-[#FAF8F5]' : 'text-[#6B655D] hover:text-[#161514]'}`}
                   >
                     Nam
                   </button>
-                  <label className={`px-2 py-1 rounded-full transition-all cursor-pointer flex items-center gap-1 ${isCustomModel ? 'bg-slate-950 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-950'}`}>
-                    <Camera className="w-2.5 h-2.5 text-blue-700" />
+                  <label className={`px-2 py-1 transition-all cursor-pointer flex items-center gap-1 ${isCustomModel ? 'bg-[#161514] text-[#FAF8F5]' : 'text-[#6B655D] hover:text-[#161514]'}`}>
+                    <Camera className="w-2.5 h-2.5" />
                     <span>Tải ảnh</span>
                     <input
                       type="file"
@@ -242,13 +234,13 @@ export default function FittingStudio({ initialGarment = null }) {
             />
 
             {/* Plus Operator */}
-            <div className="flex w-9 h-9 rounded-full bg-slate-100 border border-slate-200 shadow-2xs items-center justify-center justify-self-center text-slate-500 font-bold lg:mt-7">
-              <Plus className="w-4 h-4" />
+            <div className="flex w-8 h-8 bg-[#F3EFE6] border border-[#E5E0D8] items-center justify-center justify-self-center text-[#8C8476] lg:mt-6">
+              <Plus className="w-3.5 h-3.5" />
             </div>
 
             {/* 2. Garment Column */}
             <ImageUploader
-              label="Trang Phục"
+              label="02. Trang Phục"
               icon="cloth"
               file={clothImg}
               preview={clothPreview}
@@ -260,36 +252,36 @@ export default function FittingStudio({ initialGarment = null }) {
                 setSelectedGarment(null);
               }}
               headerRight={
-                <div className="inline-flex items-center p-0.5 rounded-full bg-slate-100 border border-slate-200 text-[9.5px] font-bold uppercase gap-0.5">
+                <div className="inline-flex items-center border border-[#E5E0D8] bg-[#F7F5F0] text-[9.5px] font-medium uppercase">
                   <button
                     type="button"
                     onClick={() => setCategory('upper')}
-                    className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${category === 'upper' ? 'bg-slate-950 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-950'}`}
+                    className={`px-2.5 py-1 transition-all cursor-pointer ${category === 'upper' ? 'bg-[#161514] text-[#FAF8F5]' : 'text-[#6B655D] hover:text-[#161514]'}`}
                   >
                     Áo
                   </button>
                   <button
                     type="button"
                     onClick={() => setCategory('lower')}
-                    className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${category === 'lower' ? 'bg-slate-950 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-950'}`}
+                    className={`px-2.5 py-1 transition-all cursor-pointer ${category === 'lower' ? 'bg-[#161514] text-[#FAF8F5]' : 'text-[#6B655D] hover:text-[#161514]'}`}
                   >
                     Quần
                   </button>
                   <button
                     type="button"
                     onClick={() => setCategory('overall')}
-                    className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${category === 'overall' ? 'bg-slate-950 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-950'}`}
+                    className={`px-2.5 py-1 transition-all cursor-pointer ${category === 'overall' ? 'bg-[#161514] text-[#FAF8F5]' : 'text-[#6B655D] hover:text-[#161514]'}`}
                   >
                     Đầm
                   </button>
                 </div>
               }
-              helperText="Chọn từ tủ đồ dưới hoặc tải ảnh của bạn"
+              helperText="Chọn từ tủ đồ hoặc tải ảnh của quý khách"
             />
 
             {/* Equal Operator */}
-            <div className="flex w-9 h-9 rounded-full bg-blue-900 text-white shadow-xs items-center justify-center justify-self-center font-bold lg:mt-7">
-              <Equal className="w-4 h-4" />
+            <div className="flex w-8 h-8 bg-[#161514] text-[#FAF8F5] items-center justify-center justify-self-center lg:mt-6">
+              <Equal className="w-3.5 h-3.5" />
             </div>
 
             {/* 3. Fitting Result Column */}
@@ -300,24 +292,13 @@ export default function FittingStudio({ initialGarment = null }) {
               elapsedTime={elapsedTime}
               onAddToCart={handleAddToCartResult}
               selectedGarment={selectedGarment}
-              headerRight={
-                resultImgUrl ? (
-                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                    Đã Xong
-                  </span>
-                ) : (
-                  <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
-                    Gương Số
-                  </span>
-                )
-              }
             />
           </div>
 
           {/* Error Notice */}
           {errorMsg && (
-            <div className="mt-5 max-w-md mx-auto">
-              <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
+            <div className="mt-6 max-w-md mx-auto">
+              <div className="flex items-center gap-2.5 px-4 py-2.5 bg-[#FAF8F5] border border-[#C05A39] text-[#C05A39] text-xs">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{errorMsg}</span>
               </div>
@@ -325,15 +306,15 @@ export default function FittingStudio({ initialGarment = null }) {
           )}
 
           {/* Action Area */}
-          <div className="mt-9 mb-2 flex flex-col items-center">
+          <div className="mt-10 mb-2 flex flex-col items-center">
             <TryOnButton
               loading={loading}
               disabled={loading || !personImg || !clothImg}
               elapsedTime={elapsedTime}
             />
 
-            <p className="text-[11px] text-slate-400 text-center mt-3.5">
-              Gợi ý: Chọn ảnh người mẫu chụp chính diện, đứng thẳng và ánh sáng đồng đều để đạt độ rủ vải tự nhiên nhất.
+            <p className="text-[11px] text-[#8C8476] text-center mt-4 max-w-md leading-relaxed">
+              Lời khuyên may đo: Hãy chọn ảnh chụp toàn thân hoặc bán thân đứng thẳng với ánh sáng tự nhiên để đạt độ sắc nét và rủ vải tinh tế nhất.
             </p>
           </div>
         </form>
