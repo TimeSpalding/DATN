@@ -1,161 +1,230 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, ShieldCheck, Truck, RotateCcw, Phone, Mail, MapPin } from 'lucide-react';
+import { ArrowRight, Phone, Mail, MapPin } from 'lucide-react';
 
 export default function Footer() {
+  const [email, setEmail] = useState('');
+  const [subscribed, setSubscribed] = useState(false);
+
+  const handleSubscribe = (e) => {
+    e.preventDefault();
+    if (email) {
+      setSubscribed(true);
+      setEmail('');
+    }
+  };
+
   return (
-    <footer className="bg-slate-950 text-slate-400 text-xs border-t border-slate-900 w-full mt-auto">
-      {/* Top Value Promise Band */}
-      <div className="border-b border-slate-900/80 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-blue-400 shrink-0">
-              <Truck className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="font-bold text-slate-200">Giao hàng miễn phí</p>
-              <p className="text-[11px] text-slate-500">Cho đơn hàng từ 500.000₫</p>
-            </div>
+    <footer className="bg-[#161514] text-[#D8D2C5] text-xs border-t border-[#2B2825] w-full mt-auto">
+      {/* 1. Heritage Assurances Band */}
+      <div className="border-b border-[#2B2825] py-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="border-l border-[#2E2B27] pl-5">
+            <p className="text-[10px] font-medium tracking-[0.25em] text-[#C05A39] uppercase mb-1">
+              HAUTE ATELIER
+            </p>
+            <p className="font-serif-luxury text-base text-[#FAF8F5] tracking-wide">
+              Nghệ thuật thiết kế chuẩn mực
+            </p>
+            <p className="text-[11px] text-[#8C8476] mt-1 leading-relaxed">
+              Từng đường may, ve áo và khuy xà cừ đều được chế tác theo tiêu chuẩn thời trang cao cấp.
+            </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-blue-400 shrink-0">
-              <RotateCcw className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="font-bold text-slate-200">Đổi trả 30 ngày</p>
-              <p className="text-[11px] text-slate-500">Đổi size tận nơi miễn phí</p>
-            </div>
+          <div className="border-l border-[#2E2B27] pl-5">
+            <p className="text-[10px] font-medium tracking-[0.25em] text-[#C05A39] uppercase mb-1">
+              SUITE D'ESSAYAGE
+            </p>
+            <p className="font-serif-luxury text-base text-[#FAF8F5] tracking-wide">
+              Ướm thử tư gia trực tuyến
+            </p>
+            <p className="text-[11px] text-[#8C8476] mt-1 leading-relaxed">
+              Trải nghiệm ướm thử độ rủ sợi dệt và phom dáng chuẩn xác trên người mặc trước khi quyết định.
+            </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-blue-400 shrink-0">
-              <Sparkles className="w-5 h-5 text-amber-400" />
-            </div>
-            <div>
-              <p className="font-bold text-slate-200">Phòng thử đồ AI</p>
-              <p className="text-[11px] text-slate-500">Chuẩn xác tỷ lệ vóc dáng</p>
-            </div>
+          <div className="border-l border-[#2E2B27] pl-5">
+            <p className="text-[10px] font-medium tracking-[0.25em] text-[#C05A39] uppercase mb-1">
+              BESPOKE CONCIERGE
+            </p>
+            <p className="font-serif-luxury text-base text-[#FAF8F5] tracking-wide">
+              Giao hàng &amp; Chỉnh sửa tận nơi
+            </p>
+            <p className="text-[11px] text-[#8C8476] mt-1 leading-relaxed">
+              Miễn phí vận chuyển và hỗ trợ căn chỉnh kích cỡ theo số đo riêng của quý khách.
+            </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-emerald-400 shrink-0">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="font-bold text-slate-200">Thanh toán an toàn</p>
-              <p className="text-[11px] text-slate-500">Bảo mật giao dịch 100%</p>
-            </div>
+          <div className="border-l border-[#2E2B27] pl-5">
+            <p className="text-[10px] font-medium tracking-[0.25em] text-[#C05A39] uppercase mb-1">
+              CIRCULAR LUXURY
+            </p>
+            <p className="font-serif-luxury text-base text-[#FAF8F5] tracking-wide">
+              Vật liệu bền vững tự nhiên
+            </p>
+            <p className="text-[11px] text-[#8C8476] mt-1 leading-relaxed">
+              100% sợi cotton Pima, linen Pháp và len Merino đạt chứng nhận sinh thái OEKO-TEX Standard 100.
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Main Footer Links */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
-        {/* Brand Bio */}
-        <div className="lg:col-span-2">
+      {/* 2. Main Editorial Footer */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10">
+        
+        {/* Brand Narrative & Newsletter (Col 1-5) */}
+        <div className="lg:col-span-5 pr-0 lg:pr-8">
           <Link to="/" className="inline-flex flex-col mb-4">
-            <span className="font-serif text-2xl font-bold tracking-[0.2em] text-white uppercase">
-              L'ATELIER
+            <span className="font-brand text-2xl font-medium tracking-[0.24em] text-[#FAF8F5] uppercase">
+              GRAND ATELIER
             </span>
-            <span className="text-[9px] tracking-[0.3em] text-slate-500 uppercase font-semibold">
-              Studio &bull; Fitting Lab
+            <span className="text-[9px] tracking-[0.32em] text-[#8C8476] uppercase font-medium -mt-0.5">
+              CENTRAL &bull; MAISON DE COUTURE
             </span>
           </Link>
-          <p className="text-slate-400 leading-relaxed text-xs max-w-sm mb-4">
-            Nền tảng thương mại điện tử thời trang tích hợp công nghệ thị giác máy tính, tìm kiếm đa phương thức và thử đồ ảo AI độc quyền.
+          
+          <p className="text-[#8C8476] leading-relaxed text-xs max-w-md mb-8">
+            Lấy cảm hứng từ sự thanh lịch vượt thời gian của kiến trúc Noucentisme tại Barcelona, Grand Atelier Central kết nối kỹ nghệ thiết kế thời trang cùng trải nghiệm ướm thử tư gia tinh tế.
           </p>
-          <div className="flex items-center gap-3 text-slate-300">
-            <span className="text-[11px] font-semibold">Hệ thống showroom: Hà Nội &bull; TP. Hồ Chí Minh</span>
+
+          {/* Newsletter Box */}
+          <div className="max-w-md">
+            <p className="text-[11px] font-medium tracking-[0.2em] text-[#FAF8F5] uppercase mb-2">
+              THƯ PHẨM PHONG CÁCH TỪ MAISON
+            </p>
+            <p className="text-[11px] text-[#8C8476] mb-3">
+              Đăng ký để nhận thông tin về các bộ sưu tập phiên bản giới hạn và lời mời tham dự các sự kiện thời trang độc quyền.
+            </p>
+
+            {subscribed ? (
+              <p className="text-xs text-[#C05A39] font-medium">
+                Cảm ơn quý khách đã đăng ký nhận thông tin từ Grand Atelier Central.
+              </p>
+            ) : (
+              <form onSubmit={handleSubscribe} className="flex border-b border-[#3D3A35] focus-within:border-[#FAF8F5] transition-colors pb-1">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Địa chỉ thư điện tử của quý khách..."
+                  required
+                  className="bg-transparent border-none text-xs text-[#FAF8F5] placeholder-[#6B655D] focus:outline-none flex-1 py-1"
+                />
+                <button
+                  type="submit"
+                  className="text-[#FAF8F5] hover:text-[#C05A39] transition-colors text-[11px] font-medium tracking-widest uppercase flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Gửi</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </form>
+            )}
           </div>
         </div>
 
-        {/* Quick Links */}
-        <div>
-          <h4 className="font-bold text-slate-200 uppercase tracking-wider text-xs mb-3">
-            Bộ Sưu Tập
+        {/* Collections Links (Col 6-7) */}
+        <div className="lg:col-span-2">
+          <h4 className="font-medium text-[#FAF8F5] uppercase tracking-[0.2em] text-[11px] mb-4">
+            BỘ SƯU TẬP
           </h4>
-          <ul className="space-y-2 text-xs">
+          <ul className="space-y-2.5 text-xs text-[#8C8476]">
             <li>
-              <Link to="/catalog?category=upper" className="hover:text-white transition-colors">
-                Áo Polo &amp; Sơ Mi
+              <Link to="/catalog?category=upper" className="hover:text-[#FAF8F5] transition-colors">
+                Áo &amp; Tops Thiết Kế
               </Link>
             </li>
             <li>
-              <Link to="/catalog?category=lower" className="hover:text-white transition-colors">
-                Quần Tây &amp; Denim
+              <Link to="/catalog?category=dress" className="hover:text-[#FAF8F5] transition-colors">
+                Đầm &amp; Váy Thiết Kế
               </Link>
             </li>
             <li>
-              <Link to="/catalog?category=overall" className="hover:text-white transition-colors">
-                Váy Đầm Liền Thân
+              <Link to="/catalog?category=outerwear" className="hover:text-[#FAF8F5] transition-colors">
+                Áo Khoác &amp; Outerwear
               </Link>
             </li>
             <li>
-              <Link to="/try-on" className="hover:text-white transition-colors text-amber-400 font-semibold">
-                Phòng Thử Đồ Ảo AI
+              <Link to="/catalog?category=lower" className="hover:text-[#FAF8F5] transition-colors">
+                Quần Tây Xếp Ly
+              </Link>
+            </li>
+            <li>
+              <Link to="/try-on" className="hover:text-[#FAF8F5] transition-colors text-[#C05A39] font-medium">
+                Phòng Thử Đồ Tư Gia
               </Link>
             </li>
           </ul>
         </div>
 
-        {/* Customer Care */}
-        <div>
-          <h4 className="font-bold text-slate-200 uppercase tracking-wider text-xs mb-3">
-            Hỗ Trợ Khách Hàng
+        {/* The House (Col 8-9) */}
+        <div className="lg:col-span-2">
+          <h4 className="font-medium text-[#FAF8F5] uppercase tracking-[0.2em] text-[11px] mb-4">
+            MAISON &amp; DỊCH VỤ
           </h4>
-          <ul className="space-y-2 text-xs">
+          <ul className="space-y-2.5 text-xs text-[#8C8476]">
             <li>
-              <a href="#" className="hover:text-white transition-colors">
-                Hướng Dẫn Chọn Size
+              <Link to="/about" className="hover:text-[#FAF8F5] transition-colors">
+                Di Sản &amp; Kiến Trúc
+              </Link>
+            </li>
+            <li>
+              <Link to="/about" className="hover:text-[#FAF8F5] transition-colors">
+                Nguồn Gốc Sợi Vải
+              </Link>
+            </li>
+            <li>
+              <Link to="/search-result" className="hover:text-[#FAF8F5] transition-colors">
+                Tìm Kiếm Thị Giác
+              </Link>
+            </li>
+            <li>
+              <a href="#size-guide" className="hover:text-[#FAF8F5] transition-colors">
+                Bảng Kích Cỡ Chuẩn (Size)
               </a>
             </li>
             <li>
-              <a href="#" className="hover:text-white transition-colors">
-                Chính Sách Đổi Trả
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-white transition-colors">
-                Chính Sách Vận Chuyển
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-white transition-colors">
-                Bảo Mật Thông Tin
+              <a href="#care-guide" className="hover:text-[#FAF8F5] transition-colors">
+                Nghi Thức Bảo Quản
               </a>
             </li>
           </ul>
         </div>
 
-        {/* Contact Info */}
-        <div>
-          <h4 className="font-bold text-slate-200 uppercase tracking-wider text-xs mb-3">
-            Liên Hệ Trực Tiếp
+        {/* Concierge & Locations (Col 10-12) */}
+        <div className="lg:col-span-3">
+          <h4 className="font-medium text-[#FAF8F5] uppercase tracking-[0.2em] text-[11px] mb-4">
+            LIÊN HỆ CONCIERGE
           </h4>
-          <ul className="space-y-2 text-xs">
-            <li className="flex items-center gap-2">
-              <Phone className="w-3.5 h-3.5 text-blue-400" />
-              <span>1800 6868 (Miễn phí)</span>
+          <ul className="space-y-3 text-xs text-[#8C8476]">
+            <li className="flex items-start gap-2.5">
+              <MapPin className="w-3.5 h-3.5 text-[#C05A39] shrink-0 mt-0.5" />
+              <span>Showroom: 10 Nguyễn Trãi, Q. Hà Đông, Hà Nội</span>
             </li>
-            <li className="flex items-center gap-2">
-              <Mail className="w-3.5 h-3.5 text-blue-400" />
-              <span>support@latelier.vn</span>
+            <li className="flex items-center gap-2.5">
+              <Phone className="w-3.5 h-3.5 text-[#C05A39]" />
+              <span>Hotline CSKH: +84 (0) 24 3868 6868</span>
             </li>
-            <li className="flex items-start gap-2">
-              <MapPin className="w-3.5 h-3.5 text-blue-400 shrink-0 mt-0.5" />
-              <span>Km 10, Đường Nguyễn Trãi, Q. Hà Đông, Hà Nội</span>
+            <li className="flex items-center gap-2.5">
+              <Mail className="w-3.5 h-3.5 text-[#C05A39]" />
+              <span>concierge@grandatelier.vn</span>
+            </li>
+            <li className="pt-2 text-[11px] text-[#6B655D] leading-relaxed">
+              Thời gian tiếp đón khách: 09:00 - 21:00 hàng ngày. Giao hàng hỏa tốc trong 24 giờ.
             </li>
           </ul>
         </div>
       </div>
 
-      {/* Bottom Bar */}
-      <div className="border-t border-slate-900 py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
-          <p>© 2026 L'ATELIER Fashion Studio. Dự án nghiên cứu &amp; triển khai đồ án tốt nghiệp công nghệ AI.</p>
-          <div className="flex items-center gap-4">
-            <span>Thanh toán bảo mật: COD &bull; VNPAY &bull; Napas &bull; VietQR</span>
+      {/* 3. Bottom Legal & Copyright Bar */}
+      <div className="border-t border-[#23211F] py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10.5px] text-[#6B655D]">
+          <p>
+            &copy; 2026 Grand Atelier Central. Mọi quyền được bảo lưu. Dự án nghiên cứu &amp; triển khai thời trang đương đại tích hợp thị giác máy tính.
+          </p>
+          <div className="flex items-center gap-6">
+            <span className="hover:text-[#FAF8F5] transition-colors cursor-pointer">Chính Sách Bảo Mật</span>
+            <span className="hover:text-[#FAF8F5] transition-colors cursor-pointer">Điều Khoản Dịch Vụ</span>
+            <span className="hover:text-[#FAF8F5] transition-colors cursor-pointer">Tiêu Chuẩn Sợi Dệt</span>
           </div>
         </div>
       </div>
