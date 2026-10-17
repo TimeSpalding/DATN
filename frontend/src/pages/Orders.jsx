@@ -28,13 +28,13 @@ export default function Orders() {
   }, []);
 
   const handleCancelOrder = async (orderId) => {
-    if (!window.confirm(`Quý khách có chắc chắn muốn hủy đơn đặt may ${orderId}?`)) return;
+    if (!window.confirm(`Quý khách có chắc chắn muốn hủy đơn hàng ${orderId}?`)) return;
     try {
       await orderService.cancelOrder(orderId);
-      showToast('Đã hủy đơn đặt may thành công', 'info');
+      showToast('Đã hủy đơn hàng thành công', 'info');
       fetchOrders();
     } catch {
-      showToast('Không thể hủy đơn đặt may này', 'error');
+      showToast('Không thể hủy đơn hàng này', 'error');
     }
   };
 
@@ -85,13 +85,13 @@ export default function Orders() {
       <div className="mb-10 pb-6 border-b border-[#E5E0D8] flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <p className="text-[10px] font-semibold tracking-[0.25em] text-[#C05A39] uppercase mb-1.5">
-            L'ARCHIVE DES COMMANDES &bull; SUIVI BESPOKE
+            L'ARCHIVE DES COMMANDES &bull; SUIVI CLIENT
           </p>
           <h1 className="font-serif-luxury text-3xl sm:text-4xl font-normal text-[#161514] tracking-wide">
-            Nhật Ký May Đo &amp; Đơn Hàng Của Quý Khách
+            Lịch Sử Đơn Hàng Của Quý Khách
           </h1>
           <p className="text-xs text-[#6B655D] mt-2 max-w-xl leading-relaxed">
-            Theo dõi tiến trình kiểm định vải, hoàn thiện đường may và hành trình chuyển phát tới tư gia.
+            Theo dõi tiến trình xử lý đơn hàng, đóng gói và hành trình chuyển phát tới tư gia.
           </p>
         </div>
 
@@ -107,16 +107,16 @@ export default function Orders() {
       {loading ? (
         <div className="py-24 flex flex-col items-center justify-center gap-3">
           <div className="w-8 h-8 border border-[#161514] border-t-transparent animate-spin" />
-          <span className="text-[11px] uppercase tracking-widest text-[#8C8476]">Đang tải dữ liệu may đo...</span>
+          <span className="text-[11px] uppercase tracking-widest text-[#8C8476]">Đang tải danh sách đơn hàng...</span>
         </div>
       ) : orders.length === 0 ? (
         <div className="p-16 text-center bg-[#FAF8F5] border border-[#E5E0D8] max-w-lg mx-auto">
           <Package className="w-10 h-10 text-[#8C8476] mx-auto mb-4 stroke-[1.25]" />
           <h3 className="font-serif-luxury text-2xl font-normal text-[#161514]">
-            Chưa Có Đơn May Đo Nào
+            Chưa Có Đơn Hàng Nào
           </h3>
           <p className="text-xs text-[#6B655D] mt-2 leading-relaxed">
-            Quý khách chưa tạo đơn hàng nào. Hãy khám phá bộ sưu tập may đo và trải nghiệm phòng ướm thử tư gia trực tuyến.
+            Quý khách chưa tạo đơn hàng nào. Hãy khám phá bộ sưu tập và trải nghiệm phòng ướm thử tư gia trực tuyến.
           </p>
           <Link
             to="/catalog"
@@ -255,7 +255,7 @@ export default function Orders() {
                   CERTIFICAT DE COMMANDE
                 </p>
                 <h3 className="font-serif-luxury text-xl font-normal text-[#161514] mt-0.5">
-                  Đơn May Đo #{selectedOrder.id}
+                  Đơn Hàng #{selectedOrder.id}
                 </h3>
               </div>
               <button
@@ -271,11 +271,11 @@ export default function Orders() {
               <p>Khách hàng: <strong className="text-[#161514]">{selectedOrder.customer?.fullName}</strong> ({selectedOrder.customer?.phone})</p>
               <p>Địa chỉ tư gia: <span className="text-[#161514]">{selectedOrder.customer?.address}</span></p>
               <p>Nghi thức thanh toán: <span className="text-[#161514] font-medium">{selectedOrder.paymentMethod}</span></p>
-              {selectedOrder.notes && <p>Ghi chú nghệ nhân: <span className="italic text-[#161514]">{selectedOrder.notes}</span></p>}
+              {selectedOrder.notes && <p>Ghi chú đơn hàng: <span className="italic text-[#161514]">{selectedOrder.notes}</span></p>}
 
               <div className="pt-4 border-t border-[#E5E0D8]">
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-[#161514] mb-2">
-                  Danh mục tác phẩm may đo:
+                  Danh mục sản phẩm:
                 </p>
                 <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                   {selectedOrder.items?.map((item) => (

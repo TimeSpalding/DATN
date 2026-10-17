@@ -20,11 +20,11 @@ export default function TryOnButton({ loading, disabled, elapsedTime }) {
         {loading ? (
           <>
             <Loader2 className="w-4 h-4 text-[#FAF8F5] animate-spin" />
-            <span>Đang Mô Phỏng May Đo... ({elapsedTime}s)</span>
+            <span>Đang Mô Phỏng Ướm Thử... ({elapsedTime}s)</span>
           </>
         ) : (
           <>
-            <span>Ướm Thử Trang Phục Tại Phòng Đo</span>
+            <span>Ướm Thử Trang Phục Ngay</span>
             <ArrowRight className="w-4 h-4 text-[#FAF8F5] transition-transform group-hover:translate-x-1" />
           </>
         )}

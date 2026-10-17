@@ -46,7 +46,7 @@ export default function Home() {
 
           {/* Main Headline */}
           <h1 className="font-serif-luxury text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-normal text-[#FAF8F5] tracking-tight leading-[1.1] max-w-4xl">
-            Một Không Gian May Đo Đương Đại Nơi Nghệ Thuật &amp; Cảm Xúc Giao Thoa
+            Một Không Gian Thời Trang Đương Đại Nơi Nghệ Thuật &amp; Cảm Xúc Giao Thoa
           </h1>
 
           <p className="font-serif-luxury text-base sm:text-xl text-[#D8D2C5] mt-6 max-w-2xl leading-relaxed italic">
@@ -164,10 +164,10 @@ export default function Home() {
 
             <div className="space-y-4 text-xs sm:text-sm text-[#6B655D] leading-relaxed">
               <p>
-                Khởi nguồn từ tình yêu sâu sắc với trường phái kiến trúc Noucentisme tinh tế tại Barcelona và nghệ thuật may đo bespoke chuẩn mực, Grand Atelier Central được xây dựng như một ngôi nhà mở nơi thời trang tìm về bản chất thuần khiết nhất: sự thoải mái, vừa vặn và bền bỉ cùng thời gian.
+                Khởi nguồn từ tình yêu sâu sắc với trường phái kiến trúc Noucentisme tinh tế tại Barcelona và kỹ nghệ thiết kế thời trang chuẩn mực, Grand Atelier Central được xây dựng như một ngôi nhà mở nơi thời trang tìm về bản chất thuần khiết nhất: sự thoải mái, vừa vặn và bền bỉ cùng thời gian.
               </p>
               <p>
-                Chúng tôi chắt lọc sợi bông Pima vùng Piura, lanh Normandy và len Merino sinh thái không qua hóa chất làm bóng. Sự kết hợp giữa kỹ nghệ may giấu chỉ blind-stitch và phòng thử đồ tư gia cho phép quý khách quan sát chân thực độ rủ của tà áo trên vóc dáng của mình trước khi quyết định may đo.
+                Chúng tôi chắt lọc sợi bông Pima vùng Piura, lanh Normandy và len Merino sinh thái không qua hóa chất làm bóng. Sự kết hợp giữa kỹ nghệ may giấu chỉ blind-stitch và phòng thử đồ tư gia cho phép quý khách quan sát chân thực độ rủ của tà áo trên vóc dáng của mình trước khi quyết định đặt mua.
               </p>
             </div>
 

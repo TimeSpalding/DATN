@@ -69,7 +69,7 @@ export default function ProductDetail() {
     return (
       <div className="w-full max-w-7xl mx-auto px-4 py-28 flex flex-col items-center justify-center">
         <div className="w-10 h-10 border border-[#E5E0D8] border-t-[#C05A39] animate-spin" />
-        <p className="text-xs text-[#8C8476] tracking-widest uppercase mt-4">Đang truy xuất thông số may đo...</p>
+        <p className="text-xs text-[#8C8476] tracking-widest uppercase mt-4">Đang tải thông tin sản phẩm...</p>
       </div>
     );
   }
@@ -210,7 +210,7 @@ export default function ProductDetail() {
             <div className="flex items-center justify-between text-[10.5px] tracking-[0.2em] uppercase text-[#8C8476] font-medium mb-3">
               <span>MÃ THIẾT KẾ: {enriched.atelierCode}</span>
               <span className="text-[#C05A39] font-semibold">
-                SẴN CỠ MAY ĐO ({product.sizes?.reduce((a, b) => a + b.stock, 0) || 45} CHIẾC)
+                SẴN HÀNG TRONG KHO ({product.sizes?.reduce((a, b) => a + b.stock, 0) || 45} CHIẾC)
               </span>
             </div>
 
@@ -361,7 +361,7 @@ export default function ProductDetail() {
                   onClick={handleBuyNow}
                   className="btn-noir w-full py-3.5 text-xs font-semibold tracking-[0.18em]"
                 >
-                  <span>Đặt May Ngay</span>
+                  <span>Mua Ngay</span>
                 </button>
               </div>
             </div>
@@ -398,7 +398,7 @@ export default function ProductDetail() {
               activeTab === 'desc' ? 'border-[#161514] text-[#161514] font-semibold' : 'border-transparent text-[#8C8476] hover:text-[#161514]'
             }`}
           >
-            Kỹ Nghệ May Đo &amp; Sợi Dệt
+            Chi Tiết Chất Liệu &amp; Sợi Dệt
           </button>
           <button
             type="button"
@@ -470,7 +470,7 @@ export default function ProductDetail() {
                 Nghi Thức Giữ Gìn &amp; Chăm Sóc Sợi Vải Tự Nhiên
               </h4>
               <p>
-                Trang phục may đo từ sợi thiên nhiên mang vẻ đẹp sống động và bền bỉ khi được chăm sóc với những nghi thức chuẩn mực:
+                Trang phục chế tác từ sợi thiên nhiên mang vẻ đẹp sống động và bền bỉ khi được chăm sóc với những nghi thức chuẩn mực:
               </p>
               <ul className="list-disc pl-5 space-y-2 text-[#6B655D]">
                 {enriched.careRitual.map((item, idx) => (
@@ -483,7 +483,7 @@ export default function ProductDetail() {
           {activeTab === 'reviews' && (
             <div className="space-y-4">
               {[
-                { name: 'Nguyễn Hoàng Minh', date: 'Tháng 10, 2026', comment: 'Chất vải mát mịn, đường may French seam bên trong sạch sẽ không một sợi chỉ thừa. Ướm thử trên phòng đo thấy chuẩn vóc dáng nên tôi đặt luôn, nhận áo mặc vừa vặn như may đo tại tiệm.', rating: 5 },
+                { name: 'Nguyễn Hoàng Minh', date: 'Tháng 10, 2026', comment: 'Chất vải mát mịn, đường may French seam bên trong sạch sẽ không một sợi chỉ thừa. Ướm thử trên phòng đo thấy chuẩn vóc dáng nên tôi đặt luôn, nhận áo mặc vừa vặn chuẩn phom dáng.', rating: 5 },
                 { name: 'Trần Thu Thảo', date: 'Tháng 10, 2026', comment: 'Sắc thái màu cát rất trang nhã đúng như ảnh. Đóng gói hộp cứng rất thơm và sang trọng.', rating: 5 },
               ].map((rev, i) => (
                 <div key={i} className="p-5 border border-[#E5E0D8] bg-[#FAF8F5]">
@@ -577,7 +577,7 @@ export default function ProductDetail() {
                 </tbody>
               </table>
               <p className="mt-4 text-[11px] text-[#8C8476] leading-relaxed">
-                Đặc quyền may đo: Nếu vóc dáng của quý khách cần căn chỉnh lai gấu hoặc vai áo, Concierge của chúng tôi sẽ hỗ trợ điều chỉnh hoàn toàn miễn phí tại showroom.
+                Đặc quyền dịch vụ: Nếu quý khách cần hỗ trợ đổi size, Concierge của chúng tôi sẽ hỗ trợ đổi miễn phí tận nơi trong 30 ngày.
               </p>
             </div>
 

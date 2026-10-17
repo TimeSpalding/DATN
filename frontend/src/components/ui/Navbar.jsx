@@ -187,7 +187,7 @@ export default function Navbar() {
                         className="flex items-center gap-2.5 px-4 py-2 text-xs text-[#2A2724] hover:bg-[#F3EFE6] font-normal"
                       >
                         <Package className="w-3.5 h-3.5 text-[#8C8476]" />
-                        <span>Đơn hàng &amp; May đo</span>
+                        <span>Đơn hàng của tôi</span>
                       </Link>
 
                       <Link

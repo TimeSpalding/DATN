@@ -49,10 +49,10 @@ export default function Checkout() {
           LA COMMANDE &bull; BESPOKE SERVICE
         </p>
         <h2 className="font-serif-luxury text-3xl font-normal text-[#161514]">
-          Túi Đồ May Đo Đang Trống
+          Túi Đồ Của Quý Khách Đang Trống
         </h2>
         <p className="text-xs text-[#6B655D] mt-2 max-w-sm mx-auto leading-relaxed">
-          Quý khách chưa lựa chọn thiết kế nào. Vui lòng khám phá danh mục tuyển chọn để thêm tác phẩm vào túi đồ trước khi tiến hành may đo.
+          Quý khách chưa lựa chọn thiết kế nào. Vui lòng khám phá danh mục tuyển chọn để thêm sản phẩm vào túi đồ trước khi tiến hành đặt mua.
         </p>
         <Link
           to="/catalog"
@@ -102,7 +102,7 @@ export default function Checkout() {
 
       if (result?.success && result?.data) {
         clearCart();
-        showToast('Đơn đặt may đã được ghi nhận. Maison sẽ liên hệ chuẩn bị trang phục.');
+        showToast('Đơn hàng đã được ghi nhận. Maison sẽ sớm liên hệ xác nhận đơn.');
         navigate(`/order-success/${result.data.id}`, { state: { order: result.data } });
       }
     } catch (err) {
@@ -123,10 +123,10 @@ export default function Checkout() {
           SERVICE SUR-MESURE &bull; FINALISATION
         </p>
         <h1 className="font-serif-luxury text-3xl sm:text-4xl font-normal text-[#161514] tracking-wide">
-          Hoàn Tất Đơn Đặt May &amp; Giao Nhận
+          Hoàn Tất Đơn Hàng &amp; Giao Nhận
         </h1>
         <p className="text-xs text-[#6B655D] mt-2 max-w-xl leading-relaxed">
-          Quý khách vui lòng xác nhận thông tin tư gia và nghi thức giao nhận. Đội ngũ L'Atelier sẽ kiểm định từng đường may và đóng gói trang phục theo chuẩn mực boutique.
+          Quý khách vui lòng xác nhận thông tin tư gia và nghi thức giao nhận. Đội ngũ Maison Central sẽ kiểm tra sản phẩm và đóng gói trang phục theo chuẩn mực boutique.
         </p>
       </div>
 
@@ -237,7 +237,7 @@ export default function Checkout() {
 
               <div className="sm:col-span-2">
                 <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#6B655D] mb-1.5">
-                  Ghi chú riêng cho nghệ nhân xưởng may (Tùy chọn)
+                  Ghi chú đơn hàng (Tùy chọn)
                 </label>
                 <textarea
                   name="notes"
@@ -245,7 +245,7 @@ export default function Checkout() {
                   onChange={handleInputChange}
                   rows={2}
                   className="w-full px-4 py-2 bg-[#FAF8F5] border border-[#D8D2C5] text-xs text-[#161514] placeholder-[#8C8476] focus:outline-none focus:border-[#161514] resize-none"
-                  placeholder="Ví dụ: Yêu cầu hộp may đo đặc biệt, hướng dẫn chuông cửa hoặc khung giờ nhận đồ thuận tiện..."
+                  placeholder="Ví dụ: Giao giờ hành chính, gọi điện trước khi giao hàng..."
                 />
               </div>
             </div>
@@ -361,7 +361,7 @@ export default function Checkout() {
                       className="accent-[#161514]"
                     />
                     <div>
-                      <p className="text-xs font-medium text-[#161514]">Chuyển khoản trực tiếp xưởng may (VietQR)</p>
+                      <p className="text-xs font-medium text-[#161514]">Chuyển khoản ngân hàng trực tuyến (VietQR)</p>
                       <p className="text-[11px] text-[#8C8476]">Xác nhận thanh toán tự động qua hệ thống Maison Concierge</p>
                     </div>
                   </div>
@@ -409,7 +409,7 @@ export default function Checkout() {
           <div className="p-7 bg-[#FAF8F5] border border-[#E5E0D8] flex flex-col gap-4">
             <div className="pb-3 border-b border-[#E5E0D8] flex items-center justify-between">
               <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-[#161514]">
-                Bản Kê May Đo
+                Bản Kê Đơn Hàng
               </h3>
               <span className="text-[10px] text-[#8C8476] tracking-wider uppercase">
                 {cartItems.length} tác phẩm
@@ -486,7 +486,7 @@ export default function Checkout() {
               className="mt-3 w-full py-4 bg-[#C05A39] hover:bg-[#A64B2E] text-[#FAF8F5] text-xs font-medium tracking-[0.2em] uppercase flex items-center justify-center gap-2 transition-all cursor-pointer disabled:bg-[#D8D2C5]"
             >
               <Lock className="w-3.5 h-3.5 stroke-[1.5]" />
-              <span>{isSubmitting ? 'Đang xác nhận đơn hàng...' : 'Xác Nhận Đặt Hàng May Đo'}</span>
+              <span>{isSubmitting ? 'Đang xác nhận đơn hàng...' : 'Xác Nhận Đặt Hàng'}</span>
             </button>
 
             <div className="flex items-center justify-center gap-2 text-[10px] text-[#8C8476] tracking-wide text-center mt-1">

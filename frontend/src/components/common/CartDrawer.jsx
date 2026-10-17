@@ -47,7 +47,7 @@ export default function CartDrawer() {
             <div className="flex items-center gap-2.5">
               <ShoppingBag className="w-4 h-4 text-[#C05A39]" />
               <h2 className="font-serif-luxury text-xl text-[#161514] font-normal tracking-wide">
-                Túi Đồ May Đo ({totalItemsCount})
+                Túi Đồ Của Quý Khách ({totalItemsCount})
               </h2>
             </div>
             <button
@@ -90,7 +90,7 @@ export default function CartDrawer() {
                 </div>
                 <h3 className="font-serif-luxury text-xl text-[#161514]">Túi đồ của quý khách đang trống</h3>
                 <p className="text-xs text-[#8C8476] mt-2 max-w-[240px] leading-relaxed">
-                  Khám phá các thiết kế may đo đương đại và trải nghiệm ướm thử tại phòng đo riêng.
+                  Khám phá các thiết kế thời trang đương đại và trải nghiệm ướm thử tại phòng đo riêng.
                 </p>
                 <Link
                   to="/catalog"
@@ -213,7 +213,7 @@ export default function CartDrawer() {
                   onClick={handleCheckoutClick}
                   className="btn-terracotta w-full py-3.5 text-xs font-semibold tracking-[0.2em]"
                 >
-                  <span>Tiến Hành Đặt May &bull; Thanh Toán</span>
+                  <span>Tiến Hành Đặt Hàng &bull; Thanh Toán</span>
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </button>
 

@@ -51,7 +51,7 @@ const TAILORING_DETAILS = [
   },
   {
     hardware: 'Khóa kéo kim loại phủ mờ mạ đồng cổ antique brass',
-    seam: 'Mũi may đôi gia cố chịu lực 7 mũi/inch theo tiêu chuẩn may đo Ý',
+    seam: 'Mũi may đôi gia cố chịu lực 7 mũi/inch theo tiêu chuẩn may mặc cao cấp Ý',
     lining: 'Bọc viền túi và nẹp cổ bằng vải dệt tơ tằm màu cát',
     collar: 'Cổ áo cắt vát theo đường cong giải phẫu học cổ, không gò bó',
   },
@@ -89,7 +89,7 @@ const CARE_RITUALS = [
     'Vắt tốc độ chậm dưới 600 vòng/phút để bảo toàn cấu trúc sợi dệt tự nhiên.',
     'Không sử dụng hóa chất tẩy rửa mạnh chứa gốc Clo.',
     'Là ủi hơi nước nhẹ nhàng khi vải còn hơi ẩm để hồi phục nếp phẳng tự nhiên.',
-    'Được bảo dưỡng và hỗ trợ may đo chỉnh size trọn đời tại mọi Atelier của chúng tôi.',
+    'Được tư vấn phong cách và hỗ trợ đổi size chu đáo tại hệ thống của chúng tôi.',
   ],
 ];
 
@@ -122,11 +122,11 @@ export function enrichProduct(product) {
   // Base description enhancement
   const cleanOriginalDesc = product.description && product.description.length > 20
     ? product.description
-    : `Mẫu thiết kế cao cấp từ bộ sưu tập của Maison, được may đo thủ công tỉ mỉ với tỷ lệ vàng chuẩn mực.`;
+    : `Mẫu thiết kế cao cấp từ bộ sưu tập của Maison, được hoàn thiện tỉ mỉ với tỷ lệ vàng chuẩn mực.`;
 
   return {
     ...product,
-    editorialTagline: `Maison Tailored Edition · ${fabric.composition.split(' ')[0]} ${fabric.composition.split(' ')[1] || ''}`,
+    editorialTagline: `Maison Edition · ${fabric.composition.split(' ')[0]} ${fabric.composition.split(' ')[1] || ''}`,
     enrichedFabric: fabric,
     enrichedTailoring: tailoring,
     stylistNote: stylingNote,
@@ -134,7 +134,7 @@ export function enrichProduct(product) {
     atelierCode: `GAC-${String(h % 900 + 100).padStart(3, '0')}`,
     certifications: [
       'Chứng nhận dệt may sinh thái OEKO-TEX Standard 100',
-      'Tiêu chuẩn may đo thủ công Atelier 2026',
+      'Tiêu chuẩn hoàn thiện cao cấp Atelier 2026',
       'Kiểm định độ bền màu ISO 105-B02',
     ],
     silhouette: product.category === 'upper'

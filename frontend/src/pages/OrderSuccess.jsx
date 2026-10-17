@@ -31,11 +31,11 @@ export default function OrderSuccess() {
       </p>
 
       <h1 className="font-serif-luxury text-3xl sm:text-4xl font-normal text-[#161514] tracking-wide">
-        Đơn Đặt May Đã Được Tiếp Nhận
+        Đơn Hàng Đã Được Tiếp Nhận
       </h1>
 
       <p className="text-xs text-[#6B655D] mt-2.5 max-w-md mx-auto leading-relaxed">
-        Trân trọng cảm ơn quý khách. Nghệ nhân xưởng may Grand Atelier Central đã ghi nhận thông số và chuẩn bị kiểm định hoàn thiện trang phục.
+        Trân trọng cảm ơn quý khách. Grand Atelier Central đã tiếp nhận thông tin đơn hàng và đang chuẩn bị đóng gói trang phục gửi tới quý khách.
       </p>
 
       {/* Order Info Card (Editorial Certificate) */}
@@ -43,7 +43,7 @@ export default function OrderSuccess() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-[#E5E0D8] gap-4">
           <div>
             <span className="text-[10px] uppercase tracking-[0.2em] text-[#8C8476] font-semibold">
-              Mã chứng từ may đo
+              Mã đơn hàng
             </span>
             <p className="font-mono text-base font-semibold text-[#161514] mt-0.5 tracking-wider">
               {order.id}
@@ -107,7 +107,7 @@ export default function OrderSuccess() {
           className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-[#C05A39] hover:bg-[#A64B2E] text-[#FAF8F5] text-xs font-medium tracking-[0.2em] uppercase transition-all cursor-pointer"
         >
           <Package className="w-3.5 h-3.5 stroke-[1.5]" />
-          <span>Theo Dõi Đơn May Đo Của Quý Khách</span>
+          <span>Theo Dõi Đơn Hàng Của Quý Khách</span>
           <ArrowRight className="w-3.5 h-3.5 stroke-[1.5]" />
         </Link>
 

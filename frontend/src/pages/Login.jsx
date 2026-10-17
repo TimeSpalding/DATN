@@ -87,7 +87,7 @@ export const Login = () => {
           Đăng Nhập Thành Viên
         </h1>
         <p className="mt-2 text-xs text-[#6B655D] leading-relaxed">
-          Truy cập phòng ướm thử tư gia và quản lý nhật ký may đo cá nhân
+          Truy cập phòng ướm thử tư gia và quản lý đơn hàng của quý khách
         </p>
       </div>
 
@@ -164,7 +164,7 @@ export const Login = () => {
               className="py-2.5 px-3 border border-[#E5E0D8] bg-[#FAF8F5] hover:border-[#161514] text-[#161514] text-[10.5px] font-medium tracking-wider uppercase flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
               <User className="w-3.5 h-3.5 text-[#8C8476] stroke-[1.5]" />
-              <span>Khách may đo</span>
+              <span>Khách hàng demo</span>
             </button>
           </div>
         </div>

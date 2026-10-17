@@ -59,7 +59,7 @@ export default function Cart() {
           Túi Đồ Của Quý Khách Đang Trống
         </h1>
         <p className="text-xs sm:text-sm text-[#8C8476] mt-3 max-w-md mx-auto leading-relaxed">
-          Chưa có trang phục nào trong danh sách. Kính mời quý khách khám phá bộ sưu tập may đo và trải nghiệm ướm thử tại phòng đo riêng.
+          Chưa có trang phục nào trong danh sách. Kính mời quý khách khám phá bộ sưu tập thời trang và trải nghiệm ướm thử tại phòng đo riêng.
         </p>
         <div className="mt-8 flex justify-center gap-4">
           <Link
@@ -91,7 +91,7 @@ export default function Cart() {
             Túi Đồ Của Quý Khách
           </h1>
           <p className="text-xs text-[#8C8476] mt-1">
-            Có <strong>{cartItems.length}</strong> thiết kế trong danh sách may đo
+            Có <strong>{cartItems.length}</strong> sản phẩm trong giỏ hàng
           </p>
         </div>
 
@@ -111,11 +111,11 @@ export default function Cart() {
             <Truck className="w-4 h-4 text-[#C05A39]" />
             {isFreeShipping ? (
               <span className="text-[#C05A39] font-medium uppercase tracking-wider">
-                Đơn hàng của quý khách đủ điều kiện MIỄN PHÍ VẬN CHUYỂN &bull; CHỈNH SIZE TẬN TAY
+                Đơn hàng của quý khách đủ điều kiện MIỄN PHÍ VẬN CHUYỂN &bull; ĐỔI SIZE TẬN TAY
               </span>
             ) : (
               <span>
-                Đặt may thêm <strong className="text-[#161514] font-semibold">{diffForFreeShip.toLocaleString('vi-VN')}₫</strong> để nhận đặc quyền miễn phí giao hàng
+                Mua thêm <strong className="text-[#161514] font-semibold">{diffForFreeShip.toLocaleString('vi-VN')}₫</strong> để nhận đặc quyền miễn phí giao hàng
               </span>
             )}
           </span>
@@ -284,7 +284,7 @@ export default function Cart() {
           {/* Summary Box */}
           <div className="p-6 bg-[#FAF8F5] border border-[#E5E0D8] space-y-4">
             <h3 className="font-serif-luxury text-xl text-[#161514] font-normal pb-3 border-b border-[#E5E0D8]">
-              Tóm Tắt Đơn May Đo
+              Tóm Tắt Đơn Hàng
             </h3>
 
             <div className="space-y-2 text-xs text-[#6B655D]">
@@ -293,7 +293,7 @@ export default function Cart() {
                 <span className="text-[#161514] font-medium">{subtotal.toLocaleString('vi-VN')}₫</span>
               </div>
               <div className="flex justify-between">
-                <span>Phí vận chuyển tận tay</span>
+                <span>Phí vận chuyển</span>
                 <span className="text-[#161514] font-medium">
                   {shippingFee === 0 ? 'Miễn phí' : `${shippingFee.toLocaleString('vi-VN')}₫`}
                 </span>
@@ -316,7 +316,7 @@ export default function Cart() {
               onClick={() => navigate('/checkout')}
               className="btn-terracotta w-full py-4 text-xs font-semibold tracking-[0.2em] mt-4"
             >
-              <span>Tiến Hành Đặt May &bull; Thanh Toán</span>
+              <span>Tiến Hành Đặt Hàng &bull; Thanh Toán</span>
               <ArrowRight className="w-4 h-4 ml-1" />
             </button>
           </div>

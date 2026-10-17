@@ -81,7 +81,7 @@ export const Register = () => {
           Đăng Ký Thành Viên
         </h1>
         <p className="mt-2 text-xs text-[#6B655D] leading-relaxed">
-          Tận hưởng đặc quyền ướm thử kỹ thuật số và lưu trữ số đo may đo riêng biệt
+          Tận hưởng đặc quyền ướm thử kỹ thuật số và lưu giữ thông tin mua sắm cá nhân
         </p>
       </div>
 

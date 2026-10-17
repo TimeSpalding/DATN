@@ -179,10 +179,10 @@ export default function Catalog() {
             HAUTE COUTURE &bull; CATÁLOGO EXCLUSIVO
           </p>
           <h1 className="font-serif-luxury text-3xl sm:text-4xl md:text-5xl font-normal text-[#161514] tracking-wide">
-            Bộ Sưu Tập May Đo Grand Atelier
+            Bộ Sưu Tập Thời Trang Grand Atelier
           </h1>
           <p className="text-xs sm:text-sm text-[#6B655D] mt-2 max-w-xl leading-relaxed">
-            Hơn 1.000 thiết kế tinh tuyển từ sợi tự nhiên cao cấp. Mỗi tác phẩm sẵn sàng cho trải nghiệm ướm thử tư gia trực tuyến trước khi quý khách quyết định may đo.
+            Hơn 1.000 thiết kế tinh tuyển từ sợi tự nhiên cao cấp. Mỗi tác phẩm sẵn sàng cho trải nghiệm ướm thử tư gia trực tuyến trước khi quý khách quyết định đặt mua.
           </p>
         </div>
 
@@ -279,7 +279,7 @@ export default function Catalog() {
           {/* Price Range Filter */}
           <div className="pt-6 border-t border-[#E5E0D8]">
             <h3 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#161514] mb-3">
-              MỨC GIÁ MAY ĐO
+              KHOẢNG GIÁ
             </h3>
             <div className="space-y-2 text-xs text-[#6B655D]">
               {[

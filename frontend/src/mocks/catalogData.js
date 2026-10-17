@@ -151,7 +151,7 @@ export const CATALOG_PRODUCTS = [
   {
     id: 'tailored-blazer-navy',
     sku: 'LAT-BLZ-005',
-    name: 'Áo Khoác Blazer May Đo Xanh Navy Modern Fit',
+    name: 'Áo Khoác Blazer Thiết Kế Xanh Navy Modern Fit',
     category: 'upper',
     subCategory: 'jacket',
     gender: 'men',

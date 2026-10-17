@@ -24,7 +24,7 @@ export default function Footer() {
               HAUTE ATELIER
             </p>
             <p className="font-serif-luxury text-base text-[#FAF8F5] tracking-wide">
-              Nghệ thuật may đo chuẩn mực
+              Nghệ thuật thiết kế chuẩn mực
             </p>
             <p className="text-[11px] text-[#8C8476] mt-1 leading-relaxed">
               Từng đường may, ve áo và khuy xà cừ đều được chế tác theo tiêu chuẩn thời trang cao cấp.
@@ -84,7 +84,7 @@ export default function Footer() {
           </Link>
           
           <p className="text-[#8C8476] leading-relaxed text-xs max-w-md mb-8">
-            Lấy cảm hứng từ sự thanh lịch vượt thời gian của kiến trúc Noucentisme tại Barcelona, Grand Atelier Central kết nối di sản may đo thủ công cùng trải nghiệm ướm thử tư gia tinh tế.
+            Lấy cảm hứng từ sự thanh lịch vượt thời gian của kiến trúc Noucentisme tại Barcelona, Grand Atelier Central kết nối kỹ nghệ thiết kế thời trang cùng trải nghiệm ướm thử tư gia tinh tế.
           </p>
 
           {/* Newsletter Box */}
@@ -93,7 +93,7 @@ export default function Footer() {
               THƯ PHẨM PHONG CÁCH TỪ MAISON
             </p>
             <p className="text-[11px] text-[#8C8476] mb-3">
-              Đăng ký để nhận thông tin về các bộ sưu tập phiên bản giới hạn và lời mời tham dự tuần lễ may đo.
+              Đăng ký để nhận thông tin về các bộ sưu tập phiên bản giới hạn và lời mời tham dự các sự kiện thời trang độc quyền.
             </p>
 
             {subscribed ? (
@@ -130,7 +130,7 @@ export default function Footer() {
           <ul className="space-y-2.5 text-xs text-[#8C8476]">
             <li>
               <Link to="/catalog?category=upper" className="hover:text-[#FAF8F5] transition-colors">
-                Áo &amp; Tops May Đo
+                Áo &amp; Tops Thiết Kế
               </Link>
             </li>
             <li>
@@ -179,7 +179,7 @@ export default function Footer() {
             </li>
             <li>
               <a href="#size-guide" className="hover:text-[#FAF8F5] transition-colors">
-                Quy Chuẩn May Đo (Size)
+                Bảng Kích Cỡ Chuẩn (Size)
               </a>
             </li>
             <li>
@@ -202,14 +202,14 @@ export default function Footer() {
             </li>
             <li className="flex items-center gap-2.5">
               <Phone className="w-3.5 h-3.5 text-[#C05A39]" />
-              <span>Hotline May Đo: +84 (0) 24 3868 6868</span>
+              <span>Hotline CSKH: +84 (0) 24 3868 6868</span>
             </li>
             <li className="flex items-center gap-2.5">
               <Mail className="w-3.5 h-3.5 text-[#C05A39]" />
               <span>concierge@grandatelier.vn</span>
             </li>
             <li className="pt-2 text-[11px] text-[#6B655D] leading-relaxed">
-              Thời gian tiếp đón khách: 09:00 - 21:00 hàng ngày. Đặt lịch hẹn may đo tư gia trước 24 giờ.
+              Thời gian tiếp đón khách: 09:00 - 21:00 hàng ngày. Giao hàng hỏa tốc trong 24 giờ.
             </li>
           </ul>
         </div>

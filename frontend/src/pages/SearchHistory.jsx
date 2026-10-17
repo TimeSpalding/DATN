@@ -90,7 +90,7 @@ export const SearchHistory = () => {
               Nhật Ký Định Vị Thị Giác
             </h1>
             <p className="mt-2 text-xs text-[#6B655D] max-w-xl leading-relaxed">
-              Lưu giữ các truy vấn tham chiếu hình ảnh, mô tả sợi vải dệt và chất liệu may đo đã được hệ thống tư vấn phục vụ quý khách.
+              Lưu giữ các truy vấn tham chiếu hình ảnh, mô tả sợi vải dệt và chất liệu trang phục đã được hệ thống tư vấn phục vụ quý khách.
             </p>
           </div>
 

@@ -78,7 +78,7 @@ export default function ProductCard({ product, onTryOnNow }) {
               ? 'bg-[#FAF8F5] text-[#C05A39] border border-[#E5E0D8]'
               : 'bg-[#FAF8F5]/80 backdrop-blur-xs text-[#6B655D] hover:bg-[#FAF8F5] hover:text-[#161514] border border-[#E5E0D8]'
           }`}
-          title={isFavorited ? 'Xóa khỏi danh sách lưu' : 'Lưu vào danh sách may đo'}
+          title={isFavorited ? 'Xóa khỏi danh sách lưu' : 'Lưu vào danh sách yêu thích'}
         >
           <Heart className={`w-3.5 h-3.5 stroke-[1.75] ${isFavorited ? 'fill-[#C05A39]' : ''}`} />
         </button>
@@ -90,7 +90,7 @@ export default function ProductCard({ product, onTryOnNow }) {
             onClick={handleTryOnClick}
             className="w-full bg-[#C05A39] hover:bg-[#A64B2E] text-[#FAF8F5] text-[10.5px] font-medium tracking-[0.18em] uppercase py-2.5 flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer"
           >
-            <span>Ướm Thử Tại Phòng Đo</span>
+            <span>Ướm Thử Sản Phẩm</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
           
@@ -135,7 +135,7 @@ export default function ProductCard({ product, onTryOnNow }) {
           </div>
 
           <span className="text-[10px] tracking-[0.15em] text-[#8C8476] uppercase font-medium">
-            May đo sẵn
+            Sẵn hàng
           </span>
         </div>
       </div>

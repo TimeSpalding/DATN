@@ -314,7 +314,7 @@ export default function FittingStudio({ initialGarment = null }) {
             />
 
             <p className="text-[11px] text-[#8C8476] text-center mt-4 max-w-md leading-relaxed">
-              Lời khuyên may đo: Hãy chọn ảnh chụp toàn thân hoặc bán thân đứng thẳng với ánh sáng tự nhiên để đạt độ sắc nét và rủ vải tinh tế nhất.
+              Lời khuyên ướm thử: Hãy chọn ảnh chụp toàn thân hoặc bán thân đứng thẳng với ánh sáng tự nhiên để đạt độ sắc nét và rủ vải tinh tế nhất.
             </p>
           </div>
         </form>

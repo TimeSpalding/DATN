@@ -17,9 +17,9 @@ const ATELIER_PILLARS = [
   },
   {
     number: '03',
-    title: 'Chỉnh Sửa May Đo Tận Nơi',
+    title: 'Hỗ Trợ Đổi Cỡ Tận Nơi',
     subtitle: 'Đặc Quyền Của Khách Hàng',
-    desc: 'Mỗi thiết kế đều được hỗ trợ căn chỉnh đường may theo số đo riêng miễn phí và đổi trả tận nhà trong vòng 30 ngày.'
+    desc: 'Mọi sản phẩm đều được hỗ trợ đổi kích cỡ miễn phí và đổi trả thuận tiện tận nhà trong vòng 30 ngày.'
   },
   {
     number: '04',

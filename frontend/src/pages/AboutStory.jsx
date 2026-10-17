@@ -123,7 +123,7 @@ export default function AboutStory() {
             Tại Grand Atelier Central, phòng thử đồ trực tuyến không phải một món đồ chơi hào nhoáng. Đó là một cam kết về thời trang bền vững (conscious fashion).
           </p>
           <p className="text-xs sm:text-sm text-[#8C8476] leading-relaxed max-w-2xl mx-auto">
-            Bằng việc tái hiện trung thực độ rủ sợi dệt và tỷ lệ vóc dáng của người mặc trước khi hoàn tất may đo, chúng tôi giảm thiểu đến 90% tỉ lệ hoàn trả hàng và lãng phí bao bì, đồng thời bảo vệ trọn vẹn thời gian quý báu của mỗi vị khách.
+            Bằng việc tái hiện trung thực độ rủ sợi dệt và tỷ lệ vóc dáng của người mặc trước khi hoàn tất đặt mua, chúng tôi giảm thiểu đến 90% tỉ lệ hoàn trả hàng và lãng phí bao bì, đồng thời bảo vệ trọn vẹn thời gian quý báu của mỗi vị khách.
           </p>
           <div className="pt-4">
             <Link
