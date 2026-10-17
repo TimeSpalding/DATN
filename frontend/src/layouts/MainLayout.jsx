@@ -9,7 +9,7 @@ export default function MainLayout({ children }) {
   const { toastNotification } = useCart();
 
   return (
-    <div className="min-h-screen flex flex-col font-sans text-slate-900 bg-white selection:bg-blue-900 selection:text-white">
+    <div className="min-h-screen flex flex-col font-sans text-[#161514] bg-[#FAF8F5] selection:bg-[#C05A39] selection:text-[#FAF8F5]">
       {/* Global Navbar */}
       <Navbar />
 
@@ -19,9 +19,9 @@ export default function MainLayout({ children }) {
       {/* Toast Notification Container */}
       {toastNotification && (
         <div className="fixed bottom-6 right-6 z-50 animate-bounce-in max-w-sm">
-          <div className="bg-slate-950 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-slate-800">
+          <div className="bg-[#161514] text-[#FAF8F5] px-4 py-3 shadow-2xl flex items-center gap-3 border border-[#E5E0D8]/20">
             {toastNotification.type === 'error' ? (
-              <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+              <AlertCircle className="w-5 h-5 text-[#C05A39] shrink-0" />
             ) : toastNotification.type === 'info' ? (
               <Info className="w-5 h-5 text-blue-400 shrink-0" />
             ) : (

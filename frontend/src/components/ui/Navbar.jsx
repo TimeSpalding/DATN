@@ -1,18 +1,33 @@
-import React, { useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Heart, Search, User, Menu, X, LogOut, Shield, Clock, Bookmark, Package, Compass } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { ShoppingBag, Heart, Search, User, Menu, X, LogOut, Shield, Clock, Bookmark, Package } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 import { useWishlist } from '../../contexts/WishlistContext';
 
 export default function Navbar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated, user, role, logout } = useAuth();
   const { totalItemsCount, openCart } = useCart();
   const { wishlistCount } = useWishlist();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  // Scroll detection for homepage transparent header
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const isHome = location.pathname === '/';
+  const isTransparent = isHome && !isScrolled;
 
   const displayName =
     user?.fullName ||
@@ -27,105 +42,121 @@ export default function Navbar() {
     navigate('/');
   };
 
-  const navLinkClass = ({ isActive }) =>
-    `text-[11px] font-medium tracking-[0.2em] uppercase transition-all py-1.5 border-b ${
+  // Exact path & query param matching to prevent multiple links being active simultaneously
+  const searchParams = new URLSearchParams(location.search);
+  const categoryParam = searchParams.get('category');
+
+  const isHomeActive = location.pathname === '/';
+  const isCatalogActive = location.pathname === '/catalog' && !categoryParam;
+  const isUpperActive = location.pathname === '/catalog' && categoryParam === 'upper';
+  const isDressActive = location.pathname === '/catalog' && categoryParam === 'dress';
+  const isTryOnActive = location.pathname === '/try-on';
+  const isVisualSearchActive = location.pathname === '/search-result';
+  const isAboutActive = location.pathname === '/about';
+
+  const getNavLinkClass = (isActive) =>
+    `whitespace-nowrap text-[11px] font-medium tracking-[0.16em] uppercase transition-all py-1.5 border-b ${
       isActive
-        ? 'text-[#161514] border-[#161514] font-semibold'
-        : 'text-[#6B655D] border-transparent hover:text-[#161514] hover:border-[#D8D2C5]'
+        ? isTransparent
+          ? 'text-[#FAF8F5] border-[#FAF8F5] font-semibold'
+          : 'text-[#161514] border-[#161514] font-semibold'
+        : isTransparent
+          ? 'text-[#FAF8F5]/75 border-transparent hover:text-[#FAF8F5] hover:border-[#FAF8F5]/40'
+          : 'text-[#6B655D] border-transparent hover:text-[#161514] hover:border-[#D8D2C5]'
     }`;
 
   return (
-    <header className="sticky top-0 z-40 bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#E5E0D8] transition-all">
-      {/* Top Heritage Utility Bar */}
-      <div className="bg-[#161514] text-[#D8D2C5] text-[10px] font-medium tracking-[0.22em] uppercase py-2 px-4 text-center">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <span className="hidden md:inline text-[#A8A196]">
-            HAUTE COUTURE &bull; DIGITAL FITTING SUITE &bull; BARCELONA &amp; HÀ NỘI
-          </span>
-          <span className="mx-auto md:mx-0">
-            DỊCH VỤ ƯỚM THỬ TẠI GIA &bull; GIAO HÀNG VÀ CHỈNH SỬA TẬN TAY MIỄN PHÍ
-          </span>
-          <span className="hidden lg:inline text-[#A8A196]">
-            CONCIERGE: +84 (0) 24 3868 6868
-          </span>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        {/* Main Header Layout: Balanced Editorial Presentation */}
-        <div className="flex items-center justify-between gap-4">
+    <header
+      className={`transition-all duration-300 z-40 ${
+        isHome
+          ? isTransparent
+            ? 'fixed top-0 inset-x-0 bg-gradient-to-b from-[#161514]/70 via-[#161514]/25 to-transparent border-b border-transparent text-[#FAF8F5]'
+            : 'fixed top-0 inset-x-0 bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#E5E0D8] text-[#161514] shadow-xs'
+          : 'sticky top-0 bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#E5E0D8] text-[#161514]'
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
+        <div className="flex items-center justify-between gap-3 sm:gap-6">
           
           {/* Left: Primary Collections Navigation */}
-          <nav className="hidden lg:flex items-center gap-7">
-            <NavLink to="/" className={navLinkClass}>
+          <nav className="hidden lg:flex items-center gap-4 xl:gap-6 shrink-0">
+            <Link to="/" className={getNavLinkClass(isHomeActive)}>
               Trang Chủ
-            </NavLink>
-            <NavLink to="/catalog" className={navLinkClass}>
+            </Link>
+            <Link to="/catalog" className={getNavLinkClass(isCatalogActive)}>
               Bộ Sưu Tập
-            </NavLink>
-            <NavLink to="/catalog?category=upper" className={navLinkClass}>
+            </Link>
+            <Link to="/catalog?category=upper" className={getNavLinkClass(isUpperActive)}>
               Áo &amp; Tops
-            </NavLink>
-            <NavLink to="/catalog?category=dress" className={navLinkClass}>
+            </Link>
+            <Link to="/catalog?category=dress" className={getNavLinkClass(isDressActive)}>
               Đầm &amp; Váy
-            </NavLink>
+            </Link>
           </nav>
 
           {/* Center: Grand Logo & Maison Identity */}
-          <div className="flex flex-col items-center text-center">
+          <div className="flex flex-col items-center text-center shrink-0">
             <Link to="/" className="group flex flex-col items-center">
-              <span className="font-brand text-xl sm:text-2xl lg:text-3xl font-medium tracking-[0.24em] text-[#161514] uppercase transition-colors group-hover:text-[#C05A39]">
+              <span
+                className={`font-brand text-lg sm:text-2xl font-medium tracking-[0.24em] uppercase transition-colors whitespace-nowrap ${
+                  isTransparent
+                    ? 'text-[#FAF8F5] group-hover:text-[#D8D2C5]'
+                    : 'text-[#161514] group-hover:text-[#C05A39]'
+                }`}
+              >
                 GRAND ATELIER
               </span>
-              <span className="text-[8.5px] tracking-[0.32em] text-[#8C8476] uppercase font-medium -mt-0.5">
+              <span
+                className={`text-[8px] sm:text-[8.5px] tracking-[0.32em] uppercase font-medium -mt-0.5 whitespace-nowrap ${
+                  isTransparent ? 'text-[#D8D2C5]/80' : 'text-[#8C8476]'
+                }`}
+              >
                 CENTRAL &bull; MAISON DE COUTURE
               </span>
             </Link>
           </div>
 
           {/* Right: Bespoke Services & Utilities */}
-          <div className="flex items-center gap-5 sm:gap-6 text-[#161514]">
+          <div className="flex items-center gap-3 sm:gap-5 shrink-0">
             {/* Desktop Experience Links */}
-            <nav className="hidden xl:flex items-center gap-6 mr-2">
-              <NavLink
+            <nav className="hidden xl:flex items-center gap-5 mr-1">
+              <Link
                 to="/try-on"
-                className={({ isActive }) =>
-                  `text-[11px] font-medium tracking-[0.2em] uppercase transition-all py-1 border-b ${
-                    isActive
+                className={`whitespace-nowrap text-[11px] font-medium tracking-[0.16em] uppercase transition-all py-1.5 border-b ${
+                  isTryOnActive
+                    ? isTransparent
                       ? 'text-[#C05A39] border-[#C05A39] font-semibold'
+                      : 'text-[#C05A39] border-[#C05A39] font-semibold'
+                    : isTransparent
+                      ? 'text-[#FAF8F5]/80 border-transparent hover:text-[#C05A39]'
                       : 'text-[#6B655D] border-transparent hover:text-[#C05A39]'
-                  }`
-                }
+                }`}
               >
-                Phòng Thử Đồ Tư Gia
-              </NavLink>
+                Phòng Thử Đồ
+              </Link>
 
-              <NavLink
+              <Link
                 to="/search-result"
-                className={({ isActive }) =>
-                  `text-[11px] font-medium tracking-[0.2em] uppercase transition-all py-1 border-b ${
-                    isActive
-                      ? 'text-[#161514] border-[#161514] font-semibold'
-                      : 'text-[#6B655D] border-transparent hover:text-[#161514]'
-                  }`
-                }
+                className={getNavLinkClass(isVisualSearchActive)}
               >
-                Visual Concierge
-              </NavLink>
+                Tìm Kiếm Thị Giác
+              </Link>
 
-              <NavLink
+              <Link
                 to="/about"
-                className={navLinkClass}
+                className={getNavLinkClass(isAboutActive)}
               >
                 Câu Chuyện
-              </NavLink>
+              </Link>
             </nav>
 
             {/* Visual Search Icon */}
             <Link
               to="/search-result"
-              className="p-1.5 text-[#161514] hover:text-[#C05A39] transition-colors"
-              title="Visual Concierge — Tìm kiếm qua hình ảnh"
+              className={`p-1.5 transition-colors ${
+                isTransparent ? 'text-[#FAF8F5] hover:text-[#C05A39]' : 'text-[#161514] hover:text-[#C05A39]'
+              }`}
+              title="Tìm kiếm qua hình ảnh &amp; mô tả"
             >
               <Search className="w-4 h-4 stroke-[1.75]" />
             </Link>
@@ -133,7 +164,9 @@ export default function Navbar() {
             {/* Wishlist Button */}
             <Link
               to="/bookmarks"
-              className="p-1.5 text-[#161514] hover:text-[#C05A39] transition-colors relative"
+              className={`p-1.5 transition-colors relative ${
+                isTransparent ? 'text-[#FAF8F5] hover:text-[#C05A39]' : 'text-[#161514] hover:text-[#C05A39]'
+              }`}
               title="Danh sách yêu thích"
             >
               <Heart className="w-4 h-4 stroke-[1.75]" />
@@ -148,12 +181,16 @@ export default function Navbar() {
             <button
               type="button"
               onClick={openCart}
-              className="flex items-center gap-2 bg-[#161514] text-[#FAF8F5] px-3.5 py-1.5 text-[10.5px] font-medium tracking-[0.16em] uppercase transition-all hover:bg-[#C05A39] cursor-pointer"
+              className={`whitespace-nowrap flex items-center gap-2 px-3 py-1.5 text-[10.5px] font-medium tracking-[0.16em] uppercase transition-all cursor-pointer ${
+                isTransparent
+                  ? 'bg-[#FAF8F5]/15 backdrop-blur-xs text-[#FAF8F5] border border-[#FAF8F5]/40 hover:bg-[#FAF8F5] hover:text-[#161514]'
+                  : 'bg-[#161514] text-[#FAF8F5] hover:bg-[#C05A39]'
+              }`}
               title="Mở túi đồ"
             >
               <ShoppingBag className="w-3.5 h-3.5 stroke-[1.75]" />
-              <span className="hidden sm:inline">Túi Đồ</span>
-              <span className="text-[10px] opacity-80">({totalItemsCount})</span>
+              <span className="inline whitespace-nowrap">Túi Đồ</span>
+              <span className="text-[10px] opacity-80 whitespace-nowrap">({totalItemsCount})</span>
             </button>
 
             {/* User Account / Auth Dropdown */}
@@ -163,12 +200,24 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                    className="flex items-center gap-2 p-1 text-[#161514] hover:text-[#C05A39] transition-colors cursor-pointer"
+                    className={`flex items-center gap-2 p-1 transition-colors cursor-pointer ${
+                      isTransparent ? 'text-[#FAF8F5] hover:text-[#C05A39]' : 'text-[#161514] hover:text-[#C05A39]'
+                    }`}
                   >
-                    <div className="w-6 h-6 border border-[#161514] text-[#161514] flex items-center justify-center text-[10px] font-medium uppercase">
+                    <div
+                      className={`w-6 h-6 border flex items-center justify-center text-[10px] font-medium uppercase ${
+                        isTransparent
+                          ? 'border-[#FAF8F5] text-[#FAF8F5]'
+                          : 'border-[#161514] text-[#161514]'
+                      }`}
+                    >
                       {displayName.charAt(0)}
                     </div>
-                    <span className="hidden lg:inline text-[11px] font-medium tracking-wider text-[#161514] max-w-[90px] truncate">
+                    <span
+                      className={`hidden lg:inline text-[11px] font-medium tracking-wider max-w-[90px] truncate ${
+                        isTransparent ? 'text-[#FAF8F5]' : 'text-[#161514]'
+                      }`}
+                    >
                       {displayName}
                     </span>
                   </button>
@@ -233,17 +282,21 @@ export default function Navbar() {
                   )}
                 </div>
               ) : (
-                <div className="hidden sm:flex items-center gap-3">
+                <div className="hidden sm:flex items-center gap-2.5 whitespace-nowrap">
                   <Link
                     to="/login"
-                    className="text-[11px] font-medium tracking-[0.18em] uppercase text-[#161514] hover:text-[#C05A39] transition-colors"
+                    className={`text-[11px] font-medium tracking-[0.16em] uppercase transition-colors ${
+                      isTransparent ? 'text-[#FAF8F5] hover:text-[#C05A39]' : 'text-[#161514] hover:text-[#C05A39]'
+                    }`}
                   >
                     Đăng nhập
                   </Link>
-                  <span className="text-[#D8D2C5]">/</span>
+                  <span className={isTransparent ? 'text-[#FAF8F5]/40' : 'text-[#D8D2C5]'}>/</span>
                   <Link
                     to="/register"
-                    className="text-[11px] font-medium tracking-[0.18em] uppercase text-[#6B655D] hover:text-[#161514] transition-colors"
+                    className={`text-[11px] font-medium tracking-[0.16em] uppercase transition-colors ${
+                      isTransparent ? 'text-[#FAF8F5]/75 hover:text-[#FAF8F5]' : 'text-[#6B655D] hover:text-[#161514]'
+                    }`}
                   >
                     Đăng ký
                   </Link>
@@ -254,7 +307,9 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-1.5 text-[#161514] lg:hidden hover:text-[#C05A39] transition-colors"
+                className={`p-1.5 lg:hidden hover:text-[#C05A39] transition-colors ${
+                  isTransparent ? 'text-[#FAF8F5]' : 'text-[#161514]'
+                }`}
                 aria-label="Menu"
               >
                 {mobileMenuOpen ? <X className="w-5 h-5 stroke-[1.5]" /> : <Menu className="w-5 h-5 stroke-[1.5]" />}
@@ -266,70 +321,70 @@ export default function Navbar() {
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-[#E5E0D8] bg-[#FAF8F5] px-6 py-6 flex flex-col gap-4 shadow-xl">
-          <NavLink
+        <div className="lg:hidden border-t border-[#E5E0D8] bg-[#FAF8F5] px-6 py-6 flex flex-col gap-4 shadow-xl text-[#161514]">
+          <Link
             to="/"
             onClick={() => setMobileMenuOpen(false)}
-            className="text-xs font-medium tracking-[0.2em] uppercase text-[#161514] py-2 border-b border-[#E5E0D8]"
+            className="text-xs font-medium tracking-[0.18em] uppercase py-2 border-b border-[#E5E0D8]"
           >
             Trang Chủ
-          </NavLink>
-          <NavLink
+          </Link>
+          <Link
             to="/catalog"
             onClick={() => setMobileMenuOpen(false)}
-            className="text-xs font-medium tracking-[0.2em] uppercase text-[#161514] py-2 border-b border-[#E5E0D8]"
+            className="text-xs font-medium tracking-[0.18em] uppercase py-2 border-b border-[#E5E0D8]"
           >
             Bộ Sưu Tập Đầy Đủ
-          </NavLink>
-          <NavLink
+          </Link>
+          <Link
             to="/catalog?category=upper"
             onClick={() => setMobileMenuOpen(false)}
-            className="text-xs font-medium tracking-[0.2em] uppercase text-[#161514] py-2 border-b border-[#E5E0D8]"
+            className="text-xs font-medium tracking-[0.18em] uppercase py-2 border-b border-[#E5E0D8]"
           >
             Áo &amp; Tops
-          </NavLink>
-          <NavLink
+          </Link>
+          <Link
             to="/catalog?category=dress"
             onClick={() => setMobileMenuOpen(false)}
-            className="text-xs font-medium tracking-[0.2em] uppercase text-[#161514] py-2 border-b border-[#E5E0D8]"
+            className="text-xs font-medium tracking-[0.18em] uppercase py-2 border-b border-[#E5E0D8]"
           >
             Đầm &amp; Váy
-          </NavLink>
-          <NavLink
+          </Link>
+          <Link
             to="/try-on"
             onClick={() => setMobileMenuOpen(false)}
-            className="text-xs font-medium tracking-[0.2em] uppercase text-[#C05A39] py-2 border-b border-[#E5E0D8]"
+            className="text-xs font-medium tracking-[0.18em] uppercase text-[#C05A39] py-2 border-b border-[#E5E0D8]"
           >
-            Phòng Thử Đồ Tư Gia (Fitting Suite)
-          </NavLink>
-          <NavLink
+            Phòng Thử Đồ (Fitting Suite)
+          </Link>
+          <Link
             to="/search-result"
             onClick={() => setMobileMenuOpen(false)}
-            className="text-xs font-medium tracking-[0.2em] uppercase text-[#161514] py-2 border-b border-[#E5E0D8]"
+            className="text-xs font-medium tracking-[0.18em] uppercase py-2 border-b border-[#E5E0D8]"
           >
-            Visual Concierge
-          </NavLink>
-          <NavLink
+            Tìm Kiếm Thị Giác
+          </Link>
+          <Link
             to="/about"
             onClick={() => setMobileMenuOpen(false)}
-            className="text-xs font-medium tracking-[0.2em] uppercase text-[#161514] py-2 border-b border-[#E5E0D8]"
+            className="text-xs font-medium tracking-[0.18em] uppercase py-2 border-b border-[#E5E0D8]"
           >
             Câu Chuyện Maison
-          </NavLink>
+          </Link>
 
           {!isAuthenticated && (
             <div className="flex gap-3 pt-3">
               <Link
                 to="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex-1 py-3 text-center text-[11px] font-medium tracking-[0.18em] uppercase border border-[#161514] text-[#161514]"
+                className="flex-1 py-3 text-center text-[11px] font-medium tracking-[0.16em] uppercase border border-[#161514] text-[#161514]"
               >
                 Đăng nhập
               </Link>
               <Link
                 to="/register"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex-1 py-3 text-center text-[11px] font-medium tracking-[0.18em] uppercase bg-[#161514] text-[#FAF8F5]"
+                className="flex-1 py-3 text-center text-[11px] font-medium tracking-[0.16em] uppercase bg-[#161514] text-[#FAF8F5]"
               >
                 Đăng ký
               </Link>

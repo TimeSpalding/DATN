@@ -174,7 +174,7 @@ export default function Footer() {
             </li>
             <li>
               <Link to="/search-result" className="hover:text-[#FAF8F5] transition-colors">
-                Visual Concierge
+                Tìm Kiếm Thị Giác
               </Link>
             </li>
             <li>

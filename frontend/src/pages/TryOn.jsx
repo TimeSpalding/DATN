@@ -57,7 +57,7 @@ export default function TryOn() {
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-[#8C8476]" />
             <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#161514]">
-              NHẬT KÝ CÁC PHIÊN ƯỚM THỬ TƯ GIA
+              NHẬT KÝ CÁC PHIÊN ƯỚM THỬ TRANG PHỤC
             </span>
           </div>
 

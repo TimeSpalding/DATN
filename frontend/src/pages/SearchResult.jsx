@@ -16,6 +16,7 @@ import { lazy, Suspense } from "react";
 import { CardSkeleton } from "../components/ui/CardSkeleton";
 import { useInView } from "react-intersection-observer";
 import { CompactSearchBar } from "../components/common/CompactSearchBar";
+import VisualSearchPanel from "../components/common/VisualSearchPanel";
 import Masonry from 'react-masonry-css';
 import Swal from "sweetalert2";
 
@@ -448,19 +449,23 @@ export const SearchResult = () => {
 
   if (!canShowResults) {
     return (
-      <section className="mx-auto flex w-full max-w-6xl flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white p-10 text-center shadow-sm">
-        <h1 className="text-3xl font-semibold text-zinc-900">Kết quả tìm kiếm</h1>
-        <p className="mt-3 max-w-xl text-sm leading-6 text-gray-600">
-          Chưa có dữ liệu tìm kiếm. Vui lòng quay lại trang chủ để nhập mô tả hoặc chọn ảnh.
-        </p>
-        <button
-          type="button"
-          onClick={() => navigate("/")}
-          className="mt-6 hidden md:block cursor-pointer rounded-xl bg-indigo-700 px-5 py-3 text-sm font-medium text-white transition hover:bg-indigo-800"
-        >
-          Quay lại tìm kiếm
-        </button>
-      </section>
+      <div className="w-full flex flex-col items-center py-12 sm:py-16 px-4 sm:px-6 lg:px-8 bg-[#FAF8F5]">
+        <div className="w-full max-w-4xl text-center mb-8">
+          <p className="text-[10px] font-semibold tracking-[0.25em] text-[#C05A39] uppercase mb-2">
+            CONCIERGE THỊ GIÁC &bull; TÌM KIẾM THỜI TRANG THÔNG MINH
+          </p>
+          <h1 className="font-serif-luxury text-3xl sm:text-4xl md:text-5xl font-normal text-[#161514] tracking-wide mb-3">
+            Tìm Kiếm Trang Phục Qua Thị Giác
+          </h1>
+          <p className="max-w-xl mx-auto text-xs sm:text-sm text-[#6B655D] leading-relaxed">
+            Hệ thống trí tuệ nhân tạo sẽ phân tích ảnh chụp trang phục hoặc diễn đạt phong cách sợi dệt của quý khách để tìm ra các sản phẩm thời trang tương đồng chính xác nhất.
+          </p>
+        </div>
+
+        <div className="w-full max-w-4xl bg-[#FAF8F5] border border-[#E5E0D8] p-6 sm:p-10 shadow-xs">
+          <VisualSearchPanel />
+        </div>
+      </div>
     );
   }
 
@@ -474,7 +479,7 @@ export const SearchResult = () => {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-[10px] font-semibold tracking-[0.25em] text-[#C05A39] uppercase mb-1.5">
-              LE CONCIERGE &bull; RÉSULTATS DE RECHERCHE
+              CONCIERGE THỊ GIÁC &bull; KẾT QUẢ TÌM KIẾM
             </p>
             <h1 className="font-serif-luxury text-3xl sm:text-4xl font-normal text-[#161514] tracking-wide">
               Kết Quả Định Vị Thị Giác

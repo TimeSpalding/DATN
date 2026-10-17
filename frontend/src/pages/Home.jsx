@@ -33,7 +33,7 @@ export default function Home() {
         </div>
 
         {/* Hero Center Content */}
-        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20 text-center flex flex-col items-center my-auto">
+        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 sm:pt-36 pb-20 text-center flex flex-col items-center my-auto">
           
           {/* Overline */}
           <div className="inline-flex items-center gap-2 mb-6">

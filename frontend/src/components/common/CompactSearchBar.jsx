@@ -103,48 +103,47 @@ export const CompactSearchBar = ({ className = "" }) => {
   };
 
   return (
-    <div className={`sticky top-0 z-10 w-full bg-slate-50/80 p-3 sm:p-4 md:pt-6 backdrop-blur-md ${className}`}>
+    <div className={`w-full bg-[#FAF8F5] py-4 ${className}`}>
       <div className="mx-auto w-full max-w-3xl relative">
         <form 
           onSubmit={handleTextSearch} 
-          className="flex w-full items-center gap-2 rounded-full border border-gray-300 bg-white px-3 py-2 shadow-sm transition-shadow hover:shadow-md focus-within:shadow-md md:px-4 md:py-3"
+          className="flex w-full items-center gap-3 border border-[#E5E0D8] bg-[#FAF8F5] focus-within:border-[#161514] px-4 py-2.5 transition-all shadow-xs"
         >
           <button 
             type="submit"
-            className="flex shrink-0 items-center justify-center p-1 text-gray-500 hover:text-indigo-600"
+            className="flex shrink-0 items-center justify-center p-1 text-[#8C8476] hover:text-[#C05A39] transition-colors cursor-pointer"
             title="Tìm kiếm"
           >
-            <FaSearch className="size-4 md:size-5" />
+            <FaSearch className="size-4" />
           </button>
 
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Nhập mô tả để tìm kiếm..."
-            className="flex-1 w-full bg-transparent px-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none md:text-base"
+            placeholder="Nhập phong cách, chất liệu hoặc mô tả thiết kế..."
+            className="flex-1 w-full bg-transparent px-2 text-xs sm:text-sm text-[#161514] placeholder:text-[#8C8476] focus:outline-none"
           />
 
-          <div className="flex shrink-0 items-center gap-1 md:gap-2 border-l pl-2 md:pl-3 border-gray-200">
-            
+          <div className="flex shrink-0 items-center gap-1.5 border-l pl-3 border-[#E5E0D8]">
             <button
               type="button"
               onClick={handleVoiceSearch}
-              className={`group relative flex cursor-pointer items-center justify-center rounded-full p-2 transition-colors ${
-                isListening ? 'bg-red-100 text-red-600' : 'text-gray-500 hover:bg-gray-100 hover:text-indigo-600'
+              className={`group relative flex cursor-pointer items-center justify-center p-2 transition-colors ${
+                isListening ? 'bg-[#C05A39]/10 text-[#C05A39]' : 'text-[#8C8476] hover:text-[#C05A39]'
               }`}
               title="Tìm bằng giọng nói"
             >
-              <FaMicrophone className={`size-4 md:size-5 ${isListening ? 'animate-pulse' : ''}`} />
+              <FaMicrophone className={`size-4 ${isListening ? 'animate-pulse' : ''}`} />
             </button>
 
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="group relative flex cursor-pointer items-center justify-center rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-indigo-600"
+              className="group relative flex cursor-pointer items-center justify-center p-2 text-[#8C8476] hover:text-[#C05A39] transition-colors"
               title="Tìm bằng hình ảnh"
             >
-              <FaImage className="size-4 md:size-5" />
+              <FaImage className="size-4" />
             </button>
 
             <input
@@ -158,7 +157,7 @@ export const CompactSearchBar = ({ className = "" }) => {
         </form>
 
         {fileError && (
-          <p className="absolute -bottom-6 left-4 text-xs font-medium text-red-500">
+          <p className="absolute -bottom-5 left-2 text-[11px] font-medium text-[#C05A39]">
             {fileError}
           </p>
         )}
