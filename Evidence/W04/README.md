@@ -40,7 +40,6 @@ Evidence/W04/
 ├── README.md           # Báo cáo tổng kết mốc Tuần 4 và phân công nhiệm vụ
 ├── metrics.csv         # Bảng số liệu định lượng chi tiết cả 3 chế độ tìm kiếm
 ├── test-results.json   # Kết quả đo đạc thô 108 queries từ mô hình AI thật
-├── test-results.html   # Bản báo cáo giao diện HTML in ấn PDF chuẩn khổ A4
 ├── figures/            # Thư mục biểu đồ trực quan hóa dữ liệu thực nghiệm
 │   ├── recall_comparison.png    # Biểu đồ cột so sánh Recall@1, 5, 10, 20
 │   ├── map_ndcg_comparison.png  # Biểu đồ đánh giá mAP và NDCG@10

@@ -47,7 +47,6 @@
     "README.md": "Bao cao tien do mien tuan 4, phan cong nhiem vu SV, danh sach issues va pull requests",
     "metrics.csv": "Bang du lieu dinh luong Recall@k, MRR, mAP, NDCG@10 cua 3 che do tim kiem",
     "test-results.json": "Ket qua chi tiet 108 truy van kiem thu tren mo hinh AI that",
-    "test-results.html": "Ban bao cao giao dien HTML chuyen nghiep xuat PDF tieu chuan A4",
     "figures/": {
       "recall_comparison.png": "Bieu do so sanh Recall@1, 5, 10, 20 giua Baseline va Proposed",
       "map_ndcg_comparison.png": "Bieu do danh gia mAP va NDCG@10",
