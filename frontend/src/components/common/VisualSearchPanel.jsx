@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaAlignLeft, FaImage, FaSearch, FaUpload, FaTimes } from 'react-icons/fa';
+import { FaAlignLeft, FaFont, FaImage, FaSearch, FaUpload, FaTimes, FaSlidersH } from 'react-icons/fa';
 import { MAX_FILE_SIZE } from '../../config/constants';
 import SearchModeTabs from './SearchModeTabs';
 import { searchStore } from '../../utils/searchStore';
@@ -11,6 +11,12 @@ const searchModes = [
     id: 'image',
     label: 'Khám Phá Bằng Hình Ảnh',
     icon: FaImage,
+  },
+  {
+    id: 'composed',
+    label: 'Tìm kiếm lai (Ảnh + Text)',
+    icon: FaSlidersH,
+    placeholder: 'Ví dụ: đổi sang áo kẻ, màu xanh rêu, tay ngắn...',
   },
   {
     id: 'description',
@@ -142,6 +148,27 @@ export default function VisualSearchPanel() {
     });
   };
 
+  const handleComposedSearch = () => {
+    if (!selectedFile) {
+      setFileError('Vui lòng chọn ảnh mẫu trước khi tìm kiếm.');
+      return;
+    }
+    if (!query.trim()) {
+      setFileError('Vui lòng nhập mô tả bạn muốn điều chỉnh (vd: áo kẻ, màu xanh rêu...).');
+      return;
+    }
+
+    searchStore.imageFile = selectedFile;
+
+    navigate(`/search-result?type=composed&text=${encodeURIComponent(query.trim())}&page=1&size=20`, {
+      state: {
+        type: 'composed',
+        imageFile: selectedFile,
+        modificationText: query.trim(),
+      },
+    });
+  };
+
   const handleTextSearch = () => {
     const trimmedQuery = query.trim();
     if (!trimmedQuery) {
@@ -172,6 +199,7 @@ export default function VisualSearchPanel() {
   };
 
   const isImageMode = activeMode.id === 'image';
+  const isComposedMode = activeMode.id === 'composed';
 
   return (
     <section className="w-full max-w-[896px] bg-[#FAF8F5] border border-[#E5E0D8] pb-10 shadow-xs">
@@ -192,7 +220,7 @@ export default function VisualSearchPanel() {
       />
 
       <div className="px-6 pt-8 sm:px-10">
-        {isImageMode ? (
+        {isImageMode || isComposedMode ? (
           <div
             onDragOver={(event) => event.preventDefault()}
             onDrop={handleDrop}
@@ -208,7 +236,7 @@ export default function VisualSearchPanel() {
 
             {previewUrl ? (
               <div
-                className="relative mb-5 cursor-pointer"
+                className="relative mb-4 cursor-pointer"
                 onClick={() => fileInputRef.current?.click()}
               >
                 <img
@@ -241,6 +269,31 @@ export default function VisualSearchPanel() {
               </p>
             )}
 
+            {/* Ô nhập điều chỉnh thuộc tính dành riêng cho Tìm kiếm lai */}
+            {isComposedMode && (
+              <div className="mt-3 w-full max-w-md text-left">
+                <label className="block text-xs font-bold text-indigo-950 mb-1.5">
+                  Mô tả điều chỉnh từ ảnh này (màu sắc, họa tiết, kiểu dáng):
+                </label>
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    if (fileError) setFileError('');
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleComposedSearch();
+                    }
+                  }}
+                  placeholder="Ví dụ: áo kẻ, màu xanh rêu, tay ngắn..."
+                  className="w-full rounded-xl border border-indigo-300 bg-white px-4 py-2.5 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-xs"
+                />
+              </div>
+            )}
+
             {fileError && (
               <p className="mt-3 text-xs font-medium text-[#C05A39]">
                 {fileError}
@@ -252,19 +305,30 @@ export default function VisualSearchPanel() {
                 <p className="mt-2 text-xs text-[#8C8476]">
                   Nhấp vào ảnh để thay đổi tệp khác
                 </p>
-                <button
-                  type="button"
-                  onClick={handleImageSearch}
-                  className="btn-terracotta mt-5 cursor-pointer"
-                >
-                  <FaSearch className="h-3.5 w-3.5 mr-1" />
-                  <span>Tìm Kiếm Thiết Kế Tương Đồng</span>
-                </button>
+                {isComposedMode ? (
+                  <button
+                    type="button"
+                    onClick={handleComposedSearch}
+                    className="btn-terracotta mt-5 cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <FaSlidersH className="h-3.5 w-3.5" />
+                    <span>Tìm Kiếm Lai (Ảnh + Text)</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleImageSearch}
+                    className="btn-terracotta mt-5 cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <FaSearch className="h-3.5 w-3.5 mr-1" />
+                    <span>Tìm Kiếm Thiết Kế Tương Đồng</span>
+                  </button>
+                )}
               </div>
             ) : (
               <div>
                 <h3 className="font-serif-luxury text-xl sm:text-2xl text-[#161514] font-normal">
-                  Kéo thả hình ảnh vào đây hoặc chọn tệp từ máy
+                  {isComposedMode ? "1. Kéo thả hoặc chọn ảnh mẫu làm dáng áo" : "Kéo thả hình ảnh vào đây hoặc chọn tệp từ máy"}
                 </h3>
                 <p className="mt-2 text-xs text-[#8C8476] leading-relaxed">
                   Định dạng hỗ trợ: JPG, PNG, WebP. Dung lượng tối đa: 10MB.

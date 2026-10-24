@@ -247,6 +247,42 @@ public class QdrantVectorService {
     }
 
     /**
+     * Lấy vector embedding của 1 point từ Qdrant theo image id.
+     */
+    public List<Float> getEmbeddingByPointId(Long imageId) throws IOException {
+        if (imageId == null) {
+            throw new IllegalArgumentException("Image id is required");
+        }
+
+        Request request = new Request.Builder()
+                .url(collectionUrl() + "/points/" + imageId)
+                .get()
+                .build();
+
+        try (Response response = okHttpClient.newCall(request).execute()) {
+            String raw = response.body() == null ? "" : response.body().string();
+            if (!response.isSuccessful()) {
+                log.warn("Qdrant point {} not found or error: HTTP {} {}", imageId, response.code(), raw);
+                return null;
+            }
+            JsonObject json = gson.fromJson(raw, JsonObject.class);
+            if (json == null || !json.has("result") || json.get("result").isJsonNull()) {
+                return null;
+            }
+            JsonObject result = json.getAsJsonObject("result");
+            if (!result.has("vector") || !result.get("vector").isJsonArray()) {
+                return null;
+            }
+            JsonArray vecArray = result.getAsJsonArray("vector");
+            List<Float> embedding = new java.util.ArrayList<>(vecArray.size());
+            for (int i = 0; i < vecArray.size(); i++) {
+                embedding.add(vecArray.get(i).getAsFloat());
+            }
+            return embedding;
+        }
+    }
+
+    /**
      * Xoa point embedding cua anh trong Qdrant theo image id.
      */
     public void deleteImageEmbedding(Long imageId) throws IOException {

@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function SearchModeTabs({ activeMode, modes, onChange }) {
   return (
-    <div className="grid grid-cols-1 border-b border-[#E5E0D8] sm:grid-cols-2 bg-[#FAF8F5]">
+    <div className={`grid grid-cols-1 border-b border-[#E5E0D8] ${modes.length === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} bg-[#FAF8F5]`}>
       {modes.map((mode) => {
         const Icon = mode.icon;
         const isActive = mode.id === activeMode.id;
