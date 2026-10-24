@@ -1,51 +1,84 @@
 import React from 'react';
-import { RotateCcw, ShieldCheck, Truck, Sparkles, Award } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-const BENEFITS = [
+const ATELIER_PILLARS = [
   {
-    icon: Sparkles,
-    title: 'Phòng Thử Đồ Chuẩn 98%',
-    desc: 'Công nghệ AI tái tạo chính xác độ rủ tự nhiên của sợi vải và tỷ lệ cơ thể thực tế.'
+    number: '01',
+    title: 'Sợi Dệt Tự Nhiên Tuyển Lựa',
+    subtitle: '100% Sợi Nguồn Gốc Sinh Thái',
+    desc: 'Từng thớ sợi cotton Pima Peru, lanh Normandy và len Merino đều được kiểm định nguồn gốc sinh thái và chứng nhận an toàn cho làn da.'
   },
   {
-    icon: RotateCcw,
-    title: 'Đổi Trả Miễn Phí 30 Ngày',
-    desc: 'Hỗ trợ đổi size tận nhà nếu trang phục không vừa vặn như mong đợi của bạn.'
+    number: '02',
+    title: 'Phòng Thử Đồ Tư Gia',
+    subtitle: 'Mô Phỏng Độ Rủ Chuẩn Xác',
+    desc: 'Trải nghiệm ướm thử kỹ thuật số tái hiện chính xác cấu trúc sợi vải và tỷ lệ vóc dáng của người mặc trước khi hoàn thiện đơn hàng.'
   },
   {
-    icon: Truck,
-    title: 'Giao Hàng Nhanh Toàn Quốc',
-    desc: 'Miễn phí vận chuyển cho tất cả đơn hàng từ 500.000₫, đóng gói hộp cao cấp.'
+    number: '03',
+    title: 'Hỗ Trợ Đổi Cỡ Tận Nơi',
+    subtitle: 'Đặc Quyền Của Khách Hàng',
+    desc: 'Mọi sản phẩm đều được hỗ trợ đổi kích cỡ miễn phí và đổi trả thuận tiện tận nhà trong vòng 30 ngày.'
   },
   {
-    icon: Award,
-    title: 'Chất Liệu Tuyển Chọn',
-    desc: '100% sợi dệt tự nhiên, thân thiện làn da và bền bỉ phom dáng theo thời gian.'
+    number: '04',
+    title: 'Đóng Gói Nghệ Thuật',
+    subtitle: 'Hộp Quà Thủ Công Cao Cấp',
+    desc: 'Trang phục được bọc trong giấy nến thơm, niêm phong sáp và đựng trong hộp cứng trang nhã như một món quà nghệ thuật.'
   }
 ];
 
 export default function StudioBenefits() {
   return (
-    <section id="benefits" className="border-t border-b border-slate-200 bg-slate-50/50 py-14 my-16 w-full">
+    <section className="border-t border-[#E5E0D8] bg-[#F3EFE6] py-20 w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {BENEFITS.map((item, idx) => {
-            const Icon = item.icon;
-            return (
-              <div key={idx} className="flex flex-col items-center text-center sm:items-start sm:text-left group">
-                <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-blue-900 mb-4 border border-slate-200 shadow-2xs group-hover:border-blue-700 transition-colors">
-                  <Icon className="w-5 h-5 text-blue-700" />
-                </div>
-                <h4 className="font-bold text-sm text-slate-900 tracking-wide">
-                  {item.title}
-                </h4>
-                <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                  {item.desc}
-                </p>
-              </div>
-            );
-          })}
+        
+        {/* Section Header */}
+        <div className="text-center max-w-2xl mx-auto mb-16">
+          <p className="text-[10px] font-semibold tracking-[0.25em] text-[#C05A39] uppercase mb-2">
+            NGUYÊN TẮC CỦA MAISON
+          </p>
+          <h2 className="font-serif-luxury text-3xl sm:text-4xl text-[#161514] font-normal tracking-wide">
+            Cam Kết Về Đẳng Cấp &amp; Tay Nghề
+          </h2>
+          <div className="w-12 h-[1px] bg-[#C05A39] mx-auto mt-4" />
         </div>
+
+        {/* 4 Pillars Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          {ATELIER_PILLARS.map((item, idx) => (
+            <div key={idx} className="flex flex-col border-t border-[#D8D2C5] pt-6 group">
+              <span className="font-serif-luxury text-2xl text-[#8C8476] mb-3 group-hover:text-[#C05A39] transition-colors">
+                {item.number}
+              </span>
+              <h3 className="font-serif-luxury text-xl text-[#161514] font-normal leading-snug mb-1">
+                {item.title}
+              </h3>
+              <p className="text-[10.5px] font-medium tracking-[0.15em] text-[#8C8476] uppercase mb-3">
+                {item.subtitle}
+              </p>
+              <p className="text-xs text-[#6B655D] leading-relaxed">
+                {item.desc}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Narrative Callout */}
+        <div className="mt-16 pt-10 border-t border-[#D8D2C5] flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
+          <p className="font-serif-luxury text-xl text-[#161514] italic max-w-2xl">
+            "Sự sang trọng đích thực không nằm ở tiếng ồn, mà toát lên từ sự thấu hiểu chất liệu và đường cắt vừa vặn đến tuyệt mỹ."
+          </p>
+          <Link
+            to="/about"
+            className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.2em] uppercase text-[#161514] hover:text-[#C05A39] transition-colors shrink-0"
+          >
+            <span>Tìm Hiểu Câu Chuyện Maison</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+
       </div>
     </section>
   );

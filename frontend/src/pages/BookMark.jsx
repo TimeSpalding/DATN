@@ -58,9 +58,7 @@ const BookmarkImage = ({ bookmark, fileName }) => {
         setBlobUrl(objectUrl);
       })
       .catch(() => {
-        if (isMounted) {
-          setHasError(true);
-        }
+        if (isMounted) setHasError(true);
       });
 
     return () => {
@@ -73,34 +71,36 @@ const BookmarkImage = ({ bookmark, fileName }) => {
 
   if (hasError) {
     return (
-      <div className="flex h-full w-full items-center justify-center px-4 text-center text-sm text-gray-500">
-        Không tải được ảnh
+      <div className="flex h-full w-full flex-col items-center justify-center bg-[#F3EFE6] p-4 text-center text-[#8C8476]">
+        <FaImage className="mb-2 h-6 w-6 stroke-[1.25]" />
+        <span className="text-[10px] uppercase tracking-wider">Không tải được ảnh</span>
       </div>
     );
   }
 
   if (!imageUrl) {
-    return <div className="h-full w-full animate-pulse bg-gray-100" />;
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-[#F3EFE6]">
+        <div className="h-6 w-6 border border-[#161514] border-t-transparent animate-spin" />
+      </div>
+    );
   }
 
   return (
     <img
       src={imageUrl}
       alt={fileName}
+      className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
       loading="lazy"
-      className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-      onError={() => {
-        setHasError(true);
-      }}
     />
   );
 };
 
-const SecurePreviewModal = ({ bookmark, onClose }) => {
-  const directUrl = bookmark.thumbnailUrl || bookmark.imageUrl || bookmark.thumbnailPath || bookmark.storagePath;
+const HighResPreviewModal = ({ bookmark, onClose }) => {
   const [blobUrl, setBlobUrl] = useState("");
   const [hasError, setHasError] = useState(false);
 
+  const directUrl = bookmark.imageUrl || bookmark.storagePath || bookmark.thumbnailUrl;
   const canUseDirectUrl = isDirectImageUrl(directUrl) && !isInternalMinioUrl(directUrl);
   const imageUrl = canUseDirectUrl ? resolveStorageUrl(directUrl) : blobUrl;
 
@@ -132,18 +132,18 @@ const SecurePreviewModal = ({ bookmark, onClose }) => {
 
   if (!imageUrl && !hasError) {
     return (
-      <div className="fixed inset-0 z-[60] flex items-center justify-center bg-zinc-900/80 backdrop-blur-sm" onMouseDown={onClose}>
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white"></div>
+      <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#161514]/80 backdrop-blur-xs" onMouseDown={onClose}>
+        <div className="animate-spin h-8 w-8 border border-[#FAF8F5] border-t-transparent"></div>
       </div>
     );
   }
 
   if (hasError) {
     return (
-      <div className="fixed inset-0 z-[60] flex items-center justify-center bg-zinc-900/80 backdrop-blur-sm" onMouseDown={onClose}>
-        <div className="rounded-lg bg-white p-6 text-center shadow-xl">
-          <p className="text-red-600 font-medium">Không tải được ảnh độ phân giải cao.</p>
-          <button onClick={onClose} className="mt-4 rounded bg-gray-200 px-4 py-2 text-sm hover:bg-gray-300 transition-colors">Đóng</button>
+      <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#161514]/80 backdrop-blur-xs" onMouseDown={onClose}>
+        <div className="bg-[#FAF8F5] p-8 text-center border border-[#E5E0D8] max-w-sm">
+          <p className="text-xs text-[#C05A39] font-medium">Không thể tải ảnh độ phân giải cao.</p>
+          <button onClick={onClose} className="mt-4 px-6 py-2 bg-[#161514] text-[#FAF8F5] text-xs uppercase tracking-wider">Đóng</button>
         </div>
       </div>
     );
@@ -159,33 +159,28 @@ const SecurePreviewModal = ({ bookmark, onClose }) => {
 };
 
 export const BookMark = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
-  const page = Math.max(Number(searchParams.get("page") || 0), 0);
   const navigate = useNavigate();
 
   const [previewImage, setPreviewImage] = useState(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   const { ref, inView } = useInView();
-
-  // Quản lý thông báo 
   const [toasts, setToasts] = useState([]);
 
   const addToast = (message, type = "success") => {
     const id = Date.now();
     setToasts((prev) => [...prev, { id, message, type }]);
 
-    // Tự động xoá toast sau 2 giây 
     setTimeout(() => {
       removeToast(id);
-    }, 2000);
+    }, 2500);
   };
 
   const removeToast = (id) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   };
-
 
   const {
     data,
@@ -219,30 +214,40 @@ export const BookMark = () => {
 
   const deleteMutation = useMutation({
     mutationFn: deleteBookmark,
-    onSuccess: (data, deletedImageId) => {
-      if (data && data.success === false) {
-        addToast(`Xoá ảnh #${deletedImageId} thất bại!`, "error");
-      } else {
-        queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
-        addToast(`Xoá ảnh #${deletedImageId} thành công`, "success");
-      }
+    onSuccess: (_, imageId) => {
+      queryClient.setQueryData(["bookmarks"], (oldData) => {
+        if (!oldData) return oldData;
+
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page) => {
+            const normalizedPage = normalizeBookmarkResponse(page);
+            const updatedResults = (normalizedPage.results || []).filter(
+              (item) => item.imageId !== imageId
+            );
+
+            return {
+              ...page,
+              data: {
+                ...page.data,
+                results: updatedResults,
+                totalElements: Math.max((normalizedPage.totalElements || 0) - 1, 0),
+              },
+            };
+          }),
+        };
+      });
+
+      addToast("Đã chuyển ảnh vào thùng rác", "info");
     },
-    onError: (error, deletedImageId) => {
-      console.error("Lỗi khi xoá ảnh:", error);
-      addToast(`Xoá ảnh #${deletedImageId} thất bại!`, "error");
+    onError: () => {
+      addToast("Không thể xóa ảnh. Vui lòng thử lại sau.", "error");
     },
   });
 
-
-  useEffect(() => {
-    setTimeout(() => {
-      AOS.refresh();
-    }, 100);
-  }, [allBookmarks]);
-
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 300) {
+      if (window.scrollY > 400) {
         setShowScrollTop(true);
       } else {
         setShowScrollTop(false);
@@ -250,125 +255,98 @@ export const BookMark = () => {
     };
 
     window.addEventListener("scroll", handleScroll);
-
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const scrollToTop = () => {
-    const duration = 500; // Thời gian trượt (ms)
-    const start = window.scrollY || document.documentElement.scrollTop;
-    const startTime = performance.now();
-
-    const easeOutCubic = (t) => --t * t * t + 1;
-    const animateScroll = (currentTime) => {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const easeProgress = easeOutCubic(progress);
-
-      window.scrollTo(0, start * (1 - easeProgress));
-
-      if (progress < 1) {
-        requestAnimationFrame(animateScroll);
-      }
-    };
-
-    requestAnimationFrame(animateScroll);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
-    <section className="mx-auto w-full max-w-[1280px] space-y-8">
-
-      {/* Hiển thị danh sách các thông báo toast */}
-      <div className="fixed right-5 top-[50px] z-50 flex flex-col gap-2">
+    <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-12 space-y-10">
+      {/* Toast Notifications */}
+      <div className="fixed right-6 top-20 z-50 flex flex-col gap-2">
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`flex w-72 transform items-center justify-between rounded-lg px-4 py-3 text-sm font-medium text-white shadow-lg transition-all duration-300 ease-in-out ${toast.type === "success" ? "bg-green-500" : "bg-red-500"
-              }`}
+            className="flex w-80 items-center justify-between px-4 py-3 bg-[#161514] text-[#FAF8F5] border border-[#9E7A52] text-xs shadow-xl tracking-wide"
           >
             <span>{toast.message}</span>
             <button
               onClick={() => removeToast(toast.id)}
-              className="rounded-full p-1 transition-colors hover:bg-white/20"
+              className="p-1 hover:text-[#C05A39] transition-colors"
             >
-              <FaTimes className="h-3.5 w-3.5" />
+              <FaTimes className="h-3 w-3" />
             </button>
           </div>
         ))}
       </div>
 
-      <div className="flex flex-col gap-4 border-b border-gray-200 pb-6 sm:flex-row sm:items-start sm:justify-between">
-
+      {/* Header Banner */}
+      <div className="flex flex-col gap-4 border-b border-[#E5E0D8] pb-8 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="mb-2 inline-flex items-center gap-2 rounded-full bg-indigo-700/10 px-3 py-1 text-xs font-semibold text-indigo-700">
-            <FaBookmark className="h-3.5 w-3.5" />
-            Bookmark
+          <p className="text-[10px] font-semibold tracking-[0.25em] text-[#C05A39] uppercase mb-1.5">
+            L'ARCHIVE PRIVÉE &bull; SÉLECTION
           </p>
-          <h1 className="text-2xl font-semibold leading-10 text-zinc-900 sm:text-3xl">
-            Ảnh đã lưu
+          <h1 className="font-serif-luxury text-3xl sm:text-4xl font-normal text-[#161514] tracking-wide">
+            Tác Phẩm &amp; Hình Ảnh Đã Lưu
           </h1>
-          <p className="mt-1 text-sm leading-6 text-gray-600 sm:mt-2">
-            Xem lại những hình ảnh bạn đã lưu trong quá trình tìm kiếm.
+          <p className="mt-2 text-xs text-[#6B655D] max-w-xl leading-relaxed">
+            Kho lưu trữ hình ảnh tư gia được đánh dấu trong quá trình tra cứu và định vị phong cách thời trang.
           </p>
         </div>
 
-        <div className="flex flex-row gap-4 sm:flex-row sm:items-center mt-2 sm:mt-0">
-
-          <div className="flex w-full items-center justify-start justify-between rounded-xl bg-gray-50 sm:px-4 py-2.5 text-sm text-gray-600 sm:w-auto sm:justify-start sm:py-2">
-            <span>Tổng cộng:</span>
-            <span className="ml-1 font-semibold text-zinc-900">
-              {bookmarkData.totalElements} ảnh
-            </span>
+        <div className="flex items-center gap-3 mt-4 sm:mt-0">
+          <div className="px-4 py-2.5 bg-[#FAF8F5] border border-[#E5E0D8] text-xs text-[#6B655D]">
+            <span>Tổng số: </span>
+            <strong className="text-[#161514] font-medium">{bookmarkData.totalElements}</strong> ảnh
           </div>
 
           <button
             type="button"
             onClick={() => navigate("/bookmarks/trash")}
-            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-red-600 hover:shadow sm:w-auto sm:py-2"
+            className="px-4 py-2.5 border border-[#161514] hover:bg-[#161514] hover:text-[#FAF8F5] text-[#161514] text-xs font-medium tracking-wider uppercase flex items-center gap-2 transition-all cursor-pointer"
           >
-            <FaTrashRestore className="h-3.5 w-3.5" />
+            <FaTrashRestore className="h-3 w-3 text-[#C05A39]" />
             <span>Thùng rác</span>
           </button>
-
         </div>
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+        <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {Array.from({ length: PAGE_SIZE }).map((_, index) => (
-            <div key={index} className="aspect-[4/5] animate-pulse rounded-xl bg-gray-100" />
+            <div key={index} className="aspect-[3/4] animate-pulse bg-[#F3EFE6] border border-[#E5E0D8]" />
           ))}
         </div>
       ) : isError ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
-          Không thể tải danh sách ảnh đã lưu. Vui lòng thử lại sau.
+        <div className="border border-[#C05A39]/30 bg-[#C05A39]/10 p-6 text-xs text-[#C05A39]">
+          Không thể tải danh mục hình ảnh lưu trữ. Vui lòng kiểm tra lại kết nối.
         </div>
       ) : allBookmarks.length === 0 ? (
-        <div className="flex flex-col items-center rounded-2xl border border-gray-200 bg-white p-10 text-center shadow-sm">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-indigo-700/10 text-indigo-700">
-            <FaImage className="h-6 w-6" />
+        <div className="flex flex-col items-center border border-[#E5E0D8] bg-[#FAF8F5] p-16 text-center">
+          <div className="flex h-12 w-12 items-center justify-center border border-[#E5E0D8] bg-[#F3EFE6] text-[#8C8476] mb-4">
+            <FaImage className="h-5 w-5 stroke-[1.25]" />
           </div>
-          <h2 className="mt-4 text-xl font-semibold text-zinc-900">Chưa có ảnh đã lưu</h2>
-          <p className="mt-2 max-w-md text-sm leading-6 text-gray-600">
-            Khi bạn bấm Lưu ảnh trong phần chi tiết kết quả, ảnh đó sẽ xuất hiện tại đây.
+          <h2 className="font-serif-luxury text-2xl font-normal text-[#161514]">Chưa Có Ảnh Đã Lưu</h2>
+          <p className="mt-2 max-w-sm text-xs text-[#6B655D] leading-relaxed">
+            Khi quý khách bấm lưu ảnh trong kết quả định vị phong cách, tác phẩm sẽ xuất hiện tại đây để tiện theo dõi.
           </p>
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {allBookmarks.map((bookmark, index) => {
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {allBookmarks.map((bookmark) => {
               const fileName = bookmark.originalFilename || `Ảnh #${bookmark.imageId}`;
               const isDeleting = deleteMutation.isPending && deleteMutation.variables === bookmark.imageId;
 
               return (
                 <article
-                  data-aos="fade-up"
-                  data-aos-delay={index * 20}
                   key={bookmark.bookmarkId || bookmark.id || bookmark.imageId}
-                  className="group overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+                  className="group relative border border-[#E5E0D8] bg-[#FAF8F5] hover:border-[#161514] transition-all duration-300 flex flex-col"
                 >
                   <div
-                    className="relative aspect-[4/5] overflow-hidden cursor-pointer bg-gray-100"
+                    className="relative aspect-[3/4] overflow-hidden cursor-pointer bg-[#F3EFE6]"
                     onClick={() => setPreviewImage(bookmark)}
                   >
                     <BookmarkImage bookmark={bookmark} fileName={fileName} />
@@ -380,50 +358,53 @@ export const BookMark = () => {
                         deleteMutation.mutate(bookmark.imageId);
                       }}
                       disabled={isDeleting || !bookmark.imageId}
-                      aria-label="Xóa ảnh khỏi Bookmark"
-                      className="absolute right-3 top-3 cursor-pointer flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-red-600 opacity-100 shadow-sm transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60 md:opacity-0 md:group-hover:opacity-100"
+                      aria-label="Xóa ảnh khỏi kho lưu trữ"
+                      className="absolute right-2.5 top-2.5 cursor-pointer flex h-8 w-8 items-center justify-center bg-[#FAF8F5]/90 border border-[#E5E0D8] text-[#161514] hover:text-[#C05A39] hover:bg-[#FAF8F5] transition-all"
                     >
-                      <FaTrash className="h-3.5 w-3.5" />
+                      <FaTrash className="h-3 w-3" />
                     </button>
+                  </div>
+
+                  <div className="p-3 border-t border-[#E5E0D8] bg-[#FAF8F5]">
+                    <p className="text-[11px] font-medium text-[#161514] truncate font-serif-luxury">
+                      {fileName}
+                    </p>
+                    <span className="text-[9px] uppercase tracking-widest text-[#8C8476] mt-0.5 block">
+                      ID: #{bookmark.imageId}
+                    </span>
                   </div>
                 </article>
               );
             })}
           </div>
 
-          <div ref={ref} className="flex justify-center py-6">
-            {isFetchingNextPage ? (
-              <div className="flex items-center gap-2 text-gray-500">
-                <div className="h-5 w-5 animate-spin rounded-full border-b-2 border-indigo-600"></div>
-                <span>Đang tải thêm...</span>
-              </div>
-            ) : !hasNextPage && allBookmarks.length > 0 ? (
-              <>
-                <p className="text-green-600 text-sm">Bạn đã xem hết {" "}</p>
-                <span className="text-sm text-green-600">• {allBookmarks.length} ảnh đã lưu.</span>
-              </>
-            ) : null}
+          <div ref={ref} className="h-10 flex items-center justify-center">
+            {isFetchingNextPage && (
+              <div className="h-6 w-6 border border-[#161514] border-t-transparent animate-spin" />
+            )}
           </div>
-
-          {/* Nút cuộn lên đầu trang */}
-          {showScrollTop && (
-            <button
-              type="button"
-              onClick={scrollToTop}
-              className="fixed bottom-20 cursor-pointer right-8 z-[999] h-12 w-12 flex items-center justify-center rounded-full bg-indigo-600 p-2 text-white shadow-md transition hover:bg-indigo-700"
-            >
-              <FaArrowUp className="h-5 w-5" />
-            </button>
-          )}
         </>
       )}
 
+      {/* High-res Image Preview Modal */}
       {previewImage && (
-        <SecurePreviewModal
+        <HighResPreviewModal
           bookmark={previewImage}
           onClose={() => setPreviewImage(null)}
         />
       )}
+
+      {/* Scroll to Top */}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 z-40 w-10 h-10 border border-[#161514] bg-[#161514] text-[#FAF8F5] hover:bg-[#C05A39] hover:border-[#C05A39] flex items-center justify-center shadow-lg transition-all cursor-pointer"
+          title="Lên đầu trang"
+        >
+          <FaArrowUp className="h-3.5 w-3.5" />
+        </button>
+      )}
     </section>
   );
 };
+export default BookMark;

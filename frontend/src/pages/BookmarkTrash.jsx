@@ -61,91 +61,35 @@ const BookmarkImage = ({ bookmark, fileName }) => {
 
         return () => {
             isMounted = false;
-            if (objectUrl) URL.revokeObjectURL(objectUrl);
-        };
-    }, [bookmark.imageId, canUseDirectUrl]);
-
-    if (hasError) {
-        return (
-            <div className="flex h-full w-full items-center justify-center px-4 text-center text-sm text-gray-500 bg-gray-100">
-                Không tải được ảnh
-            </div>
-        );
-    }
-
-    if (!imageUrl) {
-        return <div className="h-full w-full animate-pulse bg-gray-200" />;
-    }
-
-    return (
-        <img
-            src={imageUrl}
-            alt={fileName}
-            loading="lazy"
-            className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-50"
-            onError={() => setHasError(true)}
-        />
-    );
-};
-
-const SecurePreviewModal = ({ bookmark, onClose }) => {
-    const directUrl = bookmark.thumbnailUrl || bookmark.imageUrl || bookmark.thumbnailPath || bookmark.storagePath;
-    const [blobUrl, setBlobUrl] = useState("");
-    const [hasError, setHasError] = useState(false);
-
-    const canUseDirectUrl = isDirectImageUrl(directUrl) && !isInternalMinioUrl(directUrl);
-    const imageUrl = canUseDirectUrl ? resolveStorageUrl(directUrl) : blobUrl;
-
-    useEffect(() => {
-        let isMounted = true;
-        let objectUrl = "";
-
-        if (!bookmark.imageId || canUseDirectUrl) {
-            return undefined;
-        }
-
-        getImageBlob(bookmark.imageId)
-            .then((blob) => {
-                if (!isMounted) return;
-                objectUrl = URL.createObjectURL(blob);
-                setBlobUrl(objectUrl);
-            })
-            .catch(() => {
-                if (isMounted) setHasError(true);
-            });
-
-        return () => {
-            isMounted = false;
             if (objectUrl) {
                 URL.revokeObjectURL(objectUrl);
             }
         };
     }, [bookmark.imageId, canUseDirectUrl]);
 
-    if (!imageUrl && !hasError) {
+    if (hasError) {
         return (
-            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-zinc-900/80 backdrop-blur-sm" onMouseDown={onClose}>
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white"></div>
+            <div className="flex h-full w-full flex-col items-center justify-center bg-[#F3EFE6] p-4 text-center text-[#8C8476]">
+                <FaImage className="mb-2 h-6 w-6 stroke-[1.25]" />
+                <span className="text-[10px] uppercase tracking-wider">Không tải được ảnh</span>
             </div>
         );
     }
 
-    if (hasError) {
+    if (!imageUrl) {
         return (
-            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-zinc-900/80 backdrop-blur-sm" onMouseDown={onClose}>
-                <div className="rounded-lg bg-white p-6 text-center shadow-xl">
-                    <p className="text-red-600 font-medium">Không tải được ảnh độ phân giải cao.</p>
-                    <button onClick={onClose} className="mt-4 rounded bg-gray-200 px-4 py-2 text-sm hover:bg-gray-300 transition-colors">Đóng</button>
-                </div>
+            <div className="flex h-full w-full items-center justify-center bg-[#F3EFE6]">
+                <div className="h-6 w-6 border border-[#161514] border-t-transparent animate-spin" />
             </div>
         );
     }
 
     return (
-        <ImagePreviewModal
-            imageId={bookmark.imageId}
-            imageUrl={imageUrl}
-            onClose={onClose}
+        <img
+            src={imageUrl}
+            alt={fileName}
+            className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+            loading="lazy"
         />
     );
 };
@@ -153,173 +97,146 @@ const SecurePreviewModal = ({ bookmark, onClose }) => {
 export const BookmarkTrash = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const queryClient = useQueryClient();
-    const page = Math.max(Number(searchParams.get("page") || 0), 0);
     const navigate = useNavigate();
 
+    const page = Math.max(Number(searchParams.get("page") || 0), 0);
     const [previewImage, setPreviewImage] = useState(null);
-
-    // Quản lý thông báo 
     const [toasts, setToasts] = useState([]);
 
     const addToast = (message, type = "success") => {
         const id = Date.now();
         setToasts((prev) => [...prev, { id, message, type }]);
-
-        // Tự động xoá toast sau 2 giây 
-        setTimeout(() => {
-            removeToast(id);
-        }, 2000);
+        setTimeout(() => removeToast(id), 2500);
     };
 
     const removeToast = (id) => {
         setToasts((prev) => prev.filter((toast) => toast.id !== id));
     };
 
-    // Fetch danh sách ảnh đã xoá
     const trashQuery = useQuery({
-        queryKey: ["deletedBookmarks", page],
+        queryKey: ["bookmarks-trash", page],
         queryFn: () => getDeletedBookmarks({ page, pageSize: PAGE_SIZE }),
         placeholderData: keepPreviousData,
     });
 
-    // Khôi phục ảnh
+    const trashData = normalizeBookmarkResponse(trashQuery.data);
+
     const restoreMutation = useMutation({
         mutationFn: restoreBookmark,
-        onSuccess: (data, restoredImageId) => {
-            queryClient.invalidateQueries({ queryKey: ["deletedBookmarks"] });
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["bookmarks-trash"] });
             queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
-            if (data && data.success === false) {
-                addToast(`Khôi phục ảnh #${restoredImageId} thất bại!`, "error");
-            } else {
-                queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
-                addToast(`Khôi phục ảnh #${restoredImageId} thành công`, "success");
-            }
+            addToast("Đã khôi phục ảnh về kho lưu trữ", "success");
         },
-        onError: (error, restoredImageId) => {
-            console.error("Chi tiết lỗi khi khôi phục:", error);
-            addToast(`Khôi phục ảnh #${restoredImageId} thất bại!`, "error");
-        }
+        onError: () => addToast("Không thể khôi phục ảnh", "error"),
     });
 
-    // Xoá vĩnh viễn ảnh
     const permanentDeleteMutation = useMutation({
         mutationFn: permanentDeleteBookmark,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["deletedBookmarks"] });
+            queryClient.invalidateQueries({ queryKey: ["bookmarks-trash"] });
+            addToast("Đã xóa vĩnh viễn ảnh", "success");
         },
+        onError: () => addToast("Không thể xóa ảnh", "error"),
     });
 
-    const trashData = normalizeBookmarkResponse(trashQuery.data);
-    const currentPage = trashData.page + 1;
-    const totalPages = trashData.totalPages || 1;
-
-    useEffect(() => {
-        setTimeout(() => {
-            AOS.refresh();
-        }, 100);
-    }, [trashData.results]);
-
-    const updatePage = (nextPage) => {
-        setSearchParams({ page: String(Math.max(nextPage, 0)) });
+    const handlePageChange = (newPage) => {
+        setSearchParams({ page: newPage });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     return (
-        <section className="mx-auto w-full max-w-[1280px] space-y-8">
-
-            {/* Hiển thị danh sách các thông báo toast */}
-            <div className="fixed right-5 top-[50px] z-50 flex flex-col gap-2">
+        <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-12 space-y-10">
+            {/* Toast Notifications */}
+            <div className="fixed right-6 top-20 z-50 flex flex-col gap-2">
                 {toasts.map((toast) => (
                     <div
                         key={toast.id}
-                        className={`flex w-72 transform items-center justify-between rounded-lg px-4 py-3 text-sm font-medium text-white shadow-lg transition-all duration-300 ease-in-out ${toast.type === "success" ? "bg-green-500" : "bg-red-500"
-                            }`}
+                        className="flex w-80 items-center justify-between px-4 py-3 bg-[#161514] text-[#FAF8F5] border border-[#9E7A52] text-xs shadow-xl tracking-wide"
                     >
                         <span>{toast.message}</span>
                         <button
                             onClick={() => removeToast(toast.id)}
-                            className="rounded-full p-1 transition-colors hover:bg-white/20"
+                            className="p-1 hover:text-[#C05A39] transition-colors"
                         >
-                            <FaTimes className="h-3.5 w-3.5" />
+                            <FaTimes className="h-3 w-3" />
                         </button>
                     </div>
                 ))}
             </div>
 
-            <div className="flex flex-col gap-4">
-                {/* <div className="flex flex-row gap-4 border-b border-gray-200 pb-6">
+            {/* Header Banner */}
+            <div className="flex flex-col gap-4 border-b border-[#E5E0D8] pb-8 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <p className="text-[10px] font-semibold tracking-[0.25em] text-[#C05A39] uppercase mb-1.5">
+                        CORBEILLE &bull; ARCHIVE SUPPRIMÉE
+                    </p>
+                    <h1 className="font-serif-luxury text-3xl sm:text-4xl font-normal text-[#161514] tracking-wide">
+                        Thùng Rác &amp; Ảnh Đã Xóa
+                    </h1>
+                    <p className="mt-2 text-xs text-[#6B655D] max-w-xl leading-relaxed">
+                        Các hình ảnh được lưu giữ tạm thời trong 30 ngày trước khi xóa vĩnh viễn. Quý khách có thể khôi phục lại kho lưu trữ bất kỳ lúc nào.
+                    </p>
+                </div>
+
+                <div className="flex items-center gap-3 mt-4 sm:mt-0">
                     <button
                         type="button"
                         onClick={() => navigate("/bookmarks")}
-                        className="flex w-[200px] cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-indigo-700 bg-white px-5 py-3 text-sm font-medium text-indigo-700 transition hover:bg-indigo-50"
+                        className="px-4 py-2.5 border border-[#161514] hover:bg-[#161514] hover:text-[#FAF8F5] text-[#161514] text-xs font-medium tracking-wider uppercase flex items-center gap-2 transition-all cursor-pointer"
                     >
-                        <FaArrowLeft />
-                        <span>Quay lại Bookmark</span>
+                        <FaArrowLeft className="h-3 w-3" />
+                        <span>Về kho lưu trữ</span>
                     </button>
-                </div> */}
 
-                <div className="flex flex-col gap-4 border-b border-gray-200 pb-6 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                        <p className="mb-2 inline-flex items-center gap-2 rounded-full bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-600">
-                            <FaTrashRestore className="h-3.5 w-3.5" />
-                            Thùng rác
-                        </p>
-                        <h1 className="text-3xl font-semibold leading-10 text-zinc-900">Ảnh đã xóa</h1>
-                        <p className="mt-2 text-sm leading-6 text-gray-600">
-                            Các ảnh ở đây sẽ bị xóa vĩnh viễn sau 30 ngày kể từ lúc xoá. Bạn có thể khôi phục hoặc xóa ngay lập tức.
-                        </p>
-                    </div>
-
-                    <div className="rounded-xl bg-gray-50 sm:px-4 py-3 text-sm text-gray-600">
-                        Tổng cộng:{" "}
-                        <span className="font-semibold text-zinc-900">{trashData.totalElements}</span> ảnh
+                    <div className="px-4 py-2.5 bg-[#FAF8F5] border border-[#E5E0D8] text-xs text-[#6B655D]">
+                        <span>Tổng số: </span>
+                        <strong className="text-[#161514] font-medium">{trashData.totalElements}</strong> ảnh
                     </div>
                 </div>
             </div>
 
             {trashQuery.isLoading ? (
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+                <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                     {Array.from({ length: PAGE_SIZE }).map((_, index) => (
-                        <div key={index} className="aspect-[4/5] animate-pulse rounded-xl bg-gray-100" />
+                        <div key={index} className="aspect-[3/4] animate-pulse bg-[#F3EFE6] border border-[#E5E0D8]" />
                     ))}
                 </div>
             ) : trashQuery.isError ? (
-                <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
-                    Không thể tải danh sách thùng rác. Vui lòng thử lại sau.
+                <div className="border border-[#C05A39]/30 bg-[#C05A39]/10 p-6 text-xs text-[#C05A39]">
+                    Không thể tải dữ liệu thùng rác. Vui lòng thử lại sau.
                 </div>
             ) : trashData.results.length === 0 ? (
-                <div className="flex flex-col items-center rounded-2xl border border-gray-200 bg-white p-10 text-center shadow-sm">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-400">
-                        <FaTrashRestore className="h-6 w-6" />
+                <div className="flex flex-col items-center border border-[#E5E0D8] bg-[#FAF8F5] p-16 text-center">
+                    <div className="flex h-12 w-12 items-center justify-center border border-[#E5E0D8] bg-[#F3EFE6] text-[#8C8476] mb-4">
+                        <FaTrashRestore className="h-5 w-5 stroke-[1.25]" />
                     </div>
-                    <h2 className="mt-4 text-xl font-semibold text-zinc-900">Thùng rác trống</h2>
-                    <p className="mt-2 max-w-md text-sm leading-6 text-gray-600">
-                        Không có ảnh nào trong thùng rác lúc này.
+                    <h2 className="font-serif-luxury text-2xl font-normal text-[#161514]">Thùng Rác Trống</h2>
+                    <p className="mt-2 max-w-sm text-xs text-[#6B655D] leading-relaxed">
+                        Hiện tại không có hình ảnh nào trong thùng rác tạm thời.
                     </p>
                 </div>
             ) : (
                 <>
-                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
-                        {trashData.results.map((bookmark, index) => {
+                    <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                        {trashData.results.map((bookmark) => {
                             const fileName = bookmark.originalFilename || `Ảnh #${bookmark.imageId}`;
                             const isRestoring = restoreMutation.isPending && restoreMutation.variables === bookmark.imageId;
                             const isDeleting = permanentDeleteMutation.isPending && permanentDeleteMutation.variables === bookmark.imageId;
 
                             return (
                                 <article
-                                    data-aos="fade-up"
-                                    data-aos-delay={index * 20}
                                     key={bookmark.bookmarkId || bookmark.id || bookmark.imageId}
-                                    className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md flex flex-col"
+                                    className="group relative border border-[#E5E0D8] bg-[#FAF8F5] hover:border-[#161514] transition-all duration-300 flex flex-col"
                                 >
-                                    {/* Khu vực chứa ảnh */}
                                     <div
-                                        className="relative aspect-[4/5] overflow-hidden bg-gray-100 cursor-pointer"
+                                        className="relative aspect-[3/4] overflow-hidden cursor-pointer bg-[#F3EFE6]"
                                         onClick={() => setPreviewImage(bookmark)}
                                     >
                                         <BookmarkImage bookmark={bookmark} fileName={fileName} />
 
-                                        {/* Giao diện laptop */}
-                                        <div className="hidden md:flex absolute inset-0 flex-col items-center justify-center gap-3 opacity-0 transition-opacity bg-black/40 group-hover:opacity-100 z-10">
+                                        {/* Desktop Hover Actions */}
+                                        <div className="hidden md:flex absolute inset-0 flex-col items-center justify-center gap-2 opacity-0 transition-opacity bg-[#161514]/70 group-hover:opacity-100 z-10 p-4">
                                             <button
                                                 type="button"
                                                 onClick={(e) => {
@@ -327,82 +244,51 @@ export const BookmarkTrash = () => {
                                                     restoreMutation.mutate(bookmark.imageId);
                                                 }}
                                                 disabled={isRestoring || isDeleting}
-                                                className="flex cursor-pointer items-center gap-2 rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-600 disabled:opacity-50"
+                                                className="w-full py-2.5 bg-[#FAF8F5] hover:bg-[#FFFFFF] text-[#161514] text-[10.5px] font-medium tracking-widest uppercase flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                                             >
-                                                <FaUndo className="h-3.5 w-3.5" />
-                                                Khôi phục
+                                                <FaUndo className="h-3 w-3 text-[#C05A39]" />
+                                                <span>Khôi phục</span>
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    Swal.fire({
-                                                        title: 'Bạn có chắc chắn?',
-                                                        text: "Ảnh này sẽ bị xoá vĩnh viễn và không thể khôi phục!",
-                                                        icon: 'warning',
-                                                        showCancelButton: true,
-                                                        confirmButtonColor: '#dc2626',
-                                                        cancelButtonColor: '#6b7280',
-                                                        confirmButtonText: 'Xoá vĩnh viễn',
-                                                        cancelButtonText: 'Hủy'
-                                                    }).then((result) => {
-                                                        if (result.isConfirmed) {
-                                                            permanentDeleteMutation.mutate(bookmark.imageId);
-                                                        }
-                                                    });
+                                                    if (window.confirm('Xác nhận xóa vĩnh viễn ảnh này? Thao tác không thể hoàn tác.')) {
+                                                        permanentDeleteMutation.mutate(bookmark.imageId);
+                                                    }
                                                 }}
                                                 disabled={isRestoring || isDeleting}
-                                                className="flex cursor-pointer items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
+                                                className="w-full py-2.5 bg-[#C05A39] hover:bg-[#A64B2E] text-[#FAF8F5] text-[10.5px] font-medium tracking-widest uppercase flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                                             >
-                                                <FaTrash className="h-3.5 w-3.5" />
-                                                Xóa vĩnh viễn
+                                                <FaTrash className="h-3 w-3" />
+                                                <span>Xóa vĩnh viễn</span>
                                             </button>
                                         </div>
 
-                                        {/* Số ngày còn lại */}
-                                        <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-3 pt-8 text-center text-xs font-medium text-white pointer-events-none">
-                                            Xóa vĩnh viễn sau {bookmark.remainingDays} ngày
+                                        {/* Remaining days pill */}
+                                        <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-[#161514]/90 to-transparent p-2 text-center text-[10px] text-[#FAF8F5] tracking-wider uppercase pointer-events-none">
+                                            Còn lại {bookmark.remainingDays || 30} ngày
                                         </div>
                                     </div>
 
-                                    {/* Hiển thị mobile */}
-                                    <div className="flex md:hidden w-full divide-x divide-gray-200 border-t border-gray-200 bg-gray-50">
+                                    {/* Mobile Actions Bar */}
+                                    <div className="flex md:hidden w-full divide-x divide-[#E5E0D8] border-t border-[#E5E0D8] bg-[#F3EFE6]">
                                         <button
                                             type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                restoreMutation.mutate(bookmark.imageId);
-                                            }}
-                                            disabled={isRestoring || isDeleting}
-                                            className="flex flex-1 items-center justify-center gap-2 py-3 text-sm font-medium text-white bg-green-500  transition hover:bg-green-700 disabled:opacity-50"
+                                            onClick={() => restoreMutation.mutate(bookmark.imageId)}
+                                            className="flex-1 py-2 text-[10.5px] font-medium text-[#161514] uppercase text-center"
                                         >
-                                            <FaUndo className="h-4 w-4" />
                                             Khôi phục
                                         </button>
-
                                         <button
                                             type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                Swal.fire({
-                                                    title: 'Bạn có chắc chắn?',
-                                                    text: "Ảnh này sẽ bị xoá vĩnh viễn!",
-                                                    icon: 'warning',
-                                                    showCancelButton: true,
-                                                    confirmButtonColor: '#dc2626',
-                                                    cancelButtonColor: '#6b7280',
-                                                    confirmButtonText: 'Xoá vĩnh viễn',
-                                                    cancelButtonText: 'Hủy'
-                                                }).then((result) => {
-                                                    if (result.isConfirmed) {
-                                                        permanentDeleteMutation.mutate(bookmark.imageId);
-                                                    }
-                                                });
+                                            onClick={() => {
+                                                if (window.confirm('Xác nhận xóa vĩnh viễn ảnh này?')) {
+                                                    permanentDeleteMutation.mutate(bookmark.imageId);
+                                                }
                                             }}
-                                            disabled={isRestoring || isDeleting}
-                                            className="flex flex-1 items-center justify-center gap-2 py-3 text-sm font-medium text-white bg-red-500 transition hover:bg-red-700 disabled:opacity-50"
+                                            className="flex-1 py-2 text-[10.5px] font-medium text-[#C05A39] uppercase text-center"
                                         >
-                                            <FaTrash className="h-4 w-4" />
                                             Xóa
                                         </button>
                                     </div>
@@ -411,43 +297,42 @@ export const BookmarkTrash = () => {
                         })}
                     </div>
 
-                    {/* Phân trang */}
-                    <div className="flex flex-col items-center justify-between gap-4 rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm sm:flex-row">
-                        <p className="text-sm text-gray-600">
-                            Trang <span className="font-semibold text-zinc-900">{currentPage}</span> /{" "}
-                            <span className="font-semibold text-zinc-900">{totalPages}</span>
-                            {" "}• {trashData.totalElements} ảnh trong thùng rác
-                        </p>
-
-                        <div className="flex items-center gap-2">
+                    {/* Pagination */}
+                    {trashData.totalPages > 1 && (
+                        <div className="mt-12 pt-6 border-t border-[#E5E0D8] flex items-center justify-between">
                             <button
-                                type="button"
-                                onClick={() => updatePage(page - 1)}
-                                disabled={page <= 0 || trashQuery.isFetching}
-                                className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                disabled={page <= 0}
+                                onClick={() => handlePageChange(page - 1)}
+                                className={`px-4 py-2 border text-xs font-medium tracking-wider uppercase ${
+                                    page <= 0 ? 'border-[#E5E0D8] text-[#D8D2C5]' : 'border-[#161514] text-[#161514] hover:bg-[#161514] hover:text-[#FAF8F5]'
+                                }`}
                             >
-                                <FaChevronLeft className="h-3 w-3" />
-                                Trước
+                                Trang trước
                             </button>
+                            <span className="text-xs text-[#6B655D]">Trang {page + 1} / {trashData.totalPages}</span>
                             <button
-                                type="button"
-                                onClick={() => updatePage(page + 1)}
-                                disabled={currentPage >= totalPages || trashQuery.isFetching}
-                                className="inline-flex items-center gap-2 rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                                disabled={page >= trashData.totalPages - 1}
+                                onClick={() => handlePageChange(page + 1)}
+                                className={`px-4 py-2 border text-xs font-medium tracking-wider uppercase ${
+                                    page >= trashData.totalPages - 1 ? 'border-[#E5E0D8] text-[#D8D2C5]' : 'border-[#161514] text-[#161514] hover:bg-[#161514] hover:text-[#FAF8F5]'
+                                }`}
                             >
-                                Sau
-                                <FaChevronRight className="h-3 w-3" />
+                                Trang sau
                             </button>
                         </div>
-                    </div>
+                    )}
                 </>
             )}
+
+            {/* High-res Image Preview Modal */}
             {previewImage && (
-                <SecurePreviewModal
-                    bookmark={previewImage}
+                <ImagePreviewModal
+                    imageId={previewImage.imageId}
+                    imageUrl={previewImage.thumbnailUrl || previewImage.imageUrl}
                     onClose={() => setPreviewImage(null)}
                 />
             )}
         </section>
     );
 };
+export default BookmarkTrash;

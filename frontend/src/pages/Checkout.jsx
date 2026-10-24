@@ -4,11 +4,10 @@ import {
   ShieldCheck,
   CreditCard,
   Truck,
-  CheckCircle2,
   Lock,
   ArrowRight,
   QrCode,
-  AlertCircle,
+  Building,
 } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -45,14 +44,22 @@ export default function Checkout() {
 
   if (cartItems.length === 0) {
     return (
-      <div className="w-full max-w-md mx-auto px-4 py-24 text-center">
-        <h2 className="text-lg font-bold text-slate-900">Giỏ hàng của bạn đang trống</h2>
-        <p className="text-xs text-slate-500 mt-2">Vui lòng thêm sản phẩm vào giỏ hàng trước khi thanh toán.</p>
+      <div className="w-full max-w-xl mx-auto px-4 py-28 text-center bg-[#FAF8F5]">
+        <p className="text-[10px] font-semibold tracking-[0.25em] text-[#C05A39] uppercase mb-2">
+          LA COMMANDE &bull; BESPOKE SERVICE
+        </p>
+        <h2 className="font-serif-luxury text-3xl font-normal text-[#161514]">
+          Túi Đồ Của Quý Khách Đang Trống
+        </h2>
+        <p className="text-xs text-[#6B655D] mt-2 max-w-sm mx-auto leading-relaxed">
+          Quý khách chưa lựa chọn thiết kế nào. Vui lòng khám phá danh mục tuyển chọn để thêm sản phẩm vào túi đồ trước khi tiến hành đặt mua.
+        </p>
         <Link
           to="/catalog"
-          className="mt-6 inline-flex px-6 py-2.5 bg-slate-950 text-white text-xs font-bold uppercase rounded-full"
+          className="mt-8 inline-flex items-center gap-2 px-8 py-3.5 bg-[#161514] hover:bg-[#2A2725] text-[#FAF8F5] text-xs font-medium tracking-[0.2em] uppercase transition-all"
         >
-          Đến cửa hàng
+          <span>Khám Phá Danh Mục Tuyển Chọn</span>
+          <ArrowRight className="w-3.5 h-3.5 stroke-[1.5]" />
         </Link>
       </div>
     );
@@ -68,9 +75,9 @@ export default function Checkout() {
 
   const validateForm = () => {
     const errors = {};
-    if (!formData.fullName.trim()) errors.fullName = 'Vui lòng nhập họ tên người nhận';
-    if (!formData.phone.trim()) errors.phone = 'Vui lòng nhập số điện thoại';
-    if (!formData.address.trim()) errors.address = 'Vui lòng nhập địa chỉ nhận hàng';
+    if (!formData.fullName.trim()) errors.fullName = 'Vui lòng cung cấp danh xưng hoặc họ tên';
+    if (!formData.phone.trim()) errors.phone = 'Vui lòng cung cấp số điện thoại liên hệ';
+    if (!formData.address.trim()) errors.address = 'Vui lòng cung cấp địa chỉ nhận trang phục';
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -95,7 +102,7 @@ export default function Checkout() {
 
       if (result?.success && result?.data) {
         clearCart();
-        showToast('Đặt hàng thành công! Đơn hàng đang được đóng gói.');
+        showToast('Đơn hàng đã được ghi nhận. Maison sẽ sớm liên hệ xác nhận đơn.');
         navigate(`/order-success/${result.data.id}`, { state: { order: result.data } });
       }
     } catch (err) {
@@ -109,14 +116,17 @@ export default function Checkout() {
   const finalTotal = shippingMethod === 'express' ? totalAmount + 20000 : totalAmount;
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      {/* Title */}
-      <div className="mb-8 pb-4 border-b border-slate-200">
-        <h1 className="font-serif text-2xl sm:text-3xl font-bold text-slate-950 tracking-tight">
-          Thanh Toán Đơn Hàng
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* Title Header */}
+      <div className="mb-10 pb-6 border-b border-[#E5E0D8]">
+        <p className="text-[10px] font-semibold tracking-[0.25em] text-[#C05A39] uppercase mb-1.5">
+          SERVICE SUR-MESURE &bull; FINALISATION
+        </p>
+        <h1 className="font-serif-luxury text-3xl sm:text-4xl font-normal text-[#161514] tracking-wide">
+          Hoàn Tất Đơn Hàng &amp; Giao Nhận
         </h1>
-        <p className="text-xs text-slate-500 mt-1">
-          Vui lòng hoàn tất thông tin nhận hàng và chọn phương thức thanh toán an toàn
+        <p className="text-xs text-[#6B655D] mt-2 max-w-xl leading-relaxed">
+          Quý khách vui lòng xác nhận thông tin tư gia và nghi thức giao nhận. Đội ngũ Maison Central sẽ kiểm tra sản phẩm và đóng gói trang phục theo chuẩn mực boutique.
         </p>
       </div>
 
@@ -124,64 +134,66 @@ export default function Checkout() {
         {/* Left Column (Inputs): 7 cols */}
         <div className="lg:col-span-7 space-y-8">
           
-          {/* 1. Customer Information */}
-          <div className="p-6 bg-white border border-slate-200 rounded-3xl shadow-2xs">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-950 mb-4 flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-slate-950 text-white text-[10px] flex items-center justify-center font-bold">1</span>
-              <span>Thông Tin Người Nhận</span>
-            </h2>
+          {/* I. Thông tin người nhận */}
+          <div className="p-7 bg-[#FAF8F5] border border-[#E5E0D8]">
+            <div className="flex items-center gap-3 pb-4 mb-6 border-b border-[#E5E0D8]">
+              <span className="font-serif-luxury text-sm font-semibold text-[#C05A39]">I.</span>
+              <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-[#161514]">
+                Thông Tin Tư Gia &amp; Người Nhận
+              </h2>
+            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Họ và tên *
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#6B655D] mb-1.5">
+                  Họ và tên quý khách *
                 </label>
                 <input
                   type="text"
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleInputChange}
-                  className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl text-xs focus:outline-none ${
-                    formErrors.fullName ? 'border-rose-500 bg-rose-50/20' : 'border-slate-300 focus:border-slate-950'
+                  className={`w-full px-4 py-2.5 bg-[#FAF8F5] border text-xs text-[#161514] placeholder-[#8C8476] focus:outline-none ${
+                    formErrors.fullName ? 'border-[#C05A39]' : 'border-[#D8D2C5] focus:border-[#161514]'
                   }`}
                   placeholder="Ví dụ: Nguyễn Văn An"
                 />
-                {formErrors.fullName && <p className="text-[11px] text-rose-600 mt-1">{formErrors.fullName}</p>}
+                {formErrors.fullName && <p className="text-[10px] text-[#C05A39] mt-1">{formErrors.fullName}</p>}
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Số điện thoại *
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#6B655D] mb-1.5">
+                  Số điện thoại liên hệ *
                 </label>
                 <input
                   type="tel"
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
-                  className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl text-xs focus:outline-none ${
-                    formErrors.phone ? 'border-rose-500 bg-rose-50/20' : 'border-slate-300 focus:border-slate-950'
+                  className={`w-full px-4 py-2.5 bg-[#FAF8F5] border text-xs text-[#161514] placeholder-[#8C8476] focus:outline-none ${
+                    formErrors.phone ? 'border-[#C05A39]' : 'border-[#D8D2C5] focus:border-[#161514]'
                   }`}
                   placeholder="Ví dụ: 0912345678"
                 />
-                {formErrors.phone && <p className="text-[11px] text-rose-600 mt-1">{formErrors.phone}</p>}
+                {formErrors.phone && <p className="text-[10px] text-[#C05A39] mt-1">{formErrors.phone}</p>}
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Địa chỉ Email (Nhận thông báo đơn hàng)
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#6B655D] mb-1.5">
+                  Thư điện tử (Nhận xác thực đơn hàng &amp; chứng thư vải)
                 </label>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none focus:border-slate-950"
-                  placeholder="Ví dụ: email@domain.com"
+                  className="w-full px-4 py-2.5 bg-[#FAF8F5] border border-[#D8D2C5] text-xs text-[#161514] placeholder-[#8C8476] focus:outline-none focus:border-[#161514]"
+                  placeholder="Ví dụ: client@domain.com"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#6B655D] mb-1.5">
                   Tỉnh / Thành phố
                 </label>
                 <input
@@ -189,12 +201,12 @@ export default function Checkout() {
                   name="city"
                   value={formData.city}
                   onChange={handleInputChange}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none focus:border-slate-950"
+                  className="w-full px-4 py-2.5 bg-[#FAF8F5] border border-[#D8D2C5] text-xs text-[#161514] focus:outline-none focus:border-[#161514]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#6B655D] mb-1.5">
                   Quận / Huyện
                 </label>
                 <input
@@ -202,29 +214,29 @@ export default function Checkout() {
                   name="district"
                   value={formData.district}
                   onChange={handleInputChange}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none focus:border-slate-950"
+                  className="w-full px-4 py-2.5 bg-[#FAF8F5] border border-[#D8D2C5] text-xs text-[#161514] focus:outline-none focus:border-[#161514]"
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Địa chỉ chi tiết (Số nhà, tên đường, tòa nhà) *
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#6B655D] mb-1.5">
+                  Địa chỉ chi tiết (Số nhà, tòa nhà, căn hộ) *
                 </label>
                 <input
                   type="text"
                   name="address"
                   value={formData.address}
                   onChange={handleInputChange}
-                  className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl text-xs focus:outline-none ${
-                    formErrors.address ? 'border-rose-500 bg-rose-50/20' : 'border-slate-300 focus:border-slate-950'
+                  className={`w-full px-4 py-2.5 bg-[#FAF8F5] border text-xs text-[#161514] placeholder-[#8C8476] focus:outline-none ${
+                    formErrors.address ? 'border-[#C05A39]' : 'border-[#D8D2C5] focus:border-[#161514]'
                   }`}
                   placeholder="Ví dụ: Số 18 Nguyễn Du, Phường Hàng Bài"
                 />
-                {formErrors.address && <p className="text-[11px] text-rose-600 mt-1">{formErrors.address}</p>}
+                {formErrors.address && <p className="text-[10px] text-[#C05A39] mt-1">{formErrors.address}</p>}
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#6B655D] mb-1.5">
                   Ghi chú đơn hàng (Tùy chọn)
                 </label>
                 <textarea
@@ -232,24 +244,26 @@ export default function Checkout() {
                   value={formData.notes}
                   onChange={handleInputChange}
                   rows={2}
-                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:outline-none focus:border-slate-950 resize-none"
-                  placeholder="Ghi chú thêm về thời gian giao hàng, hướng dẫn chỉ đường..."
+                  className="w-full px-4 py-2 bg-[#FAF8F5] border border-[#D8D2C5] text-xs text-[#161514] placeholder-[#8C8476] focus:outline-none focus:border-[#161514] resize-none"
+                  placeholder="Ví dụ: Giao giờ hành chính, gọi điện trước khi giao hàng..."
                 />
               </div>
             </div>
           </div>
 
-          {/* 2. Shipping Methods */}
-          <div className="p-6 bg-white border border-slate-200 rounded-3xl shadow-2xs">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-950 mb-4 flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-slate-950 text-white text-[10px] flex items-center justify-center font-bold">2</span>
-              <span>Phương Thức Vận Chuyển</span>
-            </h2>
+          {/* II. Phương thức giao nhận */}
+          <div className="p-7 bg-[#FAF8F5] border border-[#E5E0D8]">
+            <div className="flex items-center gap-3 pb-4 mb-6 border-b border-[#E5E0D8]">
+              <span className="font-serif-luxury text-sm font-semibold text-[#C05A39]">II.</span>
+              <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-[#161514]">
+                Nghi Thức Vận Chuyển &amp; Giao Nhận
+              </h2>
+            </div>
 
             <div className="space-y-3">
               <label
-                className={`p-4 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
-                  shippingMethod === 'standard' ? 'border-slate-950 bg-slate-50 shadow-2xs' : 'border-slate-200 hover:border-slate-300'
+                className={`p-4 border flex items-center justify-between cursor-pointer transition-all ${
+                  shippingMethod === 'standard' ? 'border-[#161514] bg-[#F3EFE6]' : 'border-[#E5E0D8] hover:border-[#D8D2C5]'
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -259,21 +273,21 @@ export default function Checkout() {
                     value="standard"
                     checked={shippingMethod === 'standard'}
                     onChange={() => setShippingMethod('standard')}
-                    className="accent-slate-950"
+                    className="accent-[#161514]"
                   />
                   <div>
-                    <p className="text-xs font-bold text-slate-900">Giao hàng tiêu chuẩn (VNPost / Viettel Post)</p>
-                    <p className="text-[11px] text-slate-500">Thời gian nhận hàng dự kiến: 2 - 3 ngày làm việc</p>
+                    <p className="text-xs font-medium text-[#161514]">Chuyển phát tiêu chuẩn Maison (2 - 3 ngày làm việc)</p>
+                    <p className="text-[11px] text-[#8C8476]">Đóng gói túi vải canvas chống ẩm &amp; móc treo bảo quản</p>
                   </div>
                 </div>
-                <span className="text-xs font-bold text-slate-900">
-                  {shippingFee === 0 ? <span className="text-emerald-700">Miễn phí</span> : `${shippingFee.toLocaleString('vi-VN')}₫`}
+                <span className="text-xs font-semibold text-[#161514]">
+                  {shippingFee === 0 ? <span className="text-[#C05A39]">Đặc quyền miễn phí</span> : `${shippingFee.toLocaleString('vi-VN')}₫`}
                 </span>
               </label>
 
               <label
-                className={`p-4 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
-                  shippingMethod === 'express' ? 'border-slate-950 bg-slate-50 shadow-2xs' : 'border-slate-200 hover:border-slate-300'
+                className={`p-4 border flex items-center justify-between cursor-pointer transition-all ${
+                  shippingMethod === 'express' ? 'border-[#161514] bg-[#F3EFE6]' : 'border-[#E5E0D8] hover:border-[#D8D2C5]'
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -283,32 +297,34 @@ export default function Checkout() {
                     value="express"
                     checked={shippingMethod === 'express'}
                     onChange={() => setShippingMethod('express')}
-                    className="accent-slate-950"
+                    className="accent-[#161514]"
                   />
                   <div>
-                    <p className="text-xs font-bold text-slate-900">Giao hàng hỏa tốc trong 24h</p>
-                    <p className="text-[11px] text-slate-500">Áp dụng nội thành Hà Nội &amp; TP. Hồ Chí Minh</p>
+                    <p className="text-xs font-medium text-[#161514]">Chuyển phát đặc phái trong 24 giờ</p>
+                    <p className="text-[11px] text-[#8C8476]">Giao tận cửa có hẹn giờ trước &amp; nhân sự kiểm định riêng</p>
                   </div>
                 </div>
-                <span className="text-xs font-bold text-slate-900">
+                <span className="text-xs font-semibold text-[#161514]">
                   {((shippingFee === 0 ? 0 : shippingFee) + 20000).toLocaleString('vi-VN')}₫
                 </span>
               </label>
             </div>
           </div>
 
-          {/* 3. Payment Methods */}
-          <div className="p-6 bg-white border border-slate-200 rounded-3xl shadow-2xs">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-950 mb-4 flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-slate-950 text-white text-[10px] flex items-center justify-center font-bold">3</span>
-              <span>Phương Thức Thanh Toán</span>
-            </h2>
+          {/* III. Phương thức thanh toán */}
+          <div className="p-7 bg-[#FAF8F5] border border-[#E5E0D8]">
+            <div className="flex items-center gap-3 pb-4 mb-6 border-b border-[#E5E0D8]">
+              <span className="font-serif-luxury text-sm font-semibold text-[#C05A39]">III.</span>
+              <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-[#161514]">
+                Phương Thức Thanh Toán
+              </h2>
+            </div>
 
             <div className="space-y-3">
               {/* COD */}
               <label
-                className={`p-4 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
-                  paymentMethod === 'COD' ? 'border-slate-950 bg-slate-50 shadow-2xs' : 'border-slate-200 hover:border-slate-300'
+                className={`p-4 border flex items-center justify-between cursor-pointer transition-all ${
+                  paymentMethod === 'COD' ? 'border-[#161514] bg-[#F3EFE6]' : 'border-[#E5E0D8] hover:border-[#D8D2C5]'
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -318,20 +334,20 @@ export default function Checkout() {
                     value="COD"
                     checked={paymentMethod === 'COD'}
                     onChange={() => setPaymentMethod('COD')}
-                    className="accent-slate-950"
+                    className="accent-[#161514]"
                   />
                   <div>
-                    <p className="text-xs font-bold text-slate-900">Thanh toán khi nhận hàng (COD)</p>
-                    <p className="text-[11px] text-slate-500">Nhận hàng, kiểm tra trang phục trước khi gửi tiền cho shipper</p>
+                    <p className="text-xs font-medium text-[#161514]">Thanh toán khi nhận trang phục (COD)</p>
+                    <p className="text-[11px] text-[#8C8476]">Quý khách kiểm tra chất lượng sợi vải và đường may trước khi thanh toán</p>
                   </div>
                 </div>
-                <Truck className="w-4 h-4 text-slate-500" />
+                <Truck className="w-4 h-4 text-[#8C8476] stroke-[1.5]" />
               </label>
 
               {/* VietQR Bank Transfer */}
               <label
-                className={`p-4 rounded-2xl border flex flex-col cursor-pointer transition-all ${
-                  paymentMethod === 'BANK_TRANSFER' ? 'border-slate-950 bg-slate-50 shadow-2xs' : 'border-slate-200 hover:border-slate-300'
+                className={`p-4 border flex flex-col cursor-pointer transition-all ${
+                  paymentMethod === 'BANK_TRANSFER' ? 'border-[#161514] bg-[#F3EFE6]' : 'border-[#E5E0D8] hover:border-[#D8D2C5]'
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -342,30 +358,30 @@ export default function Checkout() {
                       value="BANK_TRANSFER"
                       checked={paymentMethod === 'BANK_TRANSFER'}
                       onChange={() => setPaymentMethod('BANK_TRANSFER')}
-                      className="accent-slate-950"
+                      className="accent-[#161514]"
                     />
                     <div>
-                      <p className="text-xs font-bold text-slate-900">Chuyển khoản ngân hàng 24/7 (VietQR)</p>
-                      <p className="text-[11px] text-slate-500">Quét mã QR tự động xác nhận trong 3 giây</p>
+                      <p className="text-xs font-medium text-[#161514]">Chuyển khoản ngân hàng trực tuyến (VietQR)</p>
+                      <p className="text-[11px] text-[#8C8476]">Xác nhận thanh toán tự động qua hệ thống Maison Concierge</p>
                     </div>
                   </div>
-                  <QrCode className="w-4 h-4 text-blue-700" />
+                  <QrCode className="w-4 h-4 text-[#C05A39] stroke-[1.5]" />
                 </div>
 
                 {paymentMethod === 'BANK_TRANSFER' && (
-                  <div className="mt-3 pt-3 border-t border-slate-200 text-[11px] text-slate-600 bg-white p-3 rounded-xl">
-                    <p className="font-semibold text-slate-900">Ngân hàng: TMCP Ngoại Thương Việt Nam (Vietcombank)</p>
-                    <p>Số tài khoản: <strong>0011004899999</strong></p>
-                    <p>Chủ tài khoản: <strong>CÔNG TY TNHH THỜI TRANG L'ATELIER</strong></p>
-                    <p>Nội dung: <strong>LATELIER [Số điện thoại của bạn]</strong></p>
+                  <div className="mt-3 pt-3 border-t border-[#D8D2C5] text-[11px] text-[#6B655D] bg-[#FAF8F5] p-3 border">
+                    <p className="font-semibold text-[#161514]">Ngân hàng: TMCP Ngoại Thương Việt Nam (Vietcombank)</p>
+                    <p>Số tài khoản: <strong className="text-[#161514]">0011004899999</strong></p>
+                    <p>Chủ tài khoản: <strong className="text-[#161514]">GRAND ATELIER CENTRAL CO., LTD</strong></p>
+                    <p>Nội dung: <strong className="text-[#C05A39]">ATELIER [Số điện thoại của quý khách]</strong></p>
                   </div>
                 )}
               </label>
 
-              {/* VNPay Mock */}
+              {/* VNPAY */}
               <label
-                className={`p-4 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
-                  paymentMethod === 'VNPAY' ? 'border-slate-950 bg-slate-50 shadow-2xs' : 'border-slate-200 hover:border-slate-300'
+                className={`p-4 border flex items-center justify-between cursor-pointer transition-all ${
+                  paymentMethod === 'VNPAY' ? 'border-[#161514] bg-[#F3EFE6]' : 'border-[#E5E0D8] hover:border-[#D8D2C5]'
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -375,14 +391,14 @@ export default function Checkout() {
                     value="VNPAY"
                     checked={paymentMethod === 'VNPAY'}
                     onChange={() => setPaymentMethod('VNPAY')}
-                    className="accent-slate-950"
+                    className="accent-[#161514]"
                   />
                   <div>
-                    <p className="text-xs font-bold text-slate-900">Cổng thanh toán điện tử VNPAY-QR</p>
-                    <p className="text-[11px] text-slate-500">Hỗ trợ tất cả ứng dụng Mobile Banking &amp; Ví điện tử</p>
+                    <p className="text-xs font-medium text-[#161514]">Cổng thanh toán thẻ quốc tế &amp; VNPAY-QR</p>
+                    <p className="text-[11px] text-[#8C8476]">Chấp nhận thẻ Visa, Mastercard, JCB và ứng dụng ngân hàng</p>
                   </div>
                 </div>
-                <CreditCard className="w-4 h-4 text-blue-700" />
+                <CreditCard className="w-4 h-4 text-[#C05A39] stroke-[1.5]" />
               </label>
             </div>
           </div>
@@ -390,32 +406,38 @@ export default function Checkout() {
 
         {/* Right Column (Order Summary): 5 cols */}
         <div className="lg:col-span-5 sticky top-24">
-          <div className="p-6 bg-slate-50/80 border border-slate-200 rounded-3xl flex flex-col gap-4 shadow-sm">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-950 pb-3 border-b border-slate-200 flex items-center justify-between">
-              <span>Đơn Hàng Của Bạn</span>
-              <span className="text-xs text-slate-500 font-semibold">{cartItems.length} sản phẩm</span>
-            </h3>
+          <div className="p-7 bg-[#FAF8F5] border border-[#E5E0D8] flex flex-col gap-4">
+            <div className="pb-3 border-b border-[#E5E0D8] flex items-center justify-between">
+              <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-[#161514]">
+                Bản Kê Đơn Hàng
+              </h3>
+              <span className="text-[10px] text-[#8C8476] tracking-wider uppercase">
+                {cartItems.length} tác phẩm
+              </span>
+            </div>
 
             {/* Items mini list */}
-            <div className="divide-y divide-slate-200 max-h-64 overflow-y-auto pr-1">
+            <div className="divide-y divide-[#E5E0D8] max-h-72 overflow-y-auto pr-1">
               {cartItems.map((item) => (
                 <div key={item.id} className="py-3 flex items-center gap-3">
                   <img
                     src={resolveImageUrl(item.product.image)}
                     alt={item.product.name}
-                    className="w-12 h-16 rounded-lg object-cover bg-white border border-slate-200 shrink-0"
+                    className="w-12 h-16 object-cover bg-[#F3EFE6] border border-[#E5E0D8] shrink-0"
                     onError={(e) => {
                       e.currentTarget.onerror = null;
                       e.currentTarget.src = '/samples/cloth-1.jpg';
                     }}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-slate-900 truncate">{item.product.name}</p>
-                    <p className="text-[11px] text-slate-500">
-                      {item.size} &bull; {item.color} &bull; SL: {item.quantity}
+                    <p className="font-serif-luxury text-sm font-normal text-[#161514] truncate">
+                      {item.product.name}
+                    </p>
+                    <p className="text-[10px] text-[#8C8476] tracking-wider uppercase mt-0.5">
+                      Cỡ: {item.size} &bull; {item.color} &bull; SL: {item.quantity}
                     </p>
                   </div>
-                  <span className="text-xs font-bold text-slate-900">
+                  <span className="text-xs font-medium text-[#161514] tracking-wide">
                     {((item.product.rawPrice || 0) * item.quantity).toLocaleString('vi-VN')}₫
                   </span>
                 </div>
@@ -423,33 +445,35 @@ export default function Checkout() {
             </div>
 
             {/* Calculations */}
-            <div className="pt-3 border-t border-slate-200 space-y-2 text-xs text-slate-600">
+            <div className="pt-4 border-t border-[#E5E0D8] space-y-2.5 text-xs text-[#6B655D]">
               <div className="flex justify-between">
-                <span>Tạm tính hàng hóa:</span>
-                <span className="font-semibold text-slate-900">{subtotal.toLocaleString('vi-VN')}₫</span>
+                <span>Tạm tính giá trị tác phẩm:</span>
+                <span className="font-medium text-[#161514]">{subtotal.toLocaleString('vi-VN')}₫</span>
               </div>
 
               {discountAmount > 0 && (
-                <div className="flex justify-between text-rose-600">
-                  <span>Giảm giá khuyến mãi:</span>
-                  <span className="font-semibold">-{discountAmount.toLocaleString('vi-VN')}₫</span>
+                <div className="flex justify-between text-[#C05A39]">
+                  <span>Đặc quyền ưu đãi:</span>
+                  <span className="font-medium">-{discountAmount.toLocaleString('vi-VN')}₫</span>
                 </div>
               )}
 
               <div className="flex justify-between">
-                <span>Phí vận chuyển:</span>
-                <span className="font-semibold text-slate-900">
+                <span>Nghi thức vận chuyển:</span>
+                <span className="font-medium text-[#161514]">
                   {shippingMethod === 'express'
-                    ? `${(shippingFee + 20000).toLocaleString('vi-VN')}₫ (Hỏa tốc)`
+                    ? `${(shippingFee + 20000).toLocaleString('vi-VN')}₫ (Hỏa tốc 24h)`
                     : shippingFee === 0
-                    ? <span className="text-emerald-700 font-bold">Miễn phí</span>
+                    ? <span className="text-[#C05A39] font-medium">Miễn phí</span>
                     : `${shippingFee.toLocaleString('vi-VN')}₫`}
                 </span>
               </div>
 
-              <div className="pt-3 border-t border-slate-200 flex justify-between items-baseline">
-                <span className="text-sm font-bold text-slate-950">Tổng thanh toán:</span>
-                <span className="text-xl font-extrabold text-blue-900">
+              <div className="pt-3 border-t border-[#E5E0D8] flex justify-between items-baseline">
+                <span className="text-xs font-semibold uppercase tracking-wider text-[#161514]">
+                  Tổng giá trị đơn may:
+                </span>
+                <span className="font-serif-luxury text-2xl font-normal text-[#161514]">
                   {finalTotal.toLocaleString('vi-VN')}₫
                 </span>
               </div>
@@ -459,15 +483,15 @@ export default function Checkout() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="mt-2 w-full py-4 rounded-2xl bg-slate-950 hover:bg-blue-900 text-white text-xs sm:text-sm font-bold tracking-wider uppercase flex items-center justify-center gap-2 shadow-lg shadow-slate-950/20 transition-all hover:-translate-y-0.5 cursor-pointer disabled:bg-slate-400"
+              className="mt-3 w-full py-4 bg-[#C05A39] hover:bg-[#A64B2E] text-[#FAF8F5] text-xs font-medium tracking-[0.2em] uppercase flex items-center justify-center gap-2 transition-all cursor-pointer disabled:bg-[#D8D2C5]"
             >
-              <Lock className="w-4 h-4 text-amber-400" />
-              <span>{isSubmitting ? 'Đang tạo đơn hàng...' : 'Xác Nhận Đặt Hàng'}</span>
+              <Lock className="w-3.5 h-3.5 stroke-[1.5]" />
+              <span>{isSubmitting ? 'Đang xác nhận đơn hàng...' : 'Xác Nhận Đặt Hàng'}</span>
             </button>
 
-            <div className="flex items-center justify-center gap-2 text-[11px] text-slate-400 text-center mt-1">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>Thông tin đơn hàng được mã hóa bảo mật chuẩn SSL 256-bit</span>
+            <div className="flex items-center justify-center gap-2 text-[10px] text-[#8C8476] tracking-wide text-center mt-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#C05A39] stroke-[1.5]" />
+              <span>Thông tin đơn hàng được bảo mật theo quy chuẩn Maison Atelier</span>
             </div>
           </div>
         </div>

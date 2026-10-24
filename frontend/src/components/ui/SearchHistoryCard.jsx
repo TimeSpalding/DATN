@@ -5,30 +5,24 @@ import { formatDateTime } from "../../utils/formatDateTime";
 
 const searchTypeConfig = {
   IMAGE_TO_IMAGE: {
-    label: "Tìm bằng hình ảnh",
+    label: "Hình ảnh tham chiếu",
     Icon: FaImage,
-    className: "bg-indigo-700/10 text-indigo-700",
+    className: "border border-[#161514] bg-[#161514] text-[#FAF8F5]",
   },
   TEXT_SEMANTIC: {
-    label: "Text Semantic",
+    label: "Mô tả chất liệu & phong cách",
     Icon: FaAlignLeft,
-    className: "bg-emerald-700/10 text-emerald-700",
+    className: "border border-[#C05A39] bg-[#C05A39]/10 text-[#C05A39]",
   },
   TEXT_OCR: {
-    label: "Text OCR",
+    label: "Ký tự & Họa tiết dệt",
     Icon: FaFont,
-    className: "bg-sky-700/10 text-sky-700",
+    className: "border border-[#9E7A52] bg-[#9E7A52]/10 text-[#9E7A52]",
   },
 };
 
-
-const getHistoryId = (history) => {
-  return history.searchId || history.id;
-};
-
-const getHistorySearchType = (history) => {
-  return history.searchType || history.search_type || "TEXT_SEMANTIC";
-};
+const getHistoryId = (history) => history.searchId || history.id;
+const getHistorySearchType = (history) => history.searchType || history.search_type || "TEXT_SEMANTIC";
 
 const getHistoryImagePath = (history) => {
   return (
@@ -59,65 +53,55 @@ export const SearchHistoryCard = ({ history, onClick }) => {
   return (
     <article
       onClick={onClick}
-      className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-xl bg-white shadow-md ring-1 ring-gray-200/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg hover:ring-indigo-100"
+      className="group flex h-full cursor-pointer flex-col border border-[#E5E0D8] bg-[#FAF8F5] hover:border-[#161514] transition-all duration-300"
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
+      <div className="relative aspect-[4/3] overflow-hidden bg-[#F3EFE6]">
         {isImageSearch && imageUrl ? (
           <ImageWithFallback
             src={imageUrl}
             imageId={history.queryImageId}
-            alt={`Lịch sử tìm kiếm #${historyId}`}
+            alt={`Truy vấn thị giác #${historyId}`}
             loading="lazy"
-            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+            className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full flex-col justify-between bg-gray-50 p-4">
-            <span className={`inline-flex w-fit items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${config.className}`}>
-              <Icon className="h-3 w-3" />
+          <div className="flex h-full flex-col justify-between bg-[#F3EFE6] p-4">
+            <span className={`inline-flex w-fit items-center gap-1.5 px-2.5 py-1 text-[9.5px] uppercase tracking-widest font-medium ${config.className}`}>
+              <Icon className="h-2.5 w-2.5" />
               {config.label}
             </span>
-            <p className="line-clamp-4 text-base font-semibold leading-6 text-zinc-900" title={queryText}>
-              "{queryText}"
+            <p className="line-clamp-3 font-serif-luxury text-sm font-normal text-[#161514] leading-relaxed" title={queryText}>
+              &ldquo;{queryText}&rdquo;
             </p>
           </div>
         )}
 
         {isImageSearch && (
-          <span className={`absolute left-3 top-3 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold shadow-sm ${config.className}`}>
-            <Icon className="h-3 w-3" />
+          <span className={`absolute left-3 top-3 inline-flex items-center gap-1.5 px-2.5 py-1 text-[9.5px] uppercase tracking-widest font-medium shadow-xs ${config.className}`}>
+            <Icon className="h-2.5 w-2.5" />
             {config.label}
           </span>
         )}
       </div>
 
-      <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
+      <div className="flex flex-1 flex-col justify-between p-4 bg-[#FAF8F5]">
         <div className="space-y-1">
-          <h3 className="line-clamp-2 text-sm sm:text-base font-semibold text-zinc-900 leading-snug group-hover:text-indigo-600 transition-colors">
-            {isImageSearch ? `Ảnh tìm kiếm #${historyId}` : queryText}
+          <h3 className="line-clamp-2 font-serif-luxury text-base font-normal text-[#161514] leading-snug group-hover:text-[#C05A39] transition-colors">
+            {isImageSearch ? `Tác phẩm tham chiếu #${historyId}` : queryText}
           </h3>
-          <p className="text-xs text-gray-500 font-medium">
+          <p className="text-[10px] text-[#8C8476] tracking-wider uppercase">
             {formatDateTime(history.createdAt || history.createAt)}
           </p>
         </div>
 
-        <div className="mt-4 pt-3 border-t border-gray-100 flex flex-col gap-2"> 
-          <div className="grid grid-cols-2 gap-2 text-[11px] sm:text-xs text-gray-600">
-            <span className="inline-flex items-center gap-1.5 truncate">
-              <FaHashtag className="h-3 w-3 shrink-0 text-gray-400" />
-              <span className="truncate">{historyId ? `ID ${historyId}` : "Chưa có ID"}</span>
-            </span>
-            <span className="inline-flex items-center gap-1.5 justify-end">
-              <FaClock className="h-3 w-3 shrink-0 text-gray-400" />
-              {history.processingTimeMs ?? 0}ms
-            </span>
-          </div>
-
-          {isImageSearch && history.width && history.height && (
-            <p className="text-[11px] sm:text-xs text-gray-500">
-              {history.width}x{history.height}
-              {history.mimeType ? ` • ${history.mimeType}` : ""}
-            </p>
-          )}
+        <div className="mt-4 pt-3 border-t border-[#E5E0D8] flex items-center justify-between text-[10px] text-[#8C8476] uppercase tracking-wider">
+          <span className="truncate">
+            Mã: #{historyId || "N/A"}
+          </span>
+          <span className="flex items-center gap-1">
+            <FaClock className="h-2.5 w-2.5" />
+            {history.processingTimeMs ?? 0}ms
+          </span>
         </div>
       </div>
     </article>

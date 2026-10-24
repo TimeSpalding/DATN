@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, useParams, Link } from 'react-router-dom';
-import { CheckCircle2, Package, ArrowRight, Home, Calendar, MapPin, CreditCard } from 'lucide-react';
+import { Package, ArrowRight, Home, Calendar, MapPin, CreditCard, Check } from 'lucide-react';
 
 export default function OrderSuccess() {
   const { orderId } = useParams();
@@ -11,67 +11,77 @@ export default function OrderSuccess() {
     customer: {
       fullName: 'Quý khách',
       phone: '0912345678',
-      address: 'Địa chỉ đã đăng ký',
+      address: 'Địa chỉ tư gia đã đăng ký',
     },
     paymentMethod: 'COD',
     totalAmount: 489000,
-    estimatedDelivery: '3 ngày tới',
+    estimatedDelivery: '2 - 3 ngày làm việc',
     items: [],
   };
 
   return (
     <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 py-16 text-center">
-      {/* Success Icon */}
-      <div className="w-20 h-20 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-6 border border-emerald-200 shadow-sm animate-bounce-in">
-        <CheckCircle2 className="w-10 h-10" />
+      {/* Heritage Seal Icon */}
+      <div className="w-14 h-14 bg-[#161514] text-[#FAF8F5] flex items-center justify-center mx-auto mb-6 border border-[#9E7A52]">
+        <Check className="w-6 h-6 stroke-[1.5]" />
       </div>
 
-      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-[11px] font-bold uppercase tracking-wider mb-2">
-        <span>Giao dịch thành công</span>
-      </div>
-
-      <h1 className="font-serif text-3xl sm:text-4xl font-extrabold text-slate-950 tracking-tight">
-        Cảm Ơn Bạn Đã Đặt Hàng!
-      </h1>
-
-      <p className="text-xs sm:text-sm text-slate-500 mt-2 max-w-md mx-auto">
-        Đơn hàng của bạn đã được tiếp nhận và chuyển đến xưởng may đo L'Atelier để đóng gói chuẩn mực.
+      <p className="text-[10px] font-semibold tracking-[0.25em] text-[#C05A39] uppercase mb-1.5">
+        CONFIRMATION DE COMMANDE &bull; MAISON CENTRAL
       </p>
 
-      {/* Order Info Card */}
-      <div className="mt-8 p-6 sm:p-8 bg-slate-50 border border-slate-200 rounded-3xl text-left shadow-2xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-200 gap-2">
+      <h1 className="font-serif-luxury text-3xl sm:text-4xl font-normal text-[#161514] tracking-wide">
+        Đơn Hàng Đã Được Tiếp Nhận
+      </h1>
+
+      <p className="text-xs text-[#6B655D] mt-2.5 max-w-md mx-auto leading-relaxed">
+        Trân trọng cảm ơn quý khách. Grand Atelier Central đã tiếp nhận thông tin đơn hàng và đang chuẩn bị đóng gói trang phục gửi tới quý khách.
+      </p>
+
+      {/* Order Info Card (Editorial Certificate) */}
+      <div className="mt-10 p-8 bg-[#FAF8F5] border border-[#E5E0D8] text-left">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-[#E5E0D8] gap-4">
           <div>
-            <span className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Mã đơn hàng</span>
-            <p className="text-lg font-mono font-extrabold text-blue-900">{order.id}</p>
+            <span className="text-[10px] uppercase tracking-[0.2em] text-[#8C8476] font-semibold">
+              Mã đơn hàng
+            </span>
+            <p className="font-mono text-base font-semibold text-[#161514] mt-0.5 tracking-wider">
+              {order.id}
+            </p>
           </div>
           <div>
-            <span className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Ngày tạo</span>
-            <p className="text-xs font-semibold text-slate-800">
+            <span className="text-[10px] uppercase tracking-[0.2em] text-[#8C8476] font-semibold">
+              Thời điểm xác thực
+            </span>
+            <p className="text-xs text-[#161514] mt-0.5">
               {new Date(order.createdAt).toLocaleString('vi-VN')}
             </p>
           </div>
         </div>
 
         {/* Details Grid */}
-        <div className="py-6 border-b border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-          <div className="flex items-start gap-2.5">
-            <MapPin className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+        <div className="py-6 border-b border-[#E5E0D8] grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs">
+          <div className="flex items-start gap-3">
+            <MapPin className="w-4 h-4 text-[#C05A39] shrink-0 mt-0.5 stroke-[1.5]" />
             <div>
-              <p className="font-bold text-slate-900">Địa chỉ giao hàng</p>
-              <p className="text-slate-600 mt-0.5">{order.customer?.fullName} &bull; {order.customer?.phone}</p>
-              <p className="text-slate-500 mt-0.5">{order.customer?.address}</p>
+              <p className="text-[10px] uppercase tracking-wider font-semibold text-[#161514]">
+                Địa chỉ giao nhận tư gia
+              </p>
+              <p className="text-[#6B655D] mt-1 font-medium">{order.customer?.fullName} &bull; {order.customer?.phone}</p>
+              <p className="text-[#8C8476] mt-0.5 leading-relaxed">{order.customer?.address}</p>
             </div>
           </div>
 
-          <div className="flex items-start gap-2.5">
-            <CreditCard className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-3">
+            <CreditCard className="w-4 h-4 text-[#C05A39] shrink-0 mt-0.5 stroke-[1.5]" />
             <div>
-              <p className="font-bold text-slate-900">Phương thức thanh toán</p>
-              <p className="text-slate-600 mt-0.5">
-                {order.paymentMethod === 'COD' ? 'Thanh toán tiền mặt khi nhận hàng (COD)' : order.paymentMethod === 'BANK_TRANSFER' ? 'Chuyển khoản VietQR' : 'Cổng VNPay'}
+              <p className="text-[10px] uppercase tracking-wider font-semibold text-[#161514]">
+                Nghi thức thanh toán
               </p>
-              <p className="text-blue-900 font-extrabold text-sm mt-1">
+              <p className="text-[#6B655D] mt-1">
+                {order.paymentMethod === 'COD' ? 'Thanh toán khi nhận đồ (COD)' : order.paymentMethod === 'BANK_TRANSFER' ? 'Chuyển khoản VietQR' : 'Cổng VNPAY-QR'}
+              </p>
+              <p className="font-serif-luxury text-xl text-[#161514] mt-1.5 font-normal">
                 {(order.totalAmount || 0).toLocaleString('vi-VN')}₫
               </p>
             </div>
@@ -79,32 +89,34 @@ export default function OrderSuccess() {
         </div>
 
         {/* Estimated Delivery */}
-        <div className="pt-6 flex items-center justify-between text-xs">
-          <span className="flex items-center gap-2 text-slate-700">
-            <Calendar className="w-4 h-4 text-blue-700" />
-            <span>Thời gian dự kiến nhận hàng:</span>
+        <div className="pt-6 flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-2">
+          <span className="flex items-center gap-2 text-[#6B655D]">
+            <Calendar className="w-4 h-4 text-[#C05A39] stroke-[1.5]" />
+            <span>Thời gian hoàn tất và giao đến tư gia dự kiến:</span>
           </span>
-          <span className="font-bold text-slate-900">{order.estimatedDelivery || 'Trong vòng 2 - 3 ngày'}</span>
+          <span className="font-medium text-[#161514] tracking-wide">
+            {order.estimatedDelivery || 'Trong vòng 2 - 3 ngày làm việc'}
+          </span>
         </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="mt-8 flex flex-col sm:flex-row justify-center gap-3">
+      <div className="mt-10 flex flex-col sm:flex-row justify-center gap-3">
         <Link
           to="/orders"
-          className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full bg-slate-950 hover:bg-blue-900 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-md"
+          className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-[#C05A39] hover:bg-[#A64B2E] text-[#FAF8F5] text-xs font-medium tracking-[0.2em] uppercase transition-all cursor-pointer"
         >
-          <Package className="w-4 h-4" />
-          <span>Theo dõi đơn hàng của tôi</span>
-          <ArrowRight className="w-3.5 h-3.5" />
+          <Package className="w-3.5 h-3.5 stroke-[1.5]" />
+          <span>Theo Dõi Đơn Hàng Của Quý Khách</span>
+          <ArrowRight className="w-3.5 h-3.5 stroke-[1.5]" />
         </Link>
 
         <Link
           to="/catalog"
-          className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold uppercase tracking-wider transition-all"
+          className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-[#FAF8F5] hover:bg-[#FFFFFF] text-[#161514] text-xs font-medium tracking-[0.2em] uppercase border border-[#161514] transition-all cursor-pointer"
         >
-          <Home className="w-4 h-4" />
-          <span>Tiếp tục mua sắm</span>
+          <Home className="w-3.5 h-3.5 stroke-[1.5]" />
+          <span>Khám Phá Thêm Bộ Sưu Tập</span>
         </Link>
       </div>
     </div>
