@@ -31,3 +31,38 @@ export const searchByImage = async ({ image, page = 1, size = 20 }) => {
 
   return response.data;
 };
+
+export const searchByComposed = async ({
+  image,
+  imageId,
+  modificationText,
+  imageWeight = 0.6,
+  page = 1,
+  size = 20,
+}) => {
+  const formData = new FormData();
+  if (image) {
+    formData.append("image", image);
+  }
+  if (imageId) {
+    formData.append("imageId", imageId);
+  }
+  formData.append("text", modificationText);
+  if (imageWeight !== undefined && imageWeight !== null) {
+    formData.append("imageWeight", imageWeight);
+  }
+
+  const response = await apiClient.post("/search/composed", formData, {
+    params: {
+      page,
+      size,
+      limit: 100,
+    },
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+  return response.data;
+};
+

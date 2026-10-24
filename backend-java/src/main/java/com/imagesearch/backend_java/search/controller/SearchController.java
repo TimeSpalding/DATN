@@ -89,6 +89,30 @@ public class SearchController {
         return BaseResponse.success(data);
     }
 
+    @PostMapping("/composed")
+    @Operation(
+            summary = "Search images by composed query (Image + Text modification)",
+            description = "Searches images combining visual style from an uploaded image (or indexed imageId) and text modifications (color, pattern, etc.)."
+    )
+    public BaseResponse<ImageSearchResponse> searchByComposed(
+            @RequestParam(value = "image", required = false) MultipartFile image,
+            @RequestParam(value = "imageId", required = false) Long imageId,
+            @RequestParam("text") String modificationText,
+            @RequestParam(value = "imageWeight", required = false) Float imageWeight,
+            @RequestParam(value = "limit", required = false) Integer limit,
+            @RequestParam(value = "page", required = false) Integer page,
+            @RequestParam(value = "pageSize", required = false) Integer pageSize,
+            Authentication authentication
+    ) {
+        String username = username(authentication);
+        log.info("Entered searchByComposed API with text: '{}', imageId: {}", modificationText, imageId);
+        ImageSearchResponse data = searchService.searchByComposed(
+                image, imageId, modificationText, imageWeight, username, limit, page, pageSize
+        );
+        log.info("Completed searchByComposed API");
+        return BaseResponse.success(data);
+    }
+
     private String username(Authentication authentication) {
         return authentication == null ? null : authentication.getName();
     }

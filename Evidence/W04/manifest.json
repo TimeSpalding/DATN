@@ -1,0 +1,57 @@
+{
+  "milestone": "Tuan4",
+  "week": "W04",
+  "date": "2026-10-24",
+  "git_tag": "w04",
+  "project": "Multimodal Fashion Search & Retrieval Engine (Text, Image & Composed CIR)",
+  "institution": "Hoc vien Cong nghe Buu chinh Vien thong (PTIT)",
+  "faculty": "Khoa Cong nghe Thong tin",
+  "cohort": "D21",
+  "environment": {
+    "embedding_model": "patrickjohncyh/fashion-clip",
+    "embedding_dim": 512,
+    "translation_model": "Helsinki-NLP/opus-mt-vi-en",
+    "catalog_size": 1000,
+    "queries_evaluated": 108,
+    "breakdown": {
+      "text_search": 50,
+      "image_search": 29,
+      "composed_search": 29
+    }
+  },
+  "metrics_summary": {
+    "overall": {
+      "recall_at_1": {
+        "baseline": 0.3796,
+        "proposed": 0.75,
+        "delta": "+0.3704"
+      },
+      "recall_at_5": {
+        "baseline": 0.5,
+        "proposed": 0.7593,
+        "delta": "+0.2593"
+      },
+      "mAP": {
+        "baseline": 0.2015,
+        "proposed": 0.3116,
+        "delta": "+0.1101"
+      },
+      "ndcg_at_10": {
+        "baseline": 0.4498,
+        "proposed": 0.7596,
+        "delta": "+0.3098"
+      }
+    }
+  },
+  "files": {
+    "README.md": "Bao cao tien do mien tuan 4, phan cong nhiem vu SV, danh sach issues va pull requests",
+    "metrics.csv": "Bang du lieu dinh luong Recall@k, MRR, mAP, NDCG@10 cua 3 che do tim kiem",
+    "test-results.json": "Ket qua chi tiet 108 truy van kiem thu tren mo hinh AI that",
+    "test-results.html": "Ban bao cao giao dien HTML chuyen nghiep xuat PDF tieu chuan A4",
+    "figures/": {
+      "recall_comparison.png": "Bieu do so sanh Recall@1, 5, 10, 20 giua Baseline va Proposed",
+      "map_ndcg_comparison.png": "Bieu do danh gia mAP va NDCG@10",
+      "ablation_study.png": "Bieu do phan tich dong gop cua Bo dich vs Two-Stage Hybrid"
+    }
+  }
+}

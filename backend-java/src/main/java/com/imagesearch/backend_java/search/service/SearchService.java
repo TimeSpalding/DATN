@@ -11,6 +11,7 @@ import com.imagesearch.backend_java.image.service.ImageThumbnailService;
 import com.imagesearch.backend_java.image.service.MinIOService;
 import com.imagesearch.backend_java.search.common.SearchType;
 import com.imagesearch.backend_java.search.config.SearchConfig;
+import com.imagesearch.backend_java.search.dto.request.ComposedEmbeddingRequest;
 import com.imagesearch.backend_java.search.dto.request.EmbeddingRequest;
 import com.imagesearch.backend_java.search.dto.response.EmbeddingResponse;
 import com.imagesearch.backend_java.search.dto.response.ImageSearchResponse;
@@ -175,6 +176,150 @@ public class SearchService {
             return response;
         } catch (IOException e) {
             throw new SearchException("VECTOR_SEARCH_ERROR", "Could not search vectors", HttpStatus.INTERNAL_SERVER_ERROR, e);
+        }
+    }
+
+    /**
+     * Tìm kiếm lai (Composed Search): Kết hợp kiểu dáng từ ảnh + thuộc tính điều chỉnh từ text.
+     *
+     * @param image           File ảnh upload (nullable nếu dùng imageId)
+     * @param imageId         ID ảnh đã indexed trong catalog (nullable nếu dùng file upload)
+     * @param modificationText Text mô tả điều chỉnh ("áo kẻ, màu xanh rêu")
+     * @param imageWeight     Trọng số ảnh [0–1]; text nhận 1 - imageWeight. Mặc định 0.6
+     */
+    public ImageSearchResponse searchByComposed(
+            MultipartFile image,
+            Long imageId,
+            String modificationText,
+            Float imageWeight,
+            String username,
+            Integer limit,
+            Integer page,
+            Integer pageSize
+    ) {
+        long startTime = System.currentTimeMillis();
+        if ((image == null || image.isEmpty()) && imageId == null) {
+            throw new SearchException("IMAGE_REQUIRED", "Either image file or imageId must be provided", HttpStatus.BAD_REQUEST);
+        }
+        if (modificationText == null || modificationText.isBlank()) {
+            throw new SearchException("TEXT_REQUIRED", "modificationText is required", HttpStatus.BAD_REQUEST);
+        }
+        SearchPageCriteria pageCriteria = resolvePageCriteria(limit, page, pageSize);
+
+        try {
+            ComposedEmbeddingRequest composedReq;
+            String queryImageUrl;
+            String queryStoragePath;
+
+            if (imageId != null) {
+                // Dùng ảnh đã indexed — lấy vector sẵn từ Qdrant để tránh encode lại
+                ImageEntity indexedImage = imageRepository.findByIdAndDeletedFalse(imageId)
+                        .orElseThrow(() -> new SearchException("IMAGE_NOT_FOUND", "Image not found", HttpStatus.NOT_FOUND));
+
+                // Lấy vector sẵn từ Qdrant theo point ID; nếu không có (chưa indexed) thì fallback sang storagePath
+                List<Float> existingEmbedding = qdrantVectorService.getEmbeddingByPointId(imageId);
+
+                if (existingEmbedding != null && !existingEmbedding.isEmpty()) {
+                    composedReq = ComposedEmbeddingRequest.builder()
+                            .imageEmbedding(existingEmbedding)
+                            .modificationText(modificationText.trim())
+                            .imageWeight(imageWeight != null ? imageWeight : 0.6f)
+                            .build();
+                } else {
+                    composedReq = ComposedEmbeddingRequest.builder()
+                            .storagePath(indexedImage.getStoragePath())
+                            .modificationText(modificationText.trim())
+                            .imageWeight(imageWeight != null ? imageWeight : 0.6f)
+                            .build();
+                }
+
+                queryStoragePath = indexedImage.getStoragePath();
+                queryImageUrl = "/visual-search/v1/images/" + indexedImage.getId();
+            } else {
+                // Dùng ảnh upload mới
+                validateImage(image);
+                queryStoragePath = uploadQueryImage(image);
+                queryImageUrl = minIOService.getPresignedFileUrl(queryStoragePath);
+
+                composedReq = ComposedEmbeddingRequest.builder()
+                        .storagePath(queryStoragePath)
+                        .modificationText(modificationText.trim())
+                        .imageWeight(imageWeight != null ? imageWeight : 0.6f)
+                        .build();
+
+                // Lưu ảnh query vào DB (không cần index vào Qdrant — đây chỉ là ảnh tham chiếu)
+                ImageThumbnailService.ThumbnailResult thumbnail = imageThumbnailService.createThumbnail(image);
+                ImageEntity queryImage = ImageEntity.builder()
+                        .uploadedBy(resolveUser(username))
+                        .originalFileName(image.getOriginalFilename())
+                        .storagePath(queryStoragePath)
+                        .thumbnailPath(thumbnail.thumbnailPath())
+                        .mimeType(normalizeContentType(image.getContentType()))
+                        .fileSize(image.getSize())
+                        .width(thumbnail.width())
+                        .height(thumbnail.height())
+                        .indexStatus(null)
+                        .build();
+                imageRepository.save(queryImage);
+            }
+
+            // Gọi backend-ai để lấy composed embedding + merged filters
+            EmbeddingResponse embeddingResponse = aiEmbeddingClient.getComposedEmbedding(composedReq);
+            log.info("[Composed] Got composed embedding. Filters: {}", embeddingResponse.getFilters());
+
+            List<Float> embedding = embeddingResponse.getEmbedding();
+            Map<String, List<String>> mergedFilters = embeddingResponse.getFilters();
+
+            // Tự động thêm view_angle: mặt trước nếu text không đề cập
+            boolean autoAddedViewAngle = false;
+            if (mergedFilters == null) {
+                mergedFilters = new java.util.HashMap<>();
+            }
+            if (!mergedFilters.containsKey("view_angle")) {
+                mergedFilters.put("view_angle", Collections.singletonList("mặt trước"));
+                autoAddedViewAngle = true;
+            }
+
+            // Fetch nhiều ứng viên hơn để re-rank
+            int fetchLimit = Math.max(pageCriteria.limit() * 3, 50);
+            List<SearchResultItem> rawResults = searchQdrant(embedding, mergedFilters, fetchLimit);
+
+            // Fallback 1: gỡ view_angle nếu 0 kết quả
+            if (rawResults.isEmpty() && autoAddedViewAngle) {
+                log.warn("[Composed] 0 results with view_angle filter — retrying without it");
+                mergedFilters.remove("view_angle");
+                rawResults = searchQdrant(embedding, mergedFilters, fetchLimit);
+            }
+            // Fallback 2: pure vector search
+            if (rawResults.isEmpty() && !mergedFilters.isEmpty()) {
+                log.warn("[Composed] Still 0 results — fallback to pure vector search");
+                rawResults = searchQdrant(embedding, null, fetchLimit);
+            }
+
+            // Re-rank theo thuộc tính đã merge
+            List<SearchResultItem> results = rerankByAttributes(rawResults, mergedFilters, pageCriteria.limit());
+
+            // Lưu lịch sử
+            SearchHistory history = pageCriteria.page() == 0 ? saveHistory(
+                    username, SearchType.COMPOSED,
+                    modificationText.trim(), queryStoragePath, imageId, startTime
+            ) : null;
+
+            ImageSearchResponse response = new ImageSearchResponse();
+            response.setSearchId(history == null ? null : history.getId());
+            response.setSearchType(SearchType.COMPOSED.name());
+            response.setQueryImageUrl(queryImageUrl);
+            response.setProcessingTimeMs(history == null
+                    ? System.currentTimeMillis() - startTime
+                    : history.getProcessingTimeMs());
+            applyPage(response, results, pageCriteria);
+            return response;
+
+        } catch (SearchException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("[Composed] Error: {}", e.getMessage(), e);
+            throw new SearchException("COMPOSED_SEARCH_ERROR", "Could not perform composed search", HttpStatus.INTERNAL_SERVER_ERROR, e);
         }
     }
 

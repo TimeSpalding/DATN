@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
 import { 
   FaBookmark, FaFileImage, FaHashtag, FaImage, FaInfoCircle, 
-  FaRulerCombined, FaSearch, FaStar, FaTimes, FaChevronDown, FaChevronUp 
+  FaRulerCombined, FaSearch, FaStar, FaTimes, FaChevronDown, FaChevronUp,
+  FaSlidersH
 } from "react-icons/fa";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatScore } from "../../utils/formatScore";
 import { resolveImageUrl } from "../../utils/imageUrl";
 import { saveBookmark } from "../../services/bookmarkService";
 import { ImageWithFallback } from "./ImageWithFallback";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const DetailRow = ({ icon: Icon, label, value, highlight = false }) => (
   <div className="flex items-center justify-between gap-4 border-b border-zinc-200/70 pb-3">
@@ -29,6 +30,9 @@ const DetailRow = ({ icon: Icon, label, value, highlight = false }) => (
 
 export const SearchDetailModal = ({ isOpen, result, onClose, onSearchSimilar }) => {
   const [showDetails, setShowDetails] = useState(false);
+  const [showComposedInput, setShowComposedInput] = useState(false);
+  const [composedText, setComposedText] = useState("");
+  const navigate = useNavigate();
 
   const queryClient = useQueryClient();
   const saveBookmarkMutation = useMutation({
@@ -41,7 +45,17 @@ export const SearchDetailModal = ({ isOpen, result, onClose, onSearchSimilar }) 
 
   useEffect(() => {
     resetSaveBookmark();
+    setShowComposedInput(false);
+    setComposedText("");
   }, [isOpen, result?.imageId, resetSaveBookmark]);
+
+  const handleComposedSearch = (e) => {
+    if (e) e.preventDefault();
+    if (!composedText.trim() || !result?.imageId) return;
+    onClose?.();
+    navigate(`/search-result?type=composed&imageId=${result.imageId}&text=${encodeURIComponent(composedText.trim())}&page=1&size=20`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   if (!isOpen || !result) return null;
 
@@ -184,6 +198,60 @@ export const SearchDetailModal = ({ isOpen, result, onClose, onSearchSimilar }) 
               <p className="mb-3 rounded-lg bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700">
                 Ảnh mock này đang trỏ tới ảnh thật IMG-{result.imageId}, có thể lưu vào Bookmark.
               </p>
+            )}
+
+            {/* Nút Tìm kiếm lai (Composed Search) */}
+            {result.imageId && (
+              <div className="mb-4">
+                {!showComposedInput ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowComposedInput(true)}
+                    className="cursor-pointer inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-md transition hover:from-violet-700 hover:to-indigo-700"
+                  >
+                    <FaSlidersH className="h-4 w-4" />
+                    Tìm kiểu này với mô tả khác (Search lai)
+                  </button>
+                ) : (
+                  <form
+                    onSubmit={handleComposedSearch}
+                    className="rounded-xl border border-indigo-200 bg-indigo-50/80 p-3.5 shadow-sm"
+                  >
+                    <div className="mb-1.5 flex items-center justify-between">
+                      <span className="text-xs font-bold text-indigo-900">
+                        Mô tả thay đổi từ ảnh này:
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowComposedInput(false);
+                          setComposedText("");
+                        }}
+                        className="text-xs text-gray-500 hover:text-red-600 cursor-pointer"
+                      >
+                        Đóng
+                      </button>
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={composedText}
+                        onChange={(e) => setComposedText(e.target.value)}
+                        placeholder="VD: áo kẻ, màu xanh rêu, tay ngắn..."
+                        autoFocus
+                        className="flex-1 rounded-lg border border-indigo-300 bg-white px-3 py-2 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                      <button
+                        type="submit"
+                        disabled={!composedText.trim()}
+                        className="cursor-pointer shrink-0 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50"
+                      >
+                        Tìm ngay
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
             )}
 
             <div className="grid gap-3 sm:grid-cols-2">

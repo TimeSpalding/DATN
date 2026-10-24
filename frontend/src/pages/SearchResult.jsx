@@ -1,11 +1,11 @@
 import { useMemo, useState, useEffect } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { keepPreviousData, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { FaAlignLeft, FaChevronLeft, FaChevronRight, FaFont, FaImage, FaArrowLeft, FaArrowUp, FaCheckCircle } from "react-icons/fa";
+import { FaAlignLeft, FaChevronLeft, FaChevronRight, FaFont, FaImage, FaArrowLeft, FaArrowUp, FaCheckCircle, FaSlidersH } from "react-icons/fa";
 import { FiArrowDown, FiTrash2, FiCheck } from "react-icons/fi";
 import { SearchDetailModal } from "../components/common/SearchDetailModal";
 import { getMockSearchResponse } from "../mocks/searchResultsMock";
-import { searchByImage, searchByText } from "../services/searchService";
+import { searchByImage, searchByText, searchByComposed } from "../services/searchService";
 import { searchSimilarImages } from "../services/searchSimilarService";
 import { deleteImageByAdmin, deleteImagesByAdmin } from "../services/adminImageService";
 import { ImageWithFallback } from "../components/common/ImageWithFallback";
@@ -37,6 +37,7 @@ const breakpointColumnsObj = {
 };
 
 const getModeLabel = (type, mode) => {
+  if (type === "composed") return "Tìm kiếm lai (Ảnh + Text)";
   if (type === "similar") return "Tìm ảnh tương tự";
   if (type === "image") return "Tìm bằng ảnh";
   if (mode === "OCR") return "Tìm chữ trong ảnh";
@@ -44,6 +45,7 @@ const getModeLabel = (type, mode) => {
 };
 
 const getDescriptionLabel = (type, mode) => {
+  if (type === "composed") return "Mô tả điều chỉnh cho ảnh";
   if (type === "similar") return "Kết quả tương tự cho ảnh";
   if (type === "image") return "Kết quả cho ảnh";
   if (mode === "OCR") return "Kết quả cho chữ";
@@ -92,10 +94,12 @@ export const SearchResult = () => {
   const isImageSearch = type === "image";
   const isSimilarSearch = type === "similar";
   const isTextSearch = type === "text";
+  const isComposedSearch = type === "composed";
   const isAdmin = role === "ADMIN";
-  const canAdminBulkDelete = isAdmin && !USE_MOCK_SEARCH_RESULTS && (isImageSearch || isTextSearch || isSimilarSearch);
+  const canAdminBulkDelete = isAdmin && !USE_MOCK_SEARCH_RESULTS && (isImageSearch || isTextSearch || isSimilarSearch || isComposedSearch);
 
   const query = searchParams.get("q") || searchState.query || "";
+  const modificationText = searchParams.get("text") || searchState.modificationText || query || "";
   const imageId = searchParams.get("imageId") || searchState.imageId || null;
   const mode = (searchParams.get("mode") || searchState.mode || "SEMANTIC").toUpperCase();
 
@@ -103,11 +107,17 @@ export const SearchResult = () => {
 
   const imageFile = searchState.imageFile || searchStore.imageFile;
 
-  const canSearch = isImageSearch ? !!imageFile : isSimilarSearch ? !!imageId : !!query.trim();
+  const canSearch = isImageSearch
+    ? !!imageFile
+    : isSimilarSearch
+      ? !!imageId
+      : isComposedSearch
+        ? (!!imageFile || !!imageId) && !!modificationText.trim()
+        : !!query.trim();
   const canShowResults = USE_MOCK_SEARCH_RESULTS || canSearch;
 
   const initialPage = Math.max(Number(searchParams.get("page") || 1), 1);
-  const searchQueryKey = ["search-results", type, query, mode, size, imageFile?.name, imageId];
+  const searchQueryKey = ["search-results", type, query, mode, size, imageFile?.name, imageId, modificationText];
 
   const searchQuery = useInfiniteQuery({
     queryKey: searchQueryKey,
@@ -118,11 +128,22 @@ export const SearchResult = () => {
         return getMockSearchResponse({
           page: pageParam,
           size,
-          searchType: isImageSearch ? "IMAGE_TO_IMAGE" : mode,
+          searchType: isImageSearch ? "IMAGE_TO_IMAGE" : isComposedSearch ? "COMPOSED" : mode,
         });
       }
 
       try {
+        if (isComposedSearch) {
+          const res = await searchByComposed({
+            image: imageFile,
+            imageId: imageId ? Number(imageId) : null,
+            modificationText: modificationText,
+            page: pageParam,
+            size,
+          });
+          if (res?.data?.results?.length > 0) return res;
+        }
+
         if (isSimilarSearch && imageId) {
           const res = await searchSimilarImages(Number(imageId), pageParam, size);
           if (res?.data?.results?.length > 0) return res;
@@ -144,7 +165,7 @@ export const SearchResult = () => {
       return getMockSearchResponse({
         page: pageParam,
         size,
-        searchType: isImageSearch ? "IMAGE_TO_IMAGE" : mode,
+        searchType: isImageSearch ? "IMAGE_TO_IMAGE" : isComposedSearch ? "COMPOSED" : mode,
       });
     },
     getNextPageParam: (lastPageRaw) => {
@@ -301,12 +322,15 @@ export const SearchResult = () => {
   }, [canAdminBulkDelete, searchData.results]);
 
   const previewImageUrl = useMemo(() => {
-    if (isImageSearch && imageFile) return URL.createObjectURL(imageFile);
-    if (isSimilarSearch && searchData?.queryImageUrl) {
+    if ((isImageSearch || isComposedSearch) && imageFile) return URL.createObjectURL(imageFile);
+    if ((isSimilarSearch || isComposedSearch) && searchData?.queryImageUrl) {
       return searchData.queryImageUrl;
     }
+    if (isComposedSearch && imageId) {
+      return `/visual-search/v1/images/${imageId}`;
+    }
     return null;
-  }, [imageFile, isImageSearch, isSimilarSearch, searchData?.queryImageUrl]);
+  }, [imageFile, isImageSearch, isSimilarSearch, isComposedSearch, imageId, searchData?.queryImageUrl]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -354,11 +378,13 @@ export const SearchResult = () => {
   const descriptionLabel = getDescriptionLabel(type, mode);
   const descriptionValue = USE_MOCK_SEARCH_RESULTS
     ? "dữ liệu mock"
-    : isSimilarSearch
-      ? `ảnh có ID: #${imageId}`
-      : isImageSearch
-        ? imageFile?.name || "ảnh đã tải lên"
-        : query;
+    : isComposedSearch
+      ? modificationText
+      : isSimilarSearch
+        ? `ảnh có ID: #${imageId}`
+        : isImageSearch
+          ? imageFile?.name || "ảnh đã tải lên"
+          : query;
 
   const visibleImageIds = useMemo(
     () => [...new Set(searchData.results.map((item) => item.imageId))],
@@ -480,7 +506,29 @@ export const SearchResult = () => {
               Kết quả tìm kiếm
             </h1>
             <div className="mt-2 flex flex-wrap items-center gap-3">
-              {isImageSearch || isSimilarSearch ? (
+              {isComposedSearch ? (
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-base leading-7 text-gray-700">
+                    Ảnh mẫu:
+                  </span>
+                  {previewImageUrl && (
+                    <div className="h-20 w-20 overflow-hidden rounded-xl border border-gray-200 bg-gray-50 shadow-sm">
+                      <ImageWithFallback
+                        src={previewImageUrl}
+                        alt="Ảnh mẫu"
+                        className="h-full w-full object-cover p-1"
+                      />
+                    </div>
+                  )}
+                  <span className="text-gray-400 font-bold text-lg">+</span>
+                  <span className="text-base leading-7 text-gray-700">
+                    Điều chỉnh:{" "}
+                    <span className="font-semibold text-indigo-800 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-lg">
+                      "{descriptionValue}"
+                    </span>
+                  </span>
+                </div>
+              ) : isImageSearch || isSimilarSearch ? (
                 <div className="flex items-center gap-3">
                   <span className="text-base leading-7 text-gray-700">
                     {descriptionLabel}:
@@ -508,7 +556,9 @@ export const SearchResult = () => {
               )}
 
               <span className="inline-flex items-center gap-2 rounded-full bg-indigo-700/10 px-3 py-1 text-sm font-medium text-indigo-700">
-                {type === "image" ? (
+                {type === "composed" ? (
+                  <FaSlidersH className="h-3.5 w-3.5" />
+                ) : type === "image" ? (
                   <FaImage className="h-3.5 w-3.5" />
                 ) : mode === "OCR" ? (
                   <FaFont className="h-3.5 w-3.5" />
