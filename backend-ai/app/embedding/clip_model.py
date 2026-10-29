@@ -190,7 +190,7 @@ _ATTRIBUTE_ALIASES: dict[str, dict[str, str]] = {
         "quần tây": "quần âu"
     },
     "color": {
-        "sữa": "be", "trắng ngà": "be", "kem": "be", "vàng chanh": "vàng", "đỏ đô": "đỏ"
+        "sữa": "be", "trắng ngà": "be", "kem": "be", "xanh lá cây": "xanh lá", "vàng chanh": "vàng", "đỏ đô": "đỏ"
     },
     "pattern": {
         "kẻ ô": "caro", "kẻ caro": "caro", "kẻ vuông": "caro", "ô vuông": "caro", "sọc caro": "caro"
@@ -201,6 +201,39 @@ _ATTRIBUTE_ALIASES: dict[str, dict[str, str]] = {
         "tay dài": "dài tay"
     }
 }
+
+# Merge unaccented aliases
+_UNACCENTED_ALIASES = {
+    "color": {
+        "mau do": "đỏ", "do": "đỏ", "mau den": "đen", "den": "đen", "mau trang": "trắng", "trang": "trắng",
+        "mau vang": "vàng", "vang": "vàng",  
+        "xanh la": "xanh lá", "mau xanh la": "xanh lá", "xanh duong": "xanh dương", "mau xanh duong": "xanh dương",
+        "mau hong": "hồng", "hong": "hồng", "mau cam": "cam", "mau tim": "tím", "tim": "tím",
+        "mau nau": "nâu", "nau": "nâu", "mau xam": "xám", "xam": "xám"
+    },
+    "category": {
+        "ao thun": "áo thun", "ao phong": "áo thun", "ao so mi": "áo sơ mi", "so mi": "áo sơ mi",
+        "ao polo": "áo polo", "polo": "áo polo", "ao da bong": "áo đá bóng", "ao bong da": "áo đá bóng",
+        "ao len": "áo len", "ao hoodie": "áo hoodie", "ao khoac": "áo khoác", "ao vest": "đồ vest",
+        "quan jean": "quần jean", "quan bo": "quần jean", "quan short": "quần short", "quan dui": "quần short",
+        "quan au": "quần âu", "quan tay": "quần âu", "chan vay": "chân váy", "vay dam": "váy đầm",
+        "giay": "giày sneaker", "giay the thao": "giày sneaker"
+    },
+    "pattern": {
+        "ke soc": "sọc", "soc": "sọc", "ke caro": "caro", "caro": "caro", "tron": "trơn"
+    },
+    "sleeve": {
+        "tay ngan": "ngắn tay", "ngan tay": "ngắn tay", "coc tay": "ngắn tay",
+        "tay dai": "dài tay", "dai tay": "dài tay"
+    },
+    "neckline": {
+        "co co": "có cổ", "khong co": "không cổ"
+    }
+}
+for _cat, _aliases in _UNACCENTED_ALIASES.items():
+    if _cat in _ATTRIBUTE_ALIASES:
+        _ATTRIBUTE_ALIASES[_cat].update(_aliases)
+
 
 # Từ điển Việt hóa cho từng nhãn trong _ATTRIBUTE_VOCAB — dùng để dịch kết quả
 # predict_all_attributes_batch() sang tiếng Việt trước khi lưu vào metadata_ai.
@@ -460,7 +493,9 @@ class CLIPModelWrapper:
         # Alias Mapping: Đổi các từ lóng thành từ chuẩn trong từ điển VI_LABELS.
         # Cả alias_key và standard_val đều được NFC-normalize khi so khớp.
         for attr_name, aliases in _ATTRIBUTE_ALIASES.items():
-            for alias_key, standard_val in aliases.items():
+            # Sort aliases by word length descending so longer phrases match first
+            sorted_alias_items = sorted(aliases.items(), key=lambda kv: len(kv[0]), reverse=True)
+            for alias_key, standard_val in sorted_alias_items:
                 nfc_key = unicodedata.normalize("NFC", alias_key)
                 nfc_val = unicodedata.normalize("NFC", standard_val)
                 padded = padded.replace(f" {nfc_key} ", f" {nfc_val} ")
@@ -510,3 +545,30 @@ class CLIPModelWrapper:
 
 
 clip_model = CLIPModelWrapper()
+
+
+# Các loại trang phục không có tay áo / cổ áo
+NO_SLEEVE_NECK = {
+    "quần jean", "quần âu", "quần short", "chân váy",
+    "giày sneaker", "mũ", "mũ lưỡi trai", "túi xách"
+}
+
+_CATEGORY_GROUPS = [
+    {"áo thun", "áo polo", "áo sơ mi", "áo đá bóng", "áo thể thao", "áo ba lỗ", "áo croptop", "áo len", "áo hoodie", "áo khoác", "áo choàng", "đồ vest", "áo dài"},
+    {"quần jean", "quần âu", "quần short", "chân váy"},
+    {"váy đầm", "váy đầm ngủ", "áo dài"},
+    {"giày sneaker"},
+    {"mũ", "mũ lưỡi trai"},
+    {"túi xách"}
+]
+
+def expand_category_group(categories: list[str]) -> list[str]:
+    """Mở rộng category thành nhóm tương đồng lớn để filter không bị quá khắt khe"""
+    if not categories:
+        return []
+    res = set(categories)
+    for cat in categories:
+        for grp in _CATEGORY_GROUPS:
+            if cat in grp:
+                res.update(grp)
+    return list(res)

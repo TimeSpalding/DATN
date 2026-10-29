@@ -142,32 +142,52 @@ export const SearchResult = () => {
             page: pageParam,
             size,
           });
-          if (res?.data?.results?.length > 0) return res;
+          if (res?.data) return res;
         }
 
         if (isSimilarSearch && imageId) {
           const res = await searchSimilarImages(Number(imageId), pageParam, size);
-          if (res?.data?.results?.length > 0) return res;
+          if (res?.data) return res;
         }
 
         if (isImageSearch) {
           const res = await searchByImage({ image: imageFile, page: pageParam, size });
-          if (res?.data?.results?.length > 0) return res;
+          if (res?.data) return res;
         }
 
         if (isTextSearch) {
           const res = await searchByText({ query, mode, page: pageParam, size });
-          if (res?.data?.results?.length > 0) return res;
+          if (res?.data) return res;
         }
       } catch (err) {
-        console.warn("Backend search returned error or empty, using fashion catalog mock:", err?.message);
+        console.warn("Backend search returned error:", err?.message);
+        if (USE_MOCK_SEARCH_RESULTS) {
+          return getMockSearchResponse({
+            page: pageParam,
+            size,
+            searchType: isImageSearch ? "IMAGE_TO_IMAGE" : isComposedSearch ? "COMPOSED" : mode,
+          });
+        }
+        throw err;
       }
 
-      return getMockSearchResponse({
-        page: pageParam,
-        size,
-        searchType: isImageSearch ? "IMAGE_TO_IMAGE" : isComposedSearch ? "COMPOSED" : mode,
-      });
+      if (USE_MOCK_SEARCH_RESULTS) {
+        return getMockSearchResponse({
+          page: pageParam,
+          size,
+          searchType: isImageSearch ? "IMAGE_TO_IMAGE" : isComposedSearch ? "COMPOSED" : mode,
+        });
+      }
+
+      return {
+        data: {
+          results: [],
+          totalElements: 0,
+          totalPages: 0,
+          page: pageParam,
+          size,
+        }
+      };
     },
     getNextPageParam: (lastPageRaw) => {
       const lastPage = normalizeSearchResponse(lastPageRaw);

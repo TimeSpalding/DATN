@@ -100,11 +100,11 @@ public class SearchService {
             Map<String, List<String>> queryFilters = embeddingResponse.getFilters();
             
             // Lấy lượng ứng viên lớn hơn (vd: limit x 3 hoặc tối đa 50) để re-rank
-            int fetchLimit = Math.max(pageCriteria.limit() * 3, 50);
+            int fetchLimit = Math.max(pageCriteria.limit() * 10, 200);
             List<SearchResultItem> rawResults = searchQdrant(embedding, fetchLimit);
             
             // Re-rank bằng hybrid score (Cosine + Attribute Overlap)
-            List<SearchResultItem> results = rerankByAttributes(rawResults, queryFilters, pageCriteria.limit());
+            List<SearchResultItem> results = rerankByAttributes(rawResults, queryFilters, java.util.Collections.emptyList(), pageCriteria.limit());
             SearchHistory history = pageCriteria.page() == 0 ? saveHistory(
                     username,
                     SearchType.IMAGE_TO_IMAGE,
@@ -139,7 +139,7 @@ public class SearchService {
 
         try {
             // Lấy lượng ứng viên lớn hơn (vd: limit x 3 hoặc tối đa 50) để re-rank
-            int fetchLimit = Math.max(pageCriteria.limit() * 3, 50);
+            int fetchLimit = Math.max(pageCriteria.limit() * 10, 200);
             JsonObject rawResult = qdrantVectorService.searchByPointId(imageId, fetchLimit + 1);
             List<SearchResultItem> rawResults = mapQdrantResults(rawResult, imageId);
             
@@ -157,7 +157,7 @@ public class SearchService {
                 }
             }
             
-            List<SearchResultItem> results = rerankByAttributes(rawResults, queryFilters, pageCriteria.limit());
+            List<SearchResultItem> results = rerankByAttributes(rawResults, queryFilters, java.util.Collections.emptyList(), pageCriteria.limit());
             SearchHistory history = pageCriteria.page() == 0 ? saveHistory(
                     username,
                     SearchType.IMAGE_TO_IMAGE,
@@ -268,36 +268,41 @@ public class SearchService {
             log.info("[Composed] Got composed embedding. Filters: {}", embeddingResponse.getFilters());
 
             List<Float> embedding = embeddingResponse.getEmbedding();
-            Map<String, List<String>> mergedFilters = embeddingResponse.getFilters();
+            Map<String, List<String>> rawFilters = embeddingResponse.getFilters();
 
-            // Tự động thêm view_angle: mặt trước nếu text không đề cập
-            boolean autoAddedViewAngle = false;
-            if (mergedFilters == null) {
-                mergedFilters = new java.util.HashMap<>();
+            // Tách riêng: hardFilters (chỉ category lớn cho Qdrant) & targetAttributes (để re-rank mềm)
+            Map<String, List<String>> targetAttributes = new java.util.HashMap<>();
+            Map<String, List<String>> hardFilters = new java.util.HashMap<>();
+            if (rawFilters != null) {
+                for (Map.Entry<String, List<String>> entry : rawFilters.entrySet()) {
+                    String key = entry.getKey();
+                    if (key.startsWith("target_")) {
+                        targetAttributes.put(key.substring(7), entry.getValue());
+                    } else if (!key.equals("textKeys")) {
+                        hardFilters.put(key, entry.getValue());
+                    }
+                }
             }
-            if (!mergedFilters.containsKey("view_angle")) {
-                mergedFilters.put("view_angle", Collections.singletonList("mặt trước"));
-                autoAddedViewAngle = true;
+            log.info("[Composed] hardFilters={}, targetAttributes={}", hardFilters, targetAttributes);
+
+            // Lấy 200 ứng viên từ Qdrant theo hard filter (loại trừ chính ảnh gốc imageId nếu có)
+            int fetchLimit = Math.max(pageCriteria.limit() * 10, 200);
+            List<SearchResultItem> rawResults = searchQdrant(embedding, hardFilters, fetchLimit, imageId);
+
+            // Fallback: nếu filter category quá hẹp không có kết quả, nới lỏng sang pure vector search
+            if (rawResults.isEmpty() && !hardFilters.isEmpty()) {
+                log.warn("[Composed] 0 results with hardFilters — fallback to pure vector search");
+                rawResults = searchQdrant(embedding, null, fetchLimit, imageId);
             }
 
-            // Fetch nhiều ứng viên hơn để re-rank
-            int fetchLimit = Math.max(pageCriteria.limit() * 3, 50);
-            List<SearchResultItem> rawResults = searchQdrant(embedding, mergedFilters, fetchLimit);
-
-            // Fallback 1: gỡ view_angle nếu 0 kết quả
-            if (rawResults.isEmpty() && autoAddedViewAngle) {
-                log.warn("[Composed] 0 results with view_angle filter — retrying without it");
-                mergedFilters.remove("view_angle");
-                rawResults = searchQdrant(embedding, mergedFilters, fetchLimit);
-            }
-            // Fallback 2: pure vector search
-            if (rawResults.isEmpty() && !mergedFilters.isEmpty()) {
-                log.warn("[Composed] Still 0 results — fallback to pure vector search");
-                rawResults = searchQdrant(embedding, null, fetchLimit);
+            // Trích textKeys để weighted re-rank
+            List<String> textKeysList = new java.util.ArrayList<>();
+            if (rawFilters != null && rawFilters.containsKey("textKeys")) {
+                textKeysList = rawFilters.get("textKeys");
             }
 
-            // Re-rank theo thuộc tính đã merge
-            List<SearchResultItem> results = rerankByAttributes(rawResults, mergedFilters, pageCriteria.limit());
+            // Re-rank mềm ứng viên theo target attributes (weighted + penalty)
+            List<SearchResultItem> results = rerankByAttributes(rawResults, targetAttributes, textKeysList, pageCriteria.limit());
 
             // Lưu lịch sử
             SearchHistory history = pageCriteria.page() == 0 ? saveHistory(
@@ -416,8 +421,12 @@ public class SearchService {
     }
 
     private List<SearchResultItem> searchQdrant(List<Float> embedding, Map<String, List<String>> filters, int limit) throws IOException {
+        return searchQdrant(embedding, filters, limit, null);
+    }
+
+    private List<SearchResultItem> searchQdrant(List<Float> embedding, Map<String, List<String>> filters, int limit, Long excludedImageId) throws IOException {
         JsonObject rawResult = qdrantVectorService.searchByEmbedding(embedding, limit, filters);
-        return mapQdrantResults(rawResult, null);
+        return mapQdrantResults(rawResult, excludedImageId);
     }
 
     private List<SearchResultItem> mapQdrantResults(JsonObject rawResult, Long excludedImageId) {
@@ -646,66 +655,93 @@ public class SearchService {
     private record SearchPageCriteria(int limit, int page, int pageSize) {
     }
 
+    /**
+     * Re-rank ứng viên theo weighted attribute overlap + penalty.
+     * Trọng số: textKeys=3.0, category=2.0, others=1.0
+     * Penalty x0.35 nếu sản phẩm có attribute user yêu cầu nhưng sai giá trị.
+     * Công thức: 0.35*normCos + 0.65*weightedOverlap  (×0.35 nếu penalized)
+     */
     private List<SearchResultItem> rerankByAttributes(
             List<SearchResultItem> candidates,
             Map<String, List<String>> queryAttributes,
+            List<String> textKeys,
             int finalLimit
     ) {
-        if (queryAttributes == null || queryAttributes.isEmpty() || candidates.isEmpty()) {
-            return candidates.stream().limit(finalLimit).toList();
+        if (candidates.isEmpty()) return candidates;
+
+        List<String> keysToMatch = List.of("category", "color", "pattern", "sleeve", "neckline", "style", "gender");
+        boolean hasQueryAttrs = queryAttributes != null && !queryAttributes.isEmpty();
+        java.util.Set<String> textKeySet = (textKeys != null) ? new java.util.HashSet<>(textKeys) : java.util.Collections.emptySet();
+
+        // Build weight map
+        java.util.Map<String, Float> weightMap = new java.util.HashMap<>();
+        for (String k : keysToMatch) {
+            float w = 1.0f;
+            if (textKeySet.contains(k)) w = 3.0f;
+            if ("category".equals(k)) w = Math.max(w, 2.0f);
+            weightMap.put(k, w);
         }
 
-        List<String> keysToMatch = List.of("category", "color", "pattern", "sleeve", "neckline");
+        // Min-Max normalize cosine scores
+        float minCos = Float.MAX_VALUE, maxCos = -Float.MAX_VALUE;
+        for (SearchResultItem ci : candidates) {
+            float s = ci.getSimilarityScore() != null ? ci.getSimilarityScore() : 0f;
+            if (s < minCos) minCos = s;
+            if (s > maxCos) maxCos = s;
+        }
+        float cosRange = maxCos - minCos + 1e-6f;
 
         for (SearchResultItem item : candidates) {
-            String metadataJson = item.getMetadataAi();
-            if (metadataJson == null || metadataJson.isEmpty()) {
-                item.setSimilarityScore(0.75f * (item.getSimilarityScore() != null ? item.getSimilarityScore() : 0f));
-                continue;
-            }
-
-            com.google.gson.JsonObject candidateAttrs = null;
-            try {
-                candidateAttrs = com.google.gson.JsonParser.parseString(metadataJson).getAsJsonObject();
-            } catch (Exception e) {
-                // Ignore parse error
-            }
-
-            if (candidateAttrs == null) {
-                item.setSimilarityScore(0.75f * (item.getSimilarityScore() != null ? item.getSimilarityScore() : 0f));
-                continue;
-            }
-
-            int matchCount = 0;
-            for (String key : keysToMatch) {
-                List<String> qVals = queryAttributes.get(key);
-                if (qVals == null || qVals.isEmpty()) continue;
-                
-                String qStr = qVals.get(0);
-                String cStr = candidateAttrs.has(key) && !candidateAttrs.get(key).isJsonNull() 
-                                ? candidateAttrs.get(key).getAsString() : null;
-
-                if (qStr != null && cStr != null && qStr.equalsIgnoreCase(cStr)) {
-                    matchCount++;
-                }
-            }
-            
-            float attrOverlap = (float) matchCount / keysToMatch.size();
             float cosineScore = item.getSimilarityScore() != null ? item.getSimilarityScore() : 0f;
-            float hybridScore = 0.75f * cosineScore + 0.25f * attrOverlap;
+            float normCos = (cosineScore - minCos) / cosRange;
+
+            float weightedOverlap = 0f;
+            boolean penalized = false;
+
+            if (hasQueryAttrs) {
+                String metadataJson = item.getMetadataAi();
+                com.google.gson.JsonObject candidateAttrs = null;
+                if (metadataJson != null && !metadataJson.isEmpty()) {
+                    try {
+                        candidateAttrs = com.google.gson.JsonParser.parseString(metadataJson).getAsJsonObject();
+                    } catch (Exception ignored) {}
+                }
+
+                float totalWeight = 0f, matchedWeight = 0f;
+                for (String key : keysToMatch) {
+                    List<String> qVals = queryAttributes.get(key);
+                    if (qVals == null || qVals.isEmpty()) continue;
+                    float w = weightMap.getOrDefault(key, 1.0f);
+                    totalWeight += w;
+                    String qStr = qVals.get(0);
+                    if (candidateAttrs != null && candidateAttrs.has(key) && !candidateAttrs.get(key).isJsonNull()) {
+                        String cStr = candidateAttrs.get(key).getAsString();
+                        if (qStr != null && qStr.equalsIgnoreCase(cStr)) {
+                            matchedWeight += w;
+                        } else if (textKeySet.contains(key)) {
+                            penalized = true; // user yêu cầu key này nhưng sai giá trị
+                        }
+                    }
+                }
+                if (totalWeight > 0f) weightedOverlap = matchedWeight / totalWeight;
+            }
+
+            float hybridScore = 0.35f * normCos + 0.65f * weightedOverlap;
+            if (penalized) hybridScore *= 0.35f;
+
+            log.debug("[Rerank] normCos={} overlap={} pen={} hybrid={}", normCos, weightedOverlap, penalized, hybridScore);
             item.setSimilarityScore(hybridScore);
         }
 
-        // Sort descending by new hybrid score and re-assign rank position
         List<SearchResultItem> sorted = candidates.stream()
                 .sorted((a, b) -> Float.compare(b.getSimilarityScore(), a.getSimilarityScore()))
                 .limit(finalLimit)
                 .toList();
-                
+
         for (int i = 0; i < sorted.size(); i++) {
             sorted.get(i).setRankPosition(i + 1);
         }
-        
+
         return sorted;
     }
 

@@ -26,7 +26,6 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 @Slf4j(topic = "SEARCH-CONTROLLER")
 @Tag(name = "Search", description = "APIs for searching images by uploaded image or text")
-@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 @SecurityRequirement(name = "bearerAuth")
 public class SearchController {
     private final SearchService searchService;
