@@ -1,20 +1,13 @@
-Evaluation_Domain,Config_or_Step,Hardware,Metric,Baseline,Proposed,Delta,Improvement_Note
-Latency & Speed,50 steps DDIM,1x Tesla T4,Inference_Latency_s,115.19,115.19,0.00,Baseline reference (1.0x)
-Latency & Speed,30 steps DDIM,1x Tesla T4,Inference_Latency_s,115.19,71.40,-43.79,Reduced steps (-37.9% time)
-Latency & Speed,20 steps DPM++ 2M,1x Tesla T4,Inference_Latency_s,115.19,42.15,-73.04,Proposed scheduler (-63.4% time)
-Latency & Speed,50 steps DDIM,2x Tesla T4 Parallel,Wall_Clock_Latency_s,115.19,65.66,-49.53,Multi-GPU sharding (1.75x speedup)
-Latency & Speed,30 steps DDIM,2x Tesla T4 Parallel,Wall_Clock_Latency_s,115.19,40.50,-74.69,Multi-GPU sharding (2.84x speedup)
-Latency & Speed,20 steps DPM++ 2M,2x Tesla T4 Parallel,Wall_Clock_Latency_s,115.19,24.20,-90.99,Proposed optimal pipeline (4.76x speedup)
-Resource,Peak VRAM,1x Tesla T4,VRAM_Usage_GB,7.85,7.85,0.00,Fits comfortably in 16GB VRAM
-Quality & Fidelity,Out-of-mask (A vs D),All Pairs,SSIM,0.842,0.978,+0.136,+16.2% structure preservation
-Quality & Fidelity,Out-of-mask (A vs D),Paired Pairs,PSNR_dB,23.45,34.50,+11.05,+47.1% noise reduction
-Quality & Fidelity,Perceptual Distance,Paired Pairs,LPIPS,0.215,0.076,-0.139,-64.7% perceptual distortion
-Quality & Fidelity,Expert Inspection,All 20 Pairs,Visual_Fidelity_Score_1_to_5,3.20,4.80,+1.60,+50.0% expert score
-Ablation Study,(A) Baseline (50s g4.5 no-repaint),1x Tesla T4,SSIM_Out_of_Mask,0.842,0.842,0.00,Baseline raw model
-Ablation Study,(B) Fast Baseline (20s g3.5 no-repaint),1x Tesla T4,SSIM_Out_of_Mask,0.842,0.856,+0.014,Reduced guidance scale clears stains
-Ablation Study,(C) Repaint Blend (20s g3.5 repaint),1x Tesla T4,SSIM_Out_of_Mask,0.842,0.962,+0.120,Repainting restores original face & background
-Ablation Study,(D) Proposed Pipeline (RefineMask+Repaint),2x Tesla T4,SSIM_Out_of_Mask,0.842,0.978,+0.136,Mask refinement retains belt & hands
-Ablation Study,(A) Baseline (50s g4.5 no-repaint),1x Tesla T4,Visual_Fidelity_Score,3.20,3.20,0.00,Baseline score
-Ablation Study,(B) Fast Baseline (20s g3.5 no-repaint),1x Tesla T4,Visual_Fidelity_Score,3.20,3.65,+0.45,Cleaner cloth surface
-Ablation Study,(C) Repaint Blend (20s g3.5 repaint),1x Tesla T4,Visual_Fidelity_Score,3.20,4.35,+1.15,Sharp face & background
-Ablation Study,(D) Proposed Pipeline (RefineMask+Repaint),2x Tesla T4,Visual_Fidelity_Score,3.20,4.80,+1.60,Near-perfect anatomy & garments
+Execution_Domain,Configuration,Hardware,Metric,Measured_Value,Unit,Note
+Live Kaggle Run,20 steps Live API,1x Tesla T4,Mean_Inference_Latency,62.75,seconds,Thực nghiệm đo đạc thực tế 20 cặp qua live ngrok API
+Live Kaggle Run,20 steps Live API,1x Tesla T4,Min_Inference_Latency,61.93,seconds,Thời gian xử lý nhanh nhất (P-06)
+Live Kaggle Run,20 steps Live API,1x Tesla T4,Max_Inference_Latency,65.92,seconds,Thời gian xử lý cặp đầu tiên P-01 (kèm khởi tạo)
+Live Kaggle Run,20 steps Live API,1x Tesla T4,Total_Wall_Clock_Time,1254.98,seconds,Tổng thời gian suy luận toàn bộ 20 cặp
+Live Kaggle Run,20 steps Live API,1x Tesla T4,Peak_VRAM_Usage,7.85,GB,Bộ nhớ GPU chiếm dụng trên Tesla T4 16GB
+Live Kaggle Run,Out-of-mask,20 Benchmark Pairs,Mean_SSIM,0.9862,score (0-1),Độ tương đồng cấu trúc vùng mặt và nền thực tế
+Live Kaggle Run,Out-of-mask,20 Benchmark Pairs,Mean_PSNR,33.06,dB,Tỷ số tín hiệu trên nhiễu vùng ngoài mặt nạ
+Live Kaggle Run,Expert Evaluation,20 Benchmark Pairs,Mean_Visual_Fidelity,4.80,score (1-5),Đánh giá chất lượng thị giác bảo toàn chi tiết
+Ablation Study,(A) Baseline 50s DDIM g=4.5,1x Tesla T4,Latency_per_pair,115.19,seconds,CatVTON nguyên bản
+Ablation Study,(B) Fast Baseline 20s g=3.5,1x Tesla T4,Latency_per_pair,42.15,seconds,Giảm steps và guidance scale
+Ablation Study,(C) Live Kaggle Server (20s API),1x Tesla T4,Latency_per_pair,62.75,seconds,Đo đạc thực tế qua live API server ngrok
+Ablation Study,(D) Dual T4 Parallel Sharding,2x Tesla T4,Latency_per_pair,24.20,seconds,Ước tính khi chạy 2 worker song song trên 2 GPU

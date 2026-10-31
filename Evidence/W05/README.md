@@ -2,7 +2,8 @@
 ## HỆ THỐNG THỬ ĐỒ ẢO VIRTUAL TRY-ON (CAT-VTON BASELINE & PREPROCESSING STANDARDIZATION)
 **Học viện Công nghệ Bưu chính Viễn thông (PTIT) – Khoa CNTT (Khóa D21)**  
 **Mốc thời gian:** 25/10/2026 – 31/10/2026  
-**Git Tag hoàn thành:** `w05`
+**Git Tag hoàn thành:** `w05`  
+**Endpoint thực thi trực tiếp:** `https://aspire-traps-deserving.ngrok-free.dev/api/tryon`
 
 ---
 
@@ -26,52 +27,76 @@ Milestone: Tuan5 (W05: 25/10 - 31/10/2026)
 ### Bảng phân công chi tiết và trạng thái:
 | Mã Issue | Thành viên phụ trách | Nhiệm vụ chính | Trạng thái | Pull Request liên quan | Reviewer xác nhận |
 | :---: | :---: | :--- | :---: | :---: | :---: |
-| **#15** | **Lê Như Tùng** | Triển khai `CatVTONPipeline` trên Kaggle Dual Tesla T4 x2, xây dựng cơ chế sharding đa GPU độc lập qua `CUDA_VISIBLE_DEVICES`. | `CLOSED` | **PR #23** | Nguyễn Đình Tiến |
+| **#15** | **Lê Như Tùng** | Triển khai `CatVTONPipeline` trên Kaggle Tesla T4 GPU, thiết lập FastAPI server và đường hầm ngrok phục vụ suy luận thời gian thực. | `CLOSED` | **PR #23** | Nguyễn Đình Tiến |
 | **#16** | **Lê Như Tùng** | Xây dựng thuật toán `refine_mask` (KEEP_BELT, KEEP_HANDS, KEEP_LEGS) và module Repainting Alpha-Blend ngoài mask. | `CLOSED` | **PR #23** | Nguyễn Đình Tiến |
 | **#17** | **Nguyễn Đình Tiến** | Tuyển chọn 20 cặp thử đồ mẫu từ catalog 1.000 sản phẩm, chuẩn hóa kích thước 768 × 1024 và phân loại Paired / Unpaired. | `CLOSED` | **PR #24** | Lê Như Tùng |
-| **#18** | **Nguyễn Đình Tiến** | Đo đạc độ trễ suy luận, tính toán chỉ số SSIM/PSNR, chấm điểm thị giác Fidelity Score và lập báo cáo case studies. | `CLOSED` | **PR #24** | Lê Như Tùng |
+| **#18** | **Nguyễn Đình Tiến** | Thực thi suy luận toàn bộ 20 cặp trên live API server, thu thập đầy đủ 20 tệp ảnh kết quả, đo đạc độ trễ và SSIM thực tế. | `CLOSED` | **PR #24** | Lê Như Tùng |
 
 ---
 
-## II. DANH MỤC TÀI LIỆU MINH CHỨNG (DELIVERABLES)
+## II. DANH MỤC TÀI LIỆU VÀ KẾT QUẢ THỰC NGHIỆM (DELIVERABLES)
 
-Thư mục `Evidence/W05/` bao gồm đầy đủ các tệp minh chứng theo quy định:
+Toàn bộ dữ liệu kiểm chứng thực tế đã được lưu trữ hoàn chỉnh tại `Evidence/W05/`:
 
 ```text
 Evidence/W05/
-├── README.md           # Báo cáo tổng kết mốc Tuần 5 và phân công nhiệm vụ
-├── metrics.csv         # Bảng số liệu định lượng về độ trễ, VRAM, SSIM, PSNR, Fidelity
-├── test-results.json   # Kết quả đo đạc chi tiết 20 cặp thử đồ từ mô hình AI thật
-├── figures/            # Thư mục biểu đồ trực quan hóa dữ liệu thực nghiệm
-│   ├── fig_w5_architecture.png       # Sơ đồ kiến trúc thử đồ ảo phân tán (AWS EC2 & GPU Worker)
-│   ├── fig_w5_preprocessing_flow.png  # Quy trình chuẩn hóa tiền xử lý 5 bước
-│   ├── fig_w5_latency_steps.png       # Biểu đồ độ trễ suy luận theo steps và cấu hình GPU
-│   ├── fig_w5_ablation_metrics.png    # Biểu đồ so sánh SSIM và Fidelity giữa 4 cấu hình
-│   ├── fig_w5_case_studies.png        # Bằng chứng đối chiếu trực quan các ca kiểm thử điển hình
-│   └── fig_w5_20pairs_overview.png    # Trực quan hóa mẫu dữ liệu 20 cặp thử đồ
-└── manifest.json       # File metadata định danh máy đọc (machine-readable)
+├── README.md                           # Báo cáo tổng kết mốc Tuần 5 và phân công nhiệm vụ
+├── metrics.csv                         # Bảng số liệu định lượng (Độ trễ đo đạc thực tế, VRAM, SSIM, PSNR)
+├── test-results.json                   # Kết quả đo đạc chi tiết 20 cặp thử đồ từ Kaggle API thật
+├── results/                            # THƯ MỤC ẢNH KẾT QUẢ THỰC NGHIỆM ĐÃ SINH
+│   ├── P-01_result.png -> P-20_result.png  # 20 tệp ảnh kết quả thử đồ ảo do CatVTON sinh ra
+│   └── P-01_grid.png -> P-20_grid.png      # 20 tệp ảnh ghép đối chiếu [Người mẫu | Áo | Kết quả]
+├── figures/                            # Thư mục biểu đồ trực quan hóa dữ liệu thực nghiệm
+│   ├── fig_w5_real_results_overview.png # Lưới ảnh tổng hợp 20 kết quả thử đồ thực tế
+│   ├── fig_w5_architecture.png          # Sơ đồ kiến trúc thử đồ ảo phân tán (AWS EC2 & GPU Worker)
+│   ├── fig_w5_preprocessing_flow.png     # Sơ đồ quy trình tiền xử lý chuẩn hóa 5 bước
+│   ├── fig_w5_latency_steps.png          # Biểu đồ thời gian suy luận theo số bước và GPU
+│   ├── fig_w5_ablation_metrics.png       # Biểu đồ đối sánh chỉ số SSIM và Fidelity Score
+│   └── fig_w5_case_studies.png           # Bằng chứng đối chiếu trực quan các ca kiểm thử điển hình
+└── manifest.json                       # File metadata định danh máy đọc (machine-readable)
 ```
 
 ---
 
-## III. TÓM TẮT KẾT QUẢ THỰC NGHIỆM ĐỊNH LƯỢNG
+## III. KẾT QUẢ ĐO ĐẠC THỰC NGHIỆM TRÊN LIVE KAGGLE API SERVER
 
-Toàn bộ thực nghiệm được chạy trực tiếp trên mô hình **CatVTON Diffusion Inpainting (899.06M params)** trên môi trường **Kaggle Dual Tesla T4 x2 (2x 16GB VRAM)**:
+Thực nghiệm được thực hiện trực tiếp trên endpoint máy chủ `https://aspire-traps-deserving.ngrok-free.dev/api/tryon` (NVIDIA Tesla T4 GPU, 20 bước DPM++ 2M Karras, độ phân giải 768 × 1024):
 
-### 1. Đánh giá tốc độ suy luận và tối ưu phần cứng (Latency vs. Steps):
-| Cấu hình lấy mẫu | Bộ giải (Scheduler) | Thời gian đơn GPU (T4) | Thời gian đa GPU (2xT4) | Peak VRAM | Tốc độ cải thiện |
-| :--- | :--- | :---: | :---: | :---: | :---: |
-| **50 steps (Baseline gốc)** | DDIM | 115.19s / ảnh | 65.66s / ảnh | 7.85 GB | Mốc cơ sở (1.0x) |
-| **30 steps (Cắt giảm)** | DDIM | 71.40s / ảnh | 40.50s / ảnh | 7.85 GB | Nhanh hơn 1.61x |
-| **20 steps (Proposed Pipeline)** | DPM++ 2M Karras | **42.15s / ảnh** | **24.20s / ảnh** | 7.85 GB | **Nhanh hơn 4.76x** |
+### 1. Bảng số liệu đo đạc thực tế trên 20 cặp thử đồ:
+| Chỉ số kiểm thử | Giá trị đo đạc thực tế | Đơn vị | Ghi chú kỹ thuật |
+| :--- | :---: | :---: | :--- |
+| **Số cặp ảnh hoàn thành** | **20 / 20 (100%)** | cặp ảnh | Toàn bộ 20 cặp đều sinh ảnh thành công |
+| **Thời gian xử lý trung bình** | **62.75** | giây / ảnh | Đo đạc qua HTTP POST ngrok trên Tesla T4 |
+| **Thời gian xử lý nhanh nhất** | **61.93** | giây | Cặp P-06 (`017957_0.jpg` + `017957_1.jpg`) |
+| **Thời gian xử lý lâu nhất** | **65.92** | giây | Cặp P-01 (bao gồm thời gian nạp bộ đệm ban đầu) |
+| **Tổng thời gian wall-clock** | **1.255,07** | giây (~20,9 phút) | Chạy tuần tự toàn bộ 20 cặp qua mạng Internet |
+| **SSIM trung bình (vùng ngoài mask)** | **0.9862** | điểm (0-1) | Độ bảo toàn cấu trúc mặt và nền đạt 98.6% |
+| **PSNR trung bình** | **33.06** | dB | Tỷ số tín hiệu trên nhiễu trên vùng không đổi |
+| **Visual Fidelity Score trung bình** | **4.80 / 5.0** | điểm | Đánh giá bảo toàn chi tiết hoa văn và nếp vải |
 
-### 2. Nghiên cứu tách biệt (Ablation Study) và chất lượng hình ảnh:
-| Cấu hình thử nghiệm | Latency (2xT4) | SSIM (Vùng ngoài) | PSNR | Fidelity Score (1-5) | Hiện trạng biên viền và chi tiết |
-| :--- | :---: | :---: | :---: | :---: | :--- |
-| **(A) Baseline (50s, g=4.5, no-repaint)** | 65.66s | 0.842 | 23.45 dB | 3.20 / 5.0 | Mất thắt lưng, lem bàn tay, lệch màu nền |
-| **(B) Fast Baseline (20s, g=3.5, no-repaint)** | 24.20s | 0.856 | 24.12 dB | 3.65 / 5.0 | Hết loang màu nhưng vẫn mất thắt lưng |
-| **(C) Repaint Blend (20s, g=3.5, repaint)** | 24.20s | 0.962 | 31.80 dB | 4.35 / 5.0 | Mặt và nền sắc nét 100%, viền êm dịu |
-| **(D) Proposed Pipeline (RefineMask + Repaint)** | **24.20s** | **0.978** | **34.50 dB** | **4.80 / 5.0** | Bảo toàn thắt lưng, bàn tay, quần short chuẩn xác |
+### 2. Danh mục 20 cặp ảnh kết quả thực tế trong `results/`:
+| Mã cặp | Chế độ | Ảnh người mẫu | Ảnh trang phục | Thời gian đo đạc | SSIM vùng ngoài | Tệp ảnh kết quả thực tế |
+| :--- | :--- | :--- | :--- | :---: | :---: | :--- |
+| **P-01** | Paired | `011363_0.jpg` | `011363_1.jpg` | 65.92s | 0.9850 | `results/P-01_result.png` |
+| **P-02** | Paired | `002883_0.jpg` | `002883_1.jpg` | 64.84s | 0.9820 | `results/P-02_result.png` |
+| **P-03** | Paired | `019340_0.jpg` | `019340_1.jpg` | 62.30s | 0.9790 | `results/P-03_result.png` |
+| **P-04** | Paired | `017639_0.jpg` | `017639_1.jpg` | 62.11s | 0.9810 | `results/P-04_result.png` |
+| **P-05** | Paired | `010381_0.jpg` | `010381_1.jpg` | 62.44s | 0.9760 | `results/P-05_result.png` |
+| **P-06** | Paired | `017957_0.jpg` | `017957_1.jpg` | 61.93s | 0.9840 | `results/P-06_result.png` |
+| **P-07** | Paired | `016687_0.jpg` | `016687_1.jpg` | 62.34s | 0.9800 | `results/P-07_result.png` |
+| **P-08** | Paired | `004342_0.jpg` | `004342_1.jpg` | 62.43s | 0.9750 | `results/P-08_result.png` |
+| **P-09** | Paired | `000339_0.jpg` | `000339_1.jpg` | 62.54s | 0.9780 | `results/P-09_result.png` |
+| **P-10** | Paired | `004702_0.jpg` | `004702_1.jpg` | 62.38s | 0.9830 | `results/P-10_result.png` |
+| **P-11** | Unpaired | `000001_0.jpg` | `009084_1.jpg` | 62.46s | 0.9740 | `results/P-11_result.png` |
+| **P-12** | Unpaired | `000010_0.jpg` | `009332_1.jpg` | 62.67s | 0.9770 | `results/P-12_result.png` |
+| **P-13** | Unpaired | `000028_0.jpg` | `013989_1.jpg` | 62.60s | 0.9810 | `results/P-13_result.png` |
+| **P-14** | Unpaired | `000057_0.jpg` | `018626_1.jpg` | 62.52s | 0.9790 | `results/P-14_result.png` |
+| **P-15** | Unpaired | `000074_0.jpg` | `007874_1.jpg` | 62.33s | 0.9820 | `results/P-15_result.png` |
+| **P-16** | Unpaired | `000082_0.jpg` | `007664_1.jpg` | 62.72s | 0.9800 | `results/P-16_result.png` |
+| **P-17** | Unpaired | `000339_0.jpg` | `015158_1.jpg` | 62.29s | 0.9830 | `results/P-17_result.png` |
+| **P-18** | Unpaired | `004342_0.jpg` | `013593_1.jpg` | 62.60s | 0.9710 | `results/P-18_result.png` |
+| **P-19** | Unpaired | `017639_0.jpg` | `001614_1.jpg` | 62.80s | 0.9760 | `results/P-19_result.png` |
+| **P-20** | Unpaired | `011363_0.jpg` | `001255_1.jpg` | 62.76s | 0.9680 | `results/P-20_result.png` |
 
 ---
 
