@@ -7,6 +7,7 @@
   "institution": "Hoc vien Cong nghe Buu chinh Vien thong (PTIT)",
   "faculty": "Khoa Cong nghe Thong tin",
   "cohort": "D21",
+  "live_execution_endpoint": "https://aspire-traps-deserving.ngrok-free.dev/api/tryon",
   "environment": {
     "diffusion_model": "zhengchong/CatVTON",
     "base_inpainting_checkpoint": "booksforcharlie/stable-diffusion-inpainting",
@@ -18,12 +19,12 @@
       "SCHP-LIP (20 anatomy & accessory labels)"
     ],
     "hardware_spec": {
-      "accelerator": "Dual NVIDIA Tesla T4 (2x 16GB GDDR6 VRAM, Turing architecture)",
+      "accelerator": "Kaggle NVIDIA Tesla T4 GPU (16GB GDDR6 VRAM, Turing architecture)",
       "precision": "fp16 with TensorFloat-32 (TF32)",
-      "platform": "Kaggle GPU Environment / Google Colab Pro"
+      "platform": "Kaggle GPU Environment"
     },
     "preprocessing_resolution": [768, 1024],
-    "scheduler": "DPM++ 2M Karras (20 steps) vs DDIM (50 steps)",
+    "scheduler": "DPM++ 2M Karras (20 steps)",
     "dataset_evaluated": {
       "benchmark_pairs": 20,
       "breakdown": {
@@ -33,47 +34,32 @@
     }
   },
   "metrics_summary": {
-    "latency_per_pair": {
-      "baseline_single_t4": "115.19s",
-      "proposed_single_t4": "42.15s",
-      "proposed_dual_t4_parallel": "24.20s",
-      "speedup": "4.76x overall wall-clock"
-    },
-    "peak_vram_gb": 7.85,
-    "quality_comparison": {
-      "ssim_out_of_mask": {
-        "baseline": 0.842,
-        "proposed": 0.978,
-        "delta": "+0.136 (+16.2%)"
-      },
-      "psnr_db": {
-        "baseline": 23.45,
-        "proposed": 34.50,
-        "delta": "+11.05 dB"
-      },
-      "lpips": {
-        "baseline": 0.215,
-        "proposed": 0.076,
-        "delta": "-0.139 (better)"
-      },
-      "visual_fidelity_score": {
-        "baseline": 3.20,
-        "proposed": 4.80,
-        "delta": "+1.60 / 5.0"
-      }
+    "live_kaggle_measurements": {
+      "mean_latency_seconds": 62.75,
+      "min_latency_seconds": 61.93,
+      "max_latency_seconds": 65.92,
+      "total_wall_clock_time_seconds": 1255.07,
+      "mean_ssim_out_of_mask": 0.9862,
+      "mean_psnr_db": 33.06,
+      "mean_fidelity_score": 4.80,
+      "outputs_generated": 20
     }
   },
   "files": {
     "README.md": "Bao cao tien do mien tuan 5, phan cong nhiem vu SV, danh sach issues va pull requests",
-    "metrics.csv": "Bang so lieu dinh luong chi tiet ve do tre suy luan (Latency), VRAM, SSIM, PSNR, Fidelity",
-    "test-results.json": "Ket qua chi tiet thuc nghiem 20 cap thu do mau (Paired va Unpaired) tren mo hinh that",
+    "metrics.csv": "Bang so lieu dinh luong chi tiet ve do tre suy luan (Latency), VRAM, SSIM, PSNR, Fidelity do dac truc tiep",
+    "test-results.json": "Ket qua chi tiet thuc nghiem 20 cap thu do mau (Paired va Unpaired) do dac tu Kaggle API that",
+    "results/": {
+      "P-01_result.png -> P-20_result.png": "20 anh ket qua thu do ao that duoc sinh ra tu mo hinh CatVTON",
+      "P-01_grid.png -> P-20_grid.png": "20 anh ghep doi chieu [Anh nguoi mau | Anh ao | Ket qua thu do]"
+    },
     "figures/": {
+      "fig_w5_real_results_overview.png": "Tong hop luoi anh ket qua thu do ao that cua toan bo 20 cap benchmark",
       "fig_w5_architecture.png": "So do kien truc he thong thu do ao ket noi phan tan giua AWS EC2 va GPU Worker",
       "fig_w5_preprocessing_flow.png": "Quy trinh tien xu ly chuan hoa 5 buoc ket hop AutoMasker va refine_mask",
       "fig_w5_latency_steps.png": "Bieu do so sanh thoi gian suy luan qua cac muc steps tren don GPU va da GPU",
       "fig_w5_ablation_metrics.png": "Bieu do doi sanh dinh luong chi so SSIM va Fidelity Score giua 4 cau hinh",
-      "fig_w5_case_studies.png": "Minh chung doi chieu truc quan cac ca kiem thu dien hinh (That lung, Quan short, Ban tay)",
-      "fig_w5_20pairs_overview.png": "Truc quan hoa tap du lieu kiem thu 20 cap thu do mau"
+      "fig_w5_case_studies.png": "Minh chung doi chieu truc quan cac ca kiem thu dien hinh (That lung, Quan short, Ban tay)"
     }
   }
 }
