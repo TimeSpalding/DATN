@@ -204,3 +204,5 @@ docs/
 # Thu muc thuc nghiem noi bo
 evaluation/
 
+/image_*
+*.docx

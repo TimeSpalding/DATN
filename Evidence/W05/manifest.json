@@ -1,0 +1,79 @@
+{
+  "milestone": "Tuan5",
+  "week": "W05",
+  "date": "2026-10-31",
+  "git_tag": "w05",
+  "project": "Virtual Try-On Engine (CAT-VTON Diffusion Baseline & Preprocessing Standardization)",
+  "institution": "Hoc vien Cong nghe Buu chinh Vien thong (PTIT)",
+  "faculty": "Khoa Cong nghe Thong tin",
+  "cohort": "D21",
+  "environment": {
+    "diffusion_model": "zhengchong/CatVTON",
+    "base_inpainting_checkpoint": "booksforcharlie/stable-diffusion-inpainting",
+    "total_parameters": "899.06M",
+    "attention_parameters": "49.57M (trainable)",
+    "human_parsing_models": [
+      "DensePose (24 IUV body parts)",
+      "SCHP-ATR (18 clothing labels)",
+      "SCHP-LIP (20 anatomy & accessory labels)"
+    ],
+    "hardware_spec": {
+      "accelerator": "Dual NVIDIA Tesla T4 (2x 16GB GDDR6 VRAM, Turing architecture)",
+      "precision": "fp16 with TensorFloat-32 (TF32)",
+      "platform": "Kaggle GPU Environment / Google Colab Pro"
+    },
+    "preprocessing_resolution": [768, 1024],
+    "scheduler": "DPM++ 2M Karras (20 steps) vs DDIM (50 steps)",
+    "dataset_evaluated": {
+      "benchmark_pairs": 20,
+      "breakdown": {
+        "paired_tryon": 10,
+        "unpaired_cross_tryon": 10
+      }
+    }
+  },
+  "metrics_summary": {
+    "latency_per_pair": {
+      "baseline_single_t4": "115.19s",
+      "proposed_single_t4": "42.15s",
+      "proposed_dual_t4_parallel": "24.20s",
+      "speedup": "4.76x overall wall-clock"
+    },
+    "peak_vram_gb": 7.85,
+    "quality_comparison": {
+      "ssim_out_of_mask": {
+        "baseline": 0.842,
+        "proposed": 0.978,
+        "delta": "+0.136 (+16.2%)"
+      },
+      "psnr_db": {
+        "baseline": 23.45,
+        "proposed": 34.50,
+        "delta": "+11.05 dB"
+      },
+      "lpips": {
+        "baseline": 0.215,
+        "proposed": 0.076,
+        "delta": "-0.139 (better)"
+      },
+      "visual_fidelity_score": {
+        "baseline": 3.20,
+        "proposed": 4.80,
+        "delta": "+1.60 / 5.0"
+      }
+    }
+  },
+  "files": {
+    "README.md": "Bao cao tien do mien tuan 5, phan cong nhiem vu SV, danh sach issues va pull requests",
+    "metrics.csv": "Bang so lieu dinh luong chi tiet ve do tre suy luan (Latency), VRAM, SSIM, PSNR, Fidelity",
+    "test-results.json": "Ket qua chi tiet thuc nghiem 20 cap thu do mau (Paired va Unpaired) tren mo hinh that",
+    "figures/": {
+      "fig_w5_architecture.png": "So do kien truc he thong thu do ao ket noi phan tan giua AWS EC2 va GPU Worker",
+      "fig_w5_preprocessing_flow.png": "Quy trinh tien xu ly chuan hoa 5 buoc ket hop AutoMasker va refine_mask",
+      "fig_w5_latency_steps.png": "Bieu do so sanh thoi gian suy luan qua cac muc steps tren don GPU va da GPU",
+      "fig_w5_ablation_metrics.png": "Bieu do doi sanh dinh luong chi so SSIM va Fidelity Score giua 4 cau hinh",
+      "fig_w5_case_studies.png": "Minh chung doi chieu truc quan cac ca kiem thu dien hinh (That lung, Quan short, Ban tay)",
+      "fig_w5_20pairs_overview.png": "Truc quan hoa tap du lieu kiem thu 20 cap thu do mau"
+    }
+  }
+}
