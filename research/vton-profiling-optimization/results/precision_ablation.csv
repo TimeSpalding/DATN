@@ -1,0 +1,4 @@
+precision_mode,torch_dtype,cold_start_s,mean_preprocess_s,mean_inference_s,mean_postprocess_s,mean_total_s,peak_vram_gb,mean_ssim_vs_fp32,mean_psnr_vs_fp32,status_note
+FP32,torch.float32,1.649,1.20,157.56,0.33,159.09,6.57,1.0000,inf,Mốc đối chứng chất lượng gốc (Baseline reference trên ảnh người thật)
+FP16,torch.float16,1.735,0.97,55.95,0.34,57.26,6.26,0.8903,23.06,Turing Tensor Cores (Tăng tốc 2.82x so với FP32 trên ảnh người thật CatVTON)
+BF16,torch.bfloat16,1.611,N/A,N/A,N/A,N/A,N/A,N/A,N/A,Không tương thích phần cứng Turing T4: Lỗi CUDA OOM đòi cấp phát 36.00 GiB

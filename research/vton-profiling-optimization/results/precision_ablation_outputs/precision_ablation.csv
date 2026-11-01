@@ -1,0 +1,4 @@
+precision_mode,torch_dtype,cold_start_s,mean_preprocess_s,mean_inference_s,mean_postprocess_s,mean_total_s,peak_vram_gb,mean_ssim_vs_fp32,mean_psnr_vs_fp32,status_note
+FP32,torch.fp32,1.649,1.2,157.56,0.33,159.09,6.57,1.0,inf,Baseline reference
+FP16,torch.fp16,1.735,0.97,55.95,0.34,57.26,6.26,0.8903,23.06,Native Turing Tensor Cores
+BF16,torch.bf16,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,Hardware Incompatibility on T4: CUDA out of memory. Tried to allocate 36.00 GiB. GPU 0 has a

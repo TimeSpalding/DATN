@@ -1,0 +1,59 @@
+{
+  "experiment_name": "vton-profiling-and-mixed-precision-optimization",
+  "hardware_environment": {
+    "platform": "Kaggle Cloud GPU",
+    "gpu_model": "2x NVIDIA Tesla T4 (Turing Architecture)",
+    "active_device": "cuda:0",
+    "multi_gpu_topology": "PCIe Gen3 (No NVLink)",
+    "compute_capability": "7.5",
+    "vram_per_gpu_gb": 15.0,
+    "cuda_version": "12.x",
+    "torch_version": "2.x"
+  },
+  "pipeline_parameters": {
+    "model_name": "CatVTON",
+    "base_checkpoint": "booksforcharlie/stable-diffusion-inpainting",
+    "attn_checkpoint": "zhengchong/CatVTON",
+    "input_resolution": [768, 1024],
+    "mask_blur_factor": 9,
+    "num_inference_steps": 20,
+    "guidance_scale": 4.5,
+    "scheduler": "DPM++ 2M Karras"
+  },
+  "profiling_stages": [
+    "cold_start_time_s",
+    "preprocess_time_s",
+    "inference_time_s",
+    "postprocess_time_s",
+    "internal_total_latency_s",
+    "end_to_end_network_latency_s",
+    "peak_vram_gb"
+  ],
+  "precision_ablation_matrix": [
+    {
+      "precision": "fp32",
+      "torch_dtype": "torch.float32",
+      "hardware_support_t4": "Native FP32 Cores",
+      "expected_behavior": "Baseline reference quality, maximum VRAM, slowest latency"
+    },
+    {
+      "precision": "fp16",
+      "torch_dtype": "torch.float16",
+      "hardware_support_t4": "Turing Tensor Cores (Hardware Accelerated)",
+      "expected_behavior": "Optimal balance of low VRAM, fast latency, minimal SSIM loss"
+    },
+    {
+      "precision": "bf16",
+      "torch_dtype": "torch.bfloat16",
+      "hardware_support_t4": "No native hardware support (Emulated/Unsupported)",
+      "expected_behavior": "Slow performance or execution error due to lack of native T4 instructions"
+    }
+  ],
+  "benchmark_dataset": {
+    "total_pairs": 20,
+    "paired_cases": 10,
+    "unpaired_cases": 10,
+    "categories": ["upper", "overall"]
+  }
+}
+
