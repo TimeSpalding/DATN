@@ -206,3 +206,5 @@ evaluation/
 
 /image_*
 *.docx
+!bao_cao_hang_tuan/**
+!bao_cao_hang_tuan/*.docx
