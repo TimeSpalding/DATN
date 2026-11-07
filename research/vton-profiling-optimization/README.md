@@ -16,9 +16,9 @@ Nghiên cứu này được thiết kế và thực thi nhằm giải quyết tr
     *   Đánh giá mối tương quan giữa kiểu dữ liệu số học với năng lực phần cứng của kiến trúc Turing (GPU Tesla T4).
     *   Đo lường mức độ suy hao chất lượng hình ảnh bằng chỉ số độ tương đồng cấu trúc vùng giữ nguyên (SSIM ngoài mặt nạ) và tỷ số tín hiệu trên nhiễu đỉnh (PSNR) so với mốc đối chứng FP32.
 3.  **Kiểm thử thực nghiệm và phân tích lỗi (Benchmark Testing & Failure Analysis)**:
-    *   Thực hiện toàn diện trên 20 cặp sản phẩm/người mẫu thực tế (10 cặp chuẩn Paired, 10 cặp hoán đổi Unpaired).
+    *   Thực hiện trên 25 cặp thử đồ hoán đổi chéo (`Unpaired`, gồm 23 cặp `upper` và 2 cặp `overall`), trong đó ảnh người mẫu gốc và trang phục đích khác biệt rõ về kiểu dáng, màu sắc hoặc độ dài ống tay.
     *   Lưu trữ kết quả ảnh thực tế, tệp đo lường chi tiết.
-    *   Phân loại và chỉ rõ cơ chế kỹ thuật của các ca thất bại và ca biên.
+    *   Phân loại 5 nhóm lỗi thị giác và chỉ rõ cơ chế kỹ thuật của các ca thất bại và ca biên.
 
 ---
 
@@ -27,14 +27,14 @@ Nghiên cứu này được thiết kế và thực thi nhằm giải quyết tr
 ```text
 research/vton-profiling-optimization/
 ├── README.md                          # Tài liệu tổng quan nghiên cứu và phương pháp luận
-├── failure-modes.md                   # Phân loại và phân tích chi tiết các ca thất bại
+├── failure-modes.md                   # Phân loại và phân tích chi tiết 5 nhóm lỗi thị giác
 ├── configs/
 │   └── experiment_config.json         # Tham số kỹ thuật của pipeline và môi trường đo
-├── figures/                           # Ảnh lưới đối sánh trực quan FP32 vs FP16
+├── figures/                           # Ảnh lưới đối sánh trực quan FP32 vs FP16 và mẫu benchmark
 └── results/
-    ├── profiling_latency.csv          # Bảng số liệu phân rã độ trễ 20 cặp benchmark
+    ├── profiling_latency.csv          # Bảng số liệu phân rã độ trễ 25 cặp benchmark Unpaired
     ├── precision_ablation.csv         # Bảng so sánh hiệu năng và chất lượng FP32 vs FP16 vs BF16
-    └── raw_logs/                      # Nhật ký thực thi thô và ảnh kết quả 20 cặp benchmark
+    └── raw_logs/                      # Nhật ký thực thi thô và ảnh kết quả 25 cặp benchmark
 ```
 
 ---
@@ -52,7 +52,7 @@ research/vton-profiling-optimization/
 
 ## 4. Danh mục tài nguyên thực nghiệm
 
-*   Tập dữ liệu kiểm thử: 20 cặp hình ảnh người mẫu và trang phục từ tập dữ liệu thương mại tại `datacard/test_img` và `datacard/test_color`.
+*   Tập dữ liệu kiểm thử: 25 cặp hình ảnh người mẫu và trang phục hoán đổi chéo (`Unpaired`) từ tập dữ liệu tại `datacard/test_img` và `datacard/test_color`.
 *   Tệp notebook máy chủ API: [`backend-ai/notebooks/catvton-api-server.ipynb`](file:///d:/neit_ng/prjs_i/ptit_s9_pj/DATN/backend-ai/notebooks/catvton-api-server.ipynb).
 *   Tệp notebook nghiên cứu độc lập: [`backend-ai/notebooks/catvton-profiling-research.ipynb`](file:///d:/neit_ng/prjs_i/ptit_s9_pj/DATN/backend-ai/notebooks/catvton-profiling-research.ipynb).
 *   Kịch bản kiểm thử đo lường tự động: [`scripts/benchmark_vton_profiling.py`](file:///d:/neit_ng/prjs_i/ptit_s9_pj/DATN/scripts/benchmark_vton_profiling.py).
@@ -61,21 +61,23 @@ research/vton-profiling-optimization/
 
 ## 5. Kết quả thực nghiệm định lượng thu được
 
-### 5.1. Phân rã độ trễ và tài nguyên GPU (Thí nghiệm 1 - 20 cặp benchmark)
+### 5.1. Phân rã độ trễ và tài nguyên GPU (Thí nghiệm 1 - 25 cặp benchmark Unpaired)
 
-Dữ liệu thực tế được đo lường trực tiếp qua `torch.cuda.synchronize()` trên GPU Tesla T4:
+Dữ liệu thực tế được đo lường trực tiếp qua `torch.cuda.synchronize()` trên GPU Tesla T4 (tổng hợp tại [`profiling_latency.csv`](file:///d:/neit_ng/prjs_i/ptit_s9_pj/DATN/research/vton-profiling-optimization/results/profiling_latency.csv)):
 
 | Chỉ số đo lường | Giá trị thực tế | Ghi chú kỹ thuật |
 | :--- | :--- | :--- |
-| **Thời gian khởi động nguội (Cold-start)** | **46.77s** | Nạp toàn bộ pipeline CatVTON, SD-Inpainting và AutoMasker từ ổ đĩa lên VRAM |
-| **Thời gian tiền xử lý (Preprocessing)** | **0.914s** | Chạy AutoMasker (DensePose + SCHP), trích xuất và làm mờ mặt nạ (lần đầu warmup 10.10s) |
-| **Thời gian suy diễn (Inference 20 steps)** | **51.573s** | Chạy 20 bước khử nhiễu DPM++ 2M Karras (~2.55s/bước) |
-| **Thời gian hậu xử lý (Postprocessing)** | **0.279s** | Giải mã tiềm ẩn VAE và lưu tệp PNG kết quả |
-| **Tổng thời gian xử lý nội bộ GPU (Internal)**| **52.163s** | Thời gian tính toán thực tế trên server GPU (loại trừ lần đầu warmup 73.48s) |
-| **Tổng độ trễ đầu cuối (End-to-End Latency)** | **53.953s** | Đo từ client cục bộ qua đường hầm ngrok công cộng |
-| **Độ trễ truyền tải mạng (Network Overhead)** | **1.790s** | Chênh lệch giữa E2E và thời gian nội bộ GPU |
-| **Mức chiếm dụng bộ nhớ đồ họa đỉnh (Peak VRAM)**| **4.324 GB** | Mức tiêu hao bộ nhớ ổn định (chỉ đạt 9.452 GB lúc cấp phát ban đầu) |
-| **Tỷ lệ thành công (Success Rate)** | **100% (20/20)**| Toàn bộ 20 cặp kiểm thử đều trả về kết quả hợp lệ |
+| **Thời gian khởi động nguội (Cold-start)** | **42.80s – 46.77s** | Nạp pipeline CatVTON, SD-Inpainting và AutoMasker từ ổ đĩa lên VRAM |
+| **Thời gian tiền xử lý (Preprocessing)** | **0.931s** | Chạy AutoMasker (DensePose + SCHP), trích xuất và làm mờ mặt nạ |
+| **Thời gian suy diễn (Inference 20 steps)** | **51.340s** | Chạy 20 bước khử nhiễu DPM++ 2M Karras (~2.57s/bước) |
+| **Thời gian hậu xử lý (Postprocessing)** | **0.287s** | Giải mã tiềm ẩn VAE và lưu tệp PNG kết quả |
+| **Tổng thời gian xử lý nội bộ GPU (Internal)** | **52.559s** | Thời gian tính toán thực tế trên máy chủ GPU ở trạng thái ổn định |
+| **Tổng độ trễ đầu cuối (End-to-End Latency)** | **54.395s** | Đo từ client cục bộ qua đường hầm ngrok công cộng |
+| **Độ trễ truyền tải mạng (Network Overhead)** | **1.836s** | Chênh lệch trung bình giữa E2E và thời gian xử lý nội bộ GPU |
+| **Mức chiếm dụng bộ nhớ đồ họa đỉnh (Peak VRAM)** | **4.324 GB** | Mức tiêu hao bộ nhớ ổn định trong các lượt suy diễn |
+| **Độ tương đồng vùng biên ngoài mặt nạ (SSIM)** | **0.9462** | Trung bình 25 cặp (nhóm 23 cặp `upper` đạt trung bình 0.9628) |
+| **Tỷ số tín hiệu trên nhiễu vùng biên (PSNR)** | **29.72 dB** | Trung bình trên toàn bộ 25 cặp kiểm thử |
+| **Số cặp trả về HTTP 200 hợp lệ** | **25/25** | Tất cả 25 cặp kiểm thử hoàn tất suy diễn không phát sinh ngoại lệ máy chủ |
 
 ### 5.2. Đối sánh thực nghiệm Mixed Precision (Thí nghiệm 2 - Ablation Study trên ảnh người thật)
 

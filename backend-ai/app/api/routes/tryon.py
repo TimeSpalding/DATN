@@ -13,11 +13,11 @@ router = APIRouter(prefix="/api/v1/tryon", tags=["Try-On"])
 # URL của Kaggle AI Service (qua ngrok), đọc từ env
 CATVTON_SERVICE_URL = os.environ.get(
     "CATVTON_SERVICE_URL",
-    "https://cactaceous-tatum-semiadhesively.ngrok-free.dev/api/tryon"
+    "https://aspire-traps-deserving.ngrok-free.dev/api/tryon"
 )
 
-# Timeout dài vì CatVTON xử lý ~30-60s
-CATVTON_TIMEOUT_SECONDS = int(os.environ.get("CATVTON_TIMEOUT_SECONDS", "120"))
+# Timeout dài vì CatVTON xử lý ~50-60s trên GPU Tesla T4
+CATVTON_TIMEOUT_SECONDS = int(os.environ.get("CATVTON_TIMEOUT_SECONDS", "180"))
 
 
 @router.post("")
@@ -71,8 +71,23 @@ async def try_on(
         content_type = response.headers.get("content-type", "image/png")
         logger.info(f"[TryOn] CatVTON xử lý thành công, content-type={content_type}")
 
+        # Chuyển tiếp các header đo lường hiệu năng GPU (nếu máy chủ Kaggle cung cấp)
+        forwarded_headers = {}
+        for header_name in (
+            "X-Cold-Start-Sec",
+            "X-Preprocess-Time-Sec",
+            "X-Inference-Time-Sec",
+            "X-Postprocess-Time-Sec",
+            "X-Internal-Total-Sec",
+            "X-Peak-VRAM-GB",
+            "X-Weight-Precision",
+            "X-Inference-Steps",
+        ):
+            if header_name in response.headers:
+                forwarded_headers[header_name] = response.headers[header_name]
+
         # Trả về raw image bytes để Java backend upload lên MinIO
-        return Response(content=response.content, media_type="image/png")
+        return Response(content=response.content, media_type="image/png", headers=forwarded_headers)
 
     except httpx.TimeoutException:
         logger.error(f"[TryOn] Timeout sau {CATVTON_TIMEOUT_SECONDS}s khi gọi CatVTON")

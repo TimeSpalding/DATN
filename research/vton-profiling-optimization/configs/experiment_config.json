@@ -50,9 +50,9 @@
     }
   ],
   "benchmark_dataset": {
-    "total_pairs": 20,
-    "paired_cases": 10,
-    "unpaired_cases": 10,
+    "total_pairs": 25,
+    "paired_cases": 0,
+    "unpaired_cases": 25,
     "categories": ["upper", "overall"]
   }
 }
