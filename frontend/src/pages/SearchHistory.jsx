@@ -69,7 +69,7 @@ export const SearchHistory = () => {
   };
 
   const handleDeleteAll = () => {
-    if (window.confirm("Quý khách có chắc chắn muốn dọn sạch toàn bộ nhật ký định vị phong cách?")) {
+    if (window.confirm("Xác nhận xóa toàn bộ lịch sử tìm kiếm?")) {
       deleteAllMutation.mutate(undefined);
     }
   };
@@ -84,13 +84,13 @@ export const SearchHistory = () => {
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
             <p className="text-[10px] font-semibold tracking-[0.25em] text-[#C05A39] uppercase mb-1.5">
-              LE CONCIERGE &bull; HISTORIQUE DES RECHERCHES
+              GRAND ATELIER &bull; LỊCH SỬ TÌM KIẾM
             </p>
             <h1 className="font-serif-luxury text-3xl sm:text-4xl font-normal text-[#161514] tracking-wide">
-              Nhật Ký Định Vị Thị Giác
+              Lịch Sử Tìm Kiếm
             </h1>
             <p className="mt-2 text-xs text-[#6B655D] max-w-xl leading-relaxed">
-              Lưu giữ các truy vấn tham chiếu hình ảnh, mô tả sợi vải dệt và chất liệu trang phục đã được hệ thống tư vấn phục vụ quý khách.
+              Lưu giữ các lượt tìm kiếm trang phục bằng hình ảnh và từ khóa gần đây để tiện tra cứu lại.
             </p>
           </div>
 
@@ -143,9 +143,9 @@ export const SearchHistory = () => {
         </div>
       ) : historyData.histories.length === 0 ? (
         <div className="flex flex-col items-center border border-[#E5E0D8] bg-[#FAF8F5] p-16 text-center">
-          <h2 className="font-serif-luxury text-2xl font-normal text-[#161514]">Chưa Có Lịch Sử Tra Cứu</h2>
+          <h2 className="font-serif-luxury text-2xl font-normal text-[#161514]">Chưa Có Lịch Sử Tìm Kiếm</h2>
           <p className="mt-2 max-w-sm text-xs text-[#6B655D] leading-relaxed">
-            Mỗi lần quý khách sử dụng The Visual Concierge để định vị trang phục, truy vấn sẽ được lưu giữ tại đây.
+            Các lượt tìm kiếm trang phục bằng hình ảnh hoặc từ khóa sẽ được lưu lại tại đây.
           </p>
         </div>
       ) : (
@@ -191,7 +191,8 @@ export const SearchHistory = () => {
 
       {selectedHistoryId && (
         <SearchHistoryDetailModal
-          historyId={selectedHistoryId}
+          isOpen={Boolean(selectedHistoryId)}
+          searchId={selectedHistoryId}
           onClose={() => setSelectedHistoryId(null)}
         />
       )}

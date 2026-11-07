@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Phone, Mail, MapPin } from 'lucide-react';
 
@@ -174,7 +174,7 @@ export default function Footer() {
             </li>
             <li>
               <Link to="/search-result" className="hover:text-[#FAF8F5] transition-colors">
-                Tìm Kiếm Thị Giác
+                Tìm Kiếm Trang Phục
               </Link>
             </li>
             <li>

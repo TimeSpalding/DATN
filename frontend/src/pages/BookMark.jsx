@@ -8,6 +8,7 @@ import { getImageBlob } from "../services/imageService";
 import { resolveStorageUrl } from "../utils/imageUrl";
 import AOS from "aos";
 import { ImagePreviewModal } from "../components/common/ImagePreviewModal";
+import { getCleanGarmentTitle } from "../utils/garmentTitle";
 
 const PAGE_SIZE = 20;
 
@@ -289,10 +290,10 @@ export const BookMark = () => {
             L'ARCHIVE PRIVÉE &bull; SÉLECTION
           </p>
           <h1 className="font-serif-luxury text-3xl sm:text-4xl font-normal text-[#161514] tracking-wide">
-            Tác Phẩm &amp; Hình Ảnh Đã Lưu
+            Danh Sách Yêu Thích
           </h1>
           <p className="mt-2 text-xs text-[#6B655D] max-w-xl leading-relaxed">
-            Kho lưu trữ hình ảnh tư gia được đánh dấu trong quá trình tra cứu và định vị phong cách thời trang.
+            Các mẫu trang phục và hình ảnh tham khảo đã được đánh dấu trong quá trình tìm kiếm sản phẩm.
           </p>
         </div>
 
@@ -330,14 +331,14 @@ export const BookMark = () => {
           </div>
           <h2 className="font-serif-luxury text-2xl font-normal text-[#161514]">Chưa Có Ảnh Đã Lưu</h2>
           <p className="mt-2 max-w-sm text-xs text-[#6B655D] leading-relaxed">
-            Khi quý khách bấm lưu ảnh trong kết quả định vị phong cách, tác phẩm sẽ xuất hiện tại đây để tiện theo dõi.
+            Khi lưu mẫu trang phục từ trang kết quả tìm kiếm, sản phẩm sẽ xuất hiện tại đây để tiện theo dõi.
           </p>
         </div>
       ) : (
         <>
           <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {allBookmarks.map((bookmark) => {
-              const fileName = bookmark.originalFilename || `Ảnh #${bookmark.imageId}`;
+              const fileName = getCleanGarmentTitle(bookmark);
               const isDeleting = deleteMutation.isPending && deleteMutation.variables === bookmark.imageId;
 
               return (

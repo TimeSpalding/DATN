@@ -253,3 +253,22 @@ html {
 .my-masonry-grid_column > div {
   margin-bottom: 20px; 
 }
+
+/* Native Modal Dialog Scroll & Backdrop Containment */
+dialog:modal {
+  overscroll-behavior: contain;
+}
+
+dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+  background-color: rgba(22, 21, 20, 0.72);
+  backdrop-filter: blur(2px);
+}
+
+/* Grand Atelier Crop Selection Theme */
+.ReactCrop {
+  --rc-border-color: rgba(250, 248, 245, 0.92);
+  --rc-drag-handle-bg-colour: #C05A39;
+  --rc-drag-bar-size: 6px;
+}

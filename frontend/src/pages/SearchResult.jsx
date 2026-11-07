@@ -1,8 +1,8 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, lazy, Suspense } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { keepPreviousData, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { FaAlignLeft, FaChevronLeft, FaChevronRight, FaFont, FaImage, FaArrowLeft, FaArrowUp, FaCheckCircle, FaSlidersH } from "react-icons/fa";
-import { FiArrowDown, FiTrash2, FiCheck } from "react-icons/fi";
+import { FaAlignLeft, FaFont, FaImage, FaArrowUp, FaCheckCircle, FaSlidersH } from "react-icons/fa";
+import { FiArrowDown, FiTrash2 } from "react-icons/fi";
 import { SearchDetailModal } from "../components/common/SearchDetailModal";
 import { getMockSearchResponse } from "../mocks/searchResultsMock";
 import { searchByImage, searchByText, searchByComposed } from "../services/searchService";
@@ -10,13 +10,12 @@ import { searchSimilarImages } from "../services/searchSimilarService";
 import { deleteImageByAdmin, deleteImagesByAdmin } from "../services/adminImageService";
 import { ImageWithFallback } from "../components/common/ImageWithFallback";
 import { searchStore } from "../utils/searchStore";
+import { resolveImageUrl } from "../utils/imageUrl";
 import { useAuth } from "../contexts/AuthContext";
 import AOS from 'aos';
-import { lazy, Suspense } from "react";
 import { CardSkeleton } from "../components/ui/CardSkeleton";
 import { useInView } from "react-intersection-observer";
-import { CompactSearchBar } from "../components/common/CompactSearchBar";
-import VisualSearchPanel from "../components/common/VisualSearchPanel";
+import SearchModulesWorkspace from "../components/common/SearchModulesWorkspace";
 import Masonry from 'react-masonry-css';
 import Swal from "sweetalert2";
 
@@ -38,19 +37,19 @@ const breakpointColumnsObj = {
 };
 
 const getModeLabel = (type, mode) => {
-  if (type === "composed") return "Tìm kiếm lai (Ảnh + Text)";
-  if (type === "similar") return "Tìm ảnh tương tự";
-  if (type === "image") return "Tìm bằng ảnh";
+  if (type === "composed") return "Kết hợp ảnh & mô tả";
+  if (type === "similar") return "Ảnh tương tự";
+  if (type === "image") return "Tìm bằng hình ảnh";
   if (mode === "OCR") return "Tìm chữ trong ảnh";
-  return "Tìm bằng text";
+  return "Tìm theo từ khóa";
 };
 
 const getDescriptionLabel = (type, mode) => {
-  if (type === "composed") return "Mô tả điều chỉnh cho ảnh";
-  if (type === "similar") return "Kết quả tương tự cho ảnh";
-  if (type === "image") return "Kết quả cho ảnh";
-  if (mode === "OCR") return "Kết quả cho chữ";
-  return "Kết quả cho mô tả";
+  if (type === "composed") return "Mô tả điều chỉnh";
+  if (type === "similar") return "Ảnh tham chiếu";
+  if (type === "image") return "Ảnh tải lên";
+  if (mode === "OCR") return "Văn bản trong ảnh";
+  return "Từ khóa";
 };
 
 const normalizeSearchResponse = (response) => {
@@ -118,7 +117,18 @@ export const SearchResult = () => {
   const canShowResults = USE_MOCK_SEARCH_RESULTS || canSearch;
 
   const initialPage = Math.max(Number(searchParams.get("page") || 1), 1);
-  const searchQueryKey = ["search-results", type, query, mode, size, imageFile?.name, imageId, modificationText];
+  const searchQueryKey = [
+    "search-results",
+    type,
+    query,
+    mode,
+    size,
+    imageFile?.name,
+    imageFile?.size,
+    imageFile?.lastModified,
+    imageId,
+    modificationText,
+  ];
 
   const searchQuery = useInfiniteQuery({
     queryKey: searchQueryKey,
@@ -343,12 +353,11 @@ export const SearchResult = () => {
   }, [canAdminBulkDelete, searchData.results]);
 
   const previewImageUrl = useMemo(() => {
-    if ((isImageSearch || isComposedSearch) && imageFile) return URL.createObjectURL(imageFile);
-    if ((isSimilarSearch || isComposedSearch) && searchData?.queryImageUrl) {
-      return searchData.queryImageUrl;
+    if ((isImageSearch || isComposedSearch) && imageFile) {
+      return URL.createObjectURL(imageFile);
     }
-    if (isComposedSearch && imageId) {
-      return `/visual-search/v1/images/${imageId}`;
+    if ((isSimilarSearch || isComposedSearch) && (searchData?.queryImageUrl || imageId)) {
+      return resolveImageUrl(searchData?.queryImageUrl, imageId);
     }
     return null;
   }, [imageFile, isImageSearch, isSimilarSearch, isComposedSearch, imageId, searchData?.queryImageUrl]);
@@ -493,42 +502,66 @@ export const SearchResult = () => {
     window.scrollTo(0, 0);
   };
 
+  const workspaceSyncKey = [
+    canShowResults ? type : "idle",
+    query,
+    modificationText,
+    imageId || "",
+    imageFile?.name || "",
+    imageFile?.lastModified || "",
+  ].join("|");
+
   if (!canShowResults) {
     return (
-      <div className="w-full flex flex-col items-center py-12 sm:py-16 px-4 sm:px-6 lg:px-8 bg-[#FAF8F5]">
-        <div className="w-full max-w-4xl text-center mb-8">
+      <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
+        <div className="mb-8 text-center">
           <p className="text-[10px] font-semibold tracking-[0.25em] text-[#C05A39] uppercase mb-2">
-            CONCIERGE THỊ GIÁC &bull; TÌM KIẾM THỜI TRANG THÔNG MINH
+            GRAND ATELIER &bull; TÌM KIẾM TRANG PHỤC
           </p>
-          <h1 className="font-serif-luxury text-3xl sm:text-4xl md:text-5xl font-normal text-[#161514] tracking-wide mb-3">
-            Tìm Kiếm Trang Phục Qua Thị Giác
+          <h1 className="font-serif-luxury text-3xl sm:text-4xl font-normal text-[#161514] tracking-wide mb-2.5">
+            Tìm kiếm sản phẩm
           </h1>
-          <p className="max-w-xl mx-auto text-xs sm:text-sm text-[#6B655D] leading-relaxed">
-            Hệ thống trí tuệ nhân tạo sẽ phân tích ảnh chụp trang phục hoặc diễn đạt phong cách sợi dệt của quý khách để tìm ra các sản phẩm thời trang tương đồng chính xác nhất.
+          <p className="max-w-2xl mx-auto text-xs sm:text-sm text-[#6B655D] leading-relaxed">
+            Chọn trực tiếp một trong ba công cụ dưới đây để tra cứu theo hình ảnh tải lên, kết hợp ảnh mẫu cùng mô tả thay đổi, hoặc tìm nhanh bằng từ khóa.
           </p>
         </div>
 
-        <div className="w-full max-w-4xl bg-[#FAF8F5] border border-[#E5E0D8] p-6 sm:p-10 shadow-xs">
-          <VisualSearchPanel />
-        </div>
-      </div>
+        <SearchModulesWorkspace
+          key={workspaceSyncKey}
+          activeType={type}
+          initialQuery={query}
+          initialComposedText={modificationText}
+          activeImageFile={null}
+          activeImageId={null}
+          activePreviewUrl={null}
+          hasActiveSearch={false}
+          pageSize={size}
+        />
+      </section>
     );
   }
 
   return (
-    <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
-      <div className="flex w-full items-center mb-6">
-        <CompactSearchBar className="w-full md:flex-1" />
+    <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+      <div className="mb-8">
+        <SearchModulesWorkspace
+          key={workspaceSyncKey}
+          activeType={type}
+          initialQuery={query}
+          initialComposedText={modificationText}
+          activeImageFile={imageFile}
+          activeImageId={imageId}
+          activePreviewUrl={previewImageUrl}
+          hasActiveSearch={true}
+          pageSize={size}
+        />
       </div>
 
       <div className="flex flex-col gap-6 border-b border-[#E5E0D8] pb-8 mb-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-[10px] font-semibold tracking-[0.25em] text-[#C05A39] uppercase mb-1.5">
-              CONCIERGE THỊ GIÁC &bull; KẾT QUẢ TÌM KIẾM
-            </p>
             <h1 className="font-serif-luxury text-3xl sm:text-4xl font-normal text-[#161514] tracking-wide">
-              Kết Quả Định Vị Thị Giác
+              Kết quả tìm kiếm
             </h1>
             <div className="mt-3 flex flex-wrap items-center gap-4">
               {isComposedSearch ? (
@@ -537,18 +570,19 @@ export const SearchResult = () => {
                     Ảnh mẫu:
                   </span>
                   {previewImageUrl && (
-                    <div className="h-20 w-20 overflow-hidden border border-[#E5E0D8] bg-[#F3EFE6] shadow-xs">
+                    <div className="h-16 w-16 overflow-hidden border border-[#E5E0D8] bg-[#F3EFE6] shadow-xs">
                       <ImageWithFallback
                         src={previewImageUrl}
+                        imageId={imageId}
                         alt="Ảnh mẫu"
-                        className="h-full w-full object-cover p-1"
+                        className="h-full w-full object-cover p-0.5"
                       />
                     </div>
                   )}
                   <span className="text-[#8C8476] font-bold text-lg">+</span>
                   <span className="text-xs text-[#6B655D] uppercase tracking-wider">
                     Điều chỉnh:{" "}
-                    <span className="font-serif-luxury text-base text-[#161514] font-medium lowercase italic px-2 py-0.5 border border-[#E5E0D8] bg-[#FAF8F5]">
+                    <span className="font-serif-luxury text-base text-[#161514] font-medium italic px-2 py-0.5 border border-[#E5E0D8] bg-[#FAF8F5]">
                       &ldquo;{descriptionValue}&rdquo;
                     </span>
                   </span>
@@ -559,11 +593,11 @@ export const SearchResult = () => {
                     {descriptionLabel}:
                   </span>
 
-                  <div className="h-20 w-20 overflow-hidden border border-[#E5E0D8] bg-[#F3EFE6]">
+                  <div className="h-16 w-16 overflow-hidden border border-[#E5E0D8] bg-[#F3EFE6]">
                     <ImageWithFallback
                       src={previewImageUrl}
-                      imageId={imageFile?.name}
-                      alt={imageFile?.name}
+                      imageId={imageId || imageFile?.name}
+                      alt="Ảnh tham chiếu tìm kiếm"
                       className="h-full w-full object-cover"
                     />
                   </div>
@@ -571,7 +605,7 @@ export const SearchResult = () => {
               ) : (
                 <p className="text-xs text-[#6B655D] uppercase tracking-wider">
                   {descriptionLabel}:{" "}
-                  <span className="font-serif-luxury text-base text-[#161514] font-medium lowercase italic">
+                  <span className="font-serif-luxury text-base text-[#161514] font-medium italic">
                     &ldquo;{descriptionValue}&rdquo;
                   </span>
                 </p>
@@ -580,7 +614,7 @@ export const SearchResult = () => {
               <span className="inline-flex items-center gap-1.5 px-3 py-1 border border-[#161514] bg-[#FAF8F5] text-[10px] font-medium tracking-widest uppercase text-[#161514]">
                 {type === "composed" ? (
                   <FaSlidersH className="h-2.5 w-2.5" />
-                ) : type === "image" ? (
+                ) : type === "image" || type === "similar" ? (
                   <FaImage className="h-2.5 w-2.5" />
                 ) : mode === "OCR" ? (
                   <FaFont className="h-2.5 w-2.5" />
@@ -728,7 +762,7 @@ export const SearchResult = () => {
               <div className="flex items-center gap-2 text-xs text-[#8C8476] uppercase tracking-wider">
                 <FaCheckCircle className="text-[#C05A39]" />
                 <span>
-                  Đã hiển thị toàn bộ {searchData.totalElements} kết quả định vị
+                  Đã hiển thị toàn bộ {searchData.totalElements} kết quả tìm kiếm
                 </span>
               </div>
             )}

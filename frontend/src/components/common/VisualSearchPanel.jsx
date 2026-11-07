@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaAlignLeft, FaFont, FaImage, FaSearch, FaUpload, FaTimes, FaSlidersH } from 'react-icons/fa';
+import { FaAlignLeft, FaImage, FaSearch, FaUpload, FaTimes, FaSlidersH } from 'react-icons/fa';
 import { MAX_FILE_SIZE } from '../../config/constants';
 import SearchModeTabs from './SearchModeTabs';
 import { searchStore } from '../../utils/searchStore';
@@ -9,18 +9,18 @@ import CropModal from './CropModal';
 const searchModes = [
   {
     id: 'image',
-    label: 'Khám Phá Bằng Hình Ảnh',
+    label: 'Tìm Bằng Hình Ảnh',
     icon: FaImage,
   },
   {
     id: 'composed',
-    label: 'Tìm kiếm lai (Ảnh + Text)',
+    label: 'Kết Hợp Ảnh & Mô Tả',
     icon: FaSlidersH,
     placeholder: 'Ví dụ: đổi sang áo kẻ, màu xanh rêu, tay ngắn...',
   },
   {
     id: 'description',
-    label: 'Khám Phá Theo Mô Tả Phong Cách',
+    label: 'Tìm Bằng Từ Khóa',
     icon: FaAlignLeft,
     placeholder: 'Ví dụ: Áo sơ mi poplin cổ tàu màu trắng ngà hoặc đầm xếp ly thanh lịch...',
   },
@@ -269,13 +269,17 @@ export default function VisualSearchPanel() {
               </p>
             )}
 
-            {/* Ô nhập điều chỉnh thuộc tính dành riêng cho Tìm kiếm lai */}
+            {/* Ô nhập điều chỉnh thuộc tính cho tìm kết hợp */}
             {isComposedMode && (
-              <div className="mt-3 w-full max-w-md text-left">
-                <label className="block text-xs font-bold text-indigo-950 mb-1.5">
-                  Mô tả điều chỉnh từ ảnh này (màu sắc, họa tiết, kiểu dáng):
+              <div className="mt-4 w-full max-w-md text-left">
+                <label
+                  htmlFor="home-composed-search-input"
+                  className="mb-1.5 block text-[11px] font-semibold tracking-[0.14em] text-[#161514] uppercase"
+                >
+                  Mô tả điều chỉnh từ ảnh này (màu sắc, họa tiết, kiểu dáng)
                 </label>
                 <input
+                  id="home-composed-search-input"
                   type="text"
                   value={query}
                   onChange={(e) => {
@@ -288,8 +292,8 @@ export default function VisualSearchPanel() {
                       handleComposedSearch();
                     }
                   }}
-                  placeholder="Ví dụ: áo kẻ, màu xanh rêu, tay ngắn..."
-                  className="w-full rounded-xl border border-indigo-300 bg-white px-4 py-2.5 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-xs"
+                  placeholder="Ví dụ: đổi sang màu đen, kẻ sọc, tay ngắn..."
+                  className="w-full border border-[#D8D2C5] bg-[#FAF8F5] px-4 py-2.5 text-xs text-[#161514] placeholder:text-[#8C8476] focus:border-[#161514] focus:outline-none"
                 />
               </div>
             )}
@@ -312,7 +316,7 @@ export default function VisualSearchPanel() {
                     className="btn-terracotta mt-5 cursor-pointer flex items-center justify-center gap-2"
                   >
                     <FaSlidersH className="h-3.5 w-3.5" />
-                    <span>Tìm Kiếm Lai (Ảnh + Text)</span>
+                    <span>Tìm Kết Hợp Ảnh &amp; Mô Tả</span>
                   </button>
                 ) : (
                   <button
@@ -321,7 +325,7 @@ export default function VisualSearchPanel() {
                     className="btn-terracotta mt-5 cursor-pointer flex items-center justify-center gap-2"
                   >
                     <FaSearch className="h-3.5 w-3.5 mr-1" />
-                    <span>Tìm Kiếm Thiết Kế Tương Đồng</span>
+                    <span>Tìm Mẫu Tương Đồng</span>
                   </button>
                 )}
               </div>

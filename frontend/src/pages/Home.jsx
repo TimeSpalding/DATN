@@ -75,7 +75,7 @@ export default function Home() {
               className="btn-outline-light border-white/20 text-[#D8D2C5] hover:text-[#161514]"
             >
               <Compass className="w-3.5 h-3.5 mr-1" />
-              <span>Visual Concierge</span>
+              <span>Tìm Kiếm Trang Phục</span>
             </a>
           </div>
         </div>
@@ -202,17 +202,17 @@ export default function Home() {
           
           <div className="text-center max-w-2xl mx-auto mb-12">
             <p className="text-[10px] font-semibold tracking-[0.25em] text-[#C05A39] uppercase mb-2">
-              THE VISUAL CONCIERGE &bull; DỊCH VỤ TÌM KIẾM THỊ GIÁC
+              GRAND ATELIER &bull; TÌM KIẾM SẢN PHẨM
             </p>
             
             <h2 className="font-serif-luxury text-3xl sm:text-4xl text-[#161514] font-normal tracking-wide">
-              Tìm Kiếm Thiết Kế Theo Cảm Hứng Ánh Nhìn
+              Tìm Kiếm Trang Phục Bằng Hình Ảnh &amp; Mô Tả
             </h2>
 
             <div className="w-12 h-[1px] bg-[#C05A39] mx-auto my-4" />
 
             <p className="text-xs sm:text-sm text-[#6B655D] leading-relaxed">
-              Gửi một bức ảnh thời trang, một khoảnh khắc trên phố hay mô tả phong cách quý khách yêu thích. Concierge của Atelier sẽ tuyển lựa những thiết kế tương đồng nhất từ kho lưu trữ.
+              Tải lên một bức ảnh trang phục yêu thích hoặc nhập từ khóa mô tả kiểu dáng, màu sắc để tìm nhanh những mẫu thiết kế phù hợp nhất tại cửa hàng.
             </p>
           </div>
 

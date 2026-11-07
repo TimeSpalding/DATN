@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { formatScore } from "../../utils/formatScore";
 import { resolveImageUrl } from "../../utils/imageUrl";
 import { ImageWithFallback } from "../common/ImageWithFallback";
+import { getCleanGarmentTitle } from "../../utils/garmentTitle";
 import { FiTrash2, FiCheck } from "react-icons/fi";
 import { ArrowRight } from "lucide-react";
 
@@ -35,7 +36,7 @@ export const SearchResultCard = ({
       state: {
         selectedGarment: {
           id: `search-${result.imageId}`,
-          name: result.name || result.originalFilename || `Thiết kế #${result.imageId}`,
+          name: getCleanGarmentTitle(result),
           image: imageUrl,
           category: result.category || 'upper',
           price: result.price || '450.000₫',
