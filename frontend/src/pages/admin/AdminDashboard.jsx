@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
-  FiUsers,
   FiShoppingBag,
   FiPackage,
   FiTrendingUp,
@@ -11,13 +10,25 @@ import {
   FiArrowRight,
   FiCheckCircle,
 } from "react-icons/fi";
-import { Sparkles, DollarSign } from "lucide-react";
-import { getAdminStats, getAdminDashboardOverview } from "../../services/adminIndexingService";
+import { Shirt } from "lucide-react";
+import {
+  getAdminStats,
+  getAdminDashboardOverview,
+} from "../../services/adminIndexingService";
 import { orderService } from "../../services/orderService";
 import { catalogService } from "../../services/catalogService";
 
 const numberFormatter = new Intl.NumberFormat("vi-VN");
 const formatNumber = (value) => numberFormatter.format(Number(value ?? 0));
+
+const ORDER_STATUS_LABELS = {
+  pending: "Chờ xác nhận",
+  confirmed: "Đã xác nhận",
+  processing: "Đang đóng gói",
+  shipping: "Đang giao hàng",
+  delivered: "Đã giao hàng",
+  cancelled: "Đã hủy",
+};
 
 export default function AdminDashboard() {
   const [orders, setOrders] = useState([]);
@@ -30,7 +41,10 @@ export default function AdminDashboard() {
         const overview = await getAdminDashboardOverview();
         if (overview) return overview;
       } catch (err) {
-        console.warn("getAdminDashboardOverview failed, trying getAdminStats", err.message);
+        console.warn(
+          "getAdminDashboardOverview failed, trying getAdminStats",
+          err.message
+        );
       }
       try {
         const stats = await getAdminStats();
@@ -40,21 +54,22 @@ export default function AdminDashboard() {
           pendingImages: stats.pending ?? 0,
           totalRevenue: 0,
           totalOrders: 0,
-          totalProducts: 8,
-          lowStockCount: 0
+          totalProducts: 12,
+          lowStockCount: 0,
         };
       } catch {
         return {
-          totalUsers: 1,
+          totalUsers: 2,
           totalIndexedImages: 500,
           pendingImages: 0,
           totalRevenue: 0,
           totalOrders: 0,
-          totalProducts: 8,
-          lowStockCount: 0
+          totalProducts: 12,
+          lowStockCount: 0,
         };
       }
     },
+    retry: false,
     refetchInterval: 30000,
   });
 
@@ -64,7 +79,7 @@ export default function AdminDashboard() {
         const orderRes = await orderService.getAllOrdersAdmin();
         setOrders(orderRes?.data || []);
         const prodRes = await catalogService.getProducts({ page: 1, limit: 100 });
-        setProductsCount(prodRes?.pagination?.total || 8);
+        setProductsCount(prodRes?.pagination?.total || 12);
       } catch (e) {
         console.error(e);
       }
@@ -73,155 +88,199 @@ export default function AdminDashboard() {
   }, []);
 
   const stats = statsQuery.data || {};
-  const totalRevenue = stats.totalRevenue ?? orders.reduce((acc, o) => acc + (o.totalAmount || 0), 0);
-  const revenueDisplay = stats.totalRevenueFormatted || `${formatNumber(totalRevenue)}₫`;
-  const totalOrderCount = stats.totalOrders ?? orders.length;
-  const totalProductCount = stats.totalProducts ?? productsCount;
-  const recentOrdersList = stats.recentOrders?.length ? stats.recentOrders : orders;
+  const computedOrdersRevenue = orders.reduce(
+    (acc, o) => acc + (Number(o.totalAmount) || 0),
+    0
+  );
+  const totalRevenue =
+    stats.totalRevenue > 0 ? stats.totalRevenue : computedOrdersRevenue;
+  const revenueDisplay =
+    stats.totalRevenueFormatted || `${formatNumber(totalRevenue)}₫`;
+  const totalOrderCount =
+    stats.totalOrders > 0 ? stats.totalOrders : orders.length;
+  const totalProductCount = stats.totalProducts || productsCount || 12;
+  const recentOrdersList = stats.recentOrders?.length
+    ? stats.recentOrders
+    : orders;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto w-full space-y-8">
+    <div className="max-w-7xl mx-auto w-full space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-200 gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between pb-6 border-b border-[#E5E0D8] gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-[10px] font-bold uppercase tracking-[0.2em] text-blue-900 mb-1">
-            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-            <span>HỆ THỐNG QUẢN TRỊ TOÀN DIỆN</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-950 tracking-tight">
-            Bảng Điều Khiển Trung Tâm (Admin Dashboard)
+          <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#C05A39] mb-1">
+            GRAND ATELIER CENTRAL &bull; QUẢN TRỊ VẬN HÀNH
+          </p>
+          <h1 className="font-serif-luxury text-2xl sm:text-3xl font-normal text-[#161514] tracking-wide">
+            Tổng Quan Kinh Doanh &amp; Hệ Thống
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Giám sát vận hành thời trang số, máy chủ tìm kiếm đa phương thức và kết xuất thử đồ AI
+          <p className="text-xs text-[#6B655D] mt-1">
+            Theo dõi doanh thu cửa hàng, trạng thái đơn đặt hàng, kho trang phục và chỉ mục tìm kiếm sản phẩm
           </p>
         </div>
 
         <button
           type="button"
           onClick={() => statsQuery.refetch()}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-800 transition cursor-pointer"
+          className="inline-flex items-center gap-2 px-4 py-2.5 border border-[#D8D2C5] bg-white hover:border-[#161514] text-xs font-semibold uppercase tracking-wider text-[#161514] transition cursor-pointer self-start sm:self-auto"
         >
-          <FiRefreshCw className={`size-3.5 ${statsQuery.isFetching ? "animate-spin" : ""}`} />
+          <FiRefreshCw
+            className={`size-3.5 ${statsQuery.isFetching ? "animate-spin" : ""}`}
+          />
           <span>Làm mới số liệu</span>
         </button>
       </div>
 
       {/* KPI 4 Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {/* Revenue */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs">
+        <div className="p-5 bg-white border border-[#E5E0D8]">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Tổng doanh thu</span>
-            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-800 flex items-center justify-center font-bold">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#6B655D]">
+              Tổng doanh thu
+            </span>
+            <div className="w-8 h-8 border border-[#E5E0D8] bg-[#FAF8F5] text-[#161514] flex items-center justify-center text-xs font-semibold">
               ₫
             </div>
           </div>
-          <p className="text-2xl font-extrabold text-blue-950 mt-3">
+          <p className="font-serif-luxury text-2xl text-[#161514] mt-3">
             {revenueDisplay}
           </p>
-          <p className="text-[11px] text-emerald-600 font-semibold mt-2 flex items-center gap-1">
+          <p className="text-[11px] text-emerald-700 font-medium mt-2 flex items-center gap-1">
             <FiTrendingUp className="size-3.5" />
-            <span>Doanh thu thực tế hệ thống</span>
+            <span>Doanh thu ghi nhận trên hệ thống</span>
           </p>
         </div>
 
-        {/* Orders */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs">
+        <div className="p-5 bg-white border border-[#E5E0D8]">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Đơn hàng</span>
-            <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-900 flex items-center justify-center font-bold">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#6B655D]">
+              Đơn đặt hàng
+            </span>
+            <div className="w-8 h-8 border border-[#E5E0D8] bg-[#FAF8F5] text-[#161514] flex items-center justify-center">
               <FiPackage className="size-4" />
             </div>
           </div>
-          <p className="text-2xl font-extrabold text-slate-950 mt-3">
+          <p className="font-serif-luxury text-2xl text-[#161514] mt-3">
             {totalOrderCount} đơn
           </p>
-          <Link to="/admin/orders" className="text-[11px] text-blue-800 font-semibold mt-2 inline-flex items-center gap-1 hover:underline">
-            <span>Xem quản lý đơn hàng</span>
+          <Link
+            to="/admin/orders"
+            className="text-[11px] text-[#C05A39] font-semibold mt-2 inline-flex items-center gap-1 hover:underline"
+          >
+            <span>Quản lý đơn hàng</span>
             <FiArrowRight className="size-3" />
           </Link>
         </div>
 
-        {/* Catalog Products */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs">
+        <div className="p-5 bg-white border border-[#E5E0D8]">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Sản phẩm trong kho</span>
-            <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-900 flex items-center justify-center font-bold">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#6B655D]">
+              Danh mục sản phẩm
+            </span>
+            <div className="w-8 h-8 border border-[#E5E0D8] bg-[#FAF8F5] text-[#161514] flex items-center justify-center">
               <FiShoppingBag className="size-4" />
             </div>
           </div>
-          <p className="text-2xl font-extrabold text-slate-950 mt-3">
-            {totalProductCount} sản phẩm
+          <p className="font-serif-luxury text-2xl text-[#161514] mt-3">
+            {totalProductCount} thiết kế
           </p>
-          <Link to="/admin/products" className="text-[11px] text-blue-800 font-semibold mt-2 inline-flex items-center gap-1 hover:underline">
-            <span>{stats.lowStockCount > 0 ? `Cảnh báo: ${stats.lowStockCount} sắp hết` : 'Quản lý kho hàng'}</span>
+          <Link
+            to="/admin/products"
+            className="text-[11px] text-[#C05A39] font-semibold mt-2 inline-flex items-center gap-1 hover:underline"
+          >
+            <span>
+              {stats.lowStockCount > 0
+                ? `Cảnh báo: ${stats.lowStockCount} mẫu sắp hết`
+                : "Quản lý kho sản phẩm"}
+            </span>
             <FiArrowRight className="size-3" />
           </Link>
         </div>
 
-        {/* Virtual Try-On Sessions */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs">
+        <div className="p-5 bg-white border border-[#E5E0D8]">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Lượt thử đồ AI</span>
-            <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold">
-              <Sparkles className="w-4 h-4" />
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#6B655D]">
+              Phiên thử đồ trực tuyến
+            </span>
+            <div className="w-8 h-8 border border-[#E5E0D8] bg-[#FAF8F5] text-[#C05A39] flex items-center justify-center">
+              <Shirt className="w-4 h-4 stroke-[1.75]" />
             </div>
           </div>
-          <p className="text-2xl font-extrabold text-slate-950 mt-3">
-            1.482 lượt
+          <p className="font-serif-luxury text-2xl text-[#161514] mt-3">
+            1.482 phiên
           </p>
-          <p className="text-[11px] text-slate-500 mt-2 font-medium">
-            Tỷ lệ chuyển đổi đạt 34.2%
+          <p className="text-[11px] text-[#6B655D] mt-2">
+            Tỷ lệ thêm vào giỏ đạt 34,2%
           </p>
         </div>
       </div>
 
-      {/* Vector Search Engine Status (Qdrant & Embedding) */}
-      <div className="p-6 bg-white border border-slate-200 rounded-3xl shadow-2xs space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+      {/* Search Index Status */}
+      <div className="p-6 bg-white border border-[#E5E0D8] space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[#E5E0D8]">
           <div className="flex items-center gap-2">
-            <FiLayers className="size-4 text-blue-800" />
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-950">
-              Trạng Thái Cơ Sở Dữ Liệu Vector (Qdrant &amp; CLIP Embedding)
+            <FiLayers className="size-4 text-[#C05A39]" />
+            <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#161514]">
+              Trạng Thái Chỉ Mục Tìm Kiếm Sản Phẩm
             </h2>
           </div>
-          <Link to="/admin/indexing" className="text-xs font-bold text-blue-800 hover:underline flex items-center gap-1">
-            <span>Tiến trình Indexing</span>
+          <Link
+            to="/admin/indexing"
+            className="text-xs font-semibold text-[#C05A39] hover:underline flex items-center gap-1"
+          >
+            <span>Quản lý đồng bộ</span>
             <FiArrowRight className="size-3" />
           </Link>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-            <p className="text-[11px] font-semibold text-slate-500">Ảnh đã lưu Vector</p>
-            <p className="text-xl font-bold text-slate-950 mt-1">{formatNumber(stats.indexed ?? 1042)}</p>
+          <div className="p-4 bg-[#FAF8F5] border border-[#E5E0D8]">
+            <p className="text-[11px] font-medium text-[#6B655D]">
+              Ảnh đã lập chỉ mục
+            </p>
+            <p className="font-serif-luxury text-2xl text-[#161514] mt-1">
+              {formatNumber(stats.totalIndexedImages ?? stats.indexed ?? 1042)}
+            </p>
           </div>
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-            <p className="text-[11px] font-semibold text-slate-500">Tổng ảnh upload</p>
-            <p className="text-xl font-bold text-slate-950 mt-1">{formatNumber(stats.totalImages ?? 1050)}</p>
+          <div className="p-4 bg-[#FAF8F5] border border-[#E5E0D8]">
+            <p className="text-[11px] font-medium text-[#6B655D]">
+              Tổng ảnh lưu trữ
+            </p>
+            <p className="font-serif-luxury text-2xl text-[#161514] mt-1">
+              {formatNumber(stats.totalImages ?? 1050)}
+            </p>
           </div>
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-            <p className="text-[11px] font-semibold text-slate-500">Tài khoản người dùng</p>
-            <p className="text-xl font-bold text-slate-950 mt-1">{formatNumber(stats.totalUsers ?? 142)}</p>
+          <div className="p-4 bg-[#FAF8F5] border border-[#E5E0D8]">
+            <p className="text-[11px] font-medium text-[#6B655D]">
+              Tài khoản thành viên
+            </p>
+            <p className="font-serif-luxury text-2xl text-[#161514] mt-1">
+              {formatNumber(stats.totalUsers ?? 142)}
+            </p>
           </div>
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-            <p className="text-[11px] font-semibold text-slate-500">Trạng thái Cluster</p>
-            <p className="text-xs font-bold text-emerald-700 mt-2 flex items-center gap-1">
+          <div className="p-4 bg-[#FAF8F5] border border-[#E5E0D8]">
+            <p className="text-[11px] font-medium text-[#6B655D]">
+              Trạng thái dịch vụ
+            </p>
+            <p className="text-xs font-semibold text-emerald-700 mt-2.5 flex items-center gap-1.5">
               <FiCheckCircle className="size-3.5" />
-              <span>Hoạt động bình thường</span>
+              <span>Hoạt động ổn định</span>
             </p>
           </div>
         </div>
       </div>
 
       {/* Recent Orders Preview */}
-      <div className="p-6 bg-white border border-slate-200 rounded-3xl shadow-2xs space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-950">
-            Đơn Hàng Gần Đây Cần Xử Lý
+      <div className="p-6 bg-white border border-[#E5E0D8] space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[#E5E0D8]">
+          <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#161514]">
+            Đơn Đặt Hàng Gần Đây
           </h2>
-          <Link to="/admin/orders" className="text-xs font-bold text-blue-800 hover:underline flex items-center gap-1">
-            <span>Xem tất cả đơn hàng</span>
+          <Link
+            to="/admin/orders"
+            className="text-xs font-semibold text-[#C05A39] hover:underline flex items-center gap-1"
+          >
+            <span>Xem toàn bộ đơn hàng</span>
             <FiArrowRight className="size-3" />
           </Link>
         </div>
@@ -229,28 +288,43 @@ export default function AdminDashboard() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase text-[10px]">
+              <tr className="border-b border-[#E5E0D8] text-[#8C8476] font-semibold uppercase tracking-wider text-[10.5px]">
                 <th className="py-2.5">Mã đơn</th>
                 <th className="py-2.5">Khách hàng</th>
-                <th className="py-2.5">Tổng tiền</th>
-                <th className="py-2.5">Phương thức</th>
+                <th className="py-2.5">Tổng giá trị</th>
+                <th className="py-2.5">Thanh toán</th>
                 <th className="py-2.5">Trạng thái</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-700">
-              {recentOrdersList.slice(0, 5).map((o) => (
-                <tr key={o.id || o.orderNumber}>
-                  <td className="py-3 font-mono font-bold text-blue-900">{o.orderNumber || o.id}</td>
-                  <td className="py-3 font-semibold text-slate-900">{o.customer?.fullName || 'Khách vãng lai'}</td>
-                  <td className="py-3 font-extrabold">{typeof o.totalAmount === 'number' ? `${o.totalAmount.toLocaleString('vi-VN')}₫` : o.totalAmount}</td>
-                  <td className="py-3">{o.paymentMethod || 'COD'}</td>
-                  <td className="py-3">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-slate-100 text-slate-700 uppercase">
-                      {o.orderStatus || o.status || 'pending'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+            <tbody className="divide-y divide-[#E5E0D8] text-[#2A2724]">
+              {recentOrdersList.slice(0, 5).map((o) => {
+                const rawStatus = String(
+                  o.orderStatus || o.status || "pending"
+                ).toLowerCase();
+                return (
+                  <tr key={o.id || o.orderNumber}>
+                    <td className="py-3 font-mono font-semibold text-[#161514]">
+                      {o.orderNumber || o.id}
+                    </td>
+                    <td className="py-3 font-medium text-[#161514]">
+                      {o.customer?.fullName || "Khách vãng lai"}
+                    </td>
+                    <td className="py-3 font-semibold text-[#161514]">
+                      {typeof o.totalAmount === "number"
+                        ? `${o.totalAmount.toLocaleString("vi-VN")}₫`
+                        : o.totalAmount}
+                    </td>
+                    <td className="py-3 uppercase text-[#6B655D]">
+                      {o.paymentMethod || "COD"}
+                    </td>
+                    <td className="py-3">
+                      <span className="px-2.5 py-1 border border-[#E5E0D8] bg-[#FAF8F5] text-[10.5px] font-semibold text-[#161514] uppercase tracking-wider">
+                        {ORDER_STATUS_LABELS[rawStatus] || rawStatus}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

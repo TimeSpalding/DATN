@@ -16,3 +16,4 @@ export function getCleanGarmentTitle(item) {
 
   return item.imageId ? `Mẫu Trang Phục #${item.imageId}` : "Mẫu Trang Phục";
 }
+

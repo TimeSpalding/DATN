@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ShoppingBag,
@@ -12,7 +12,6 @@ import {
   ArrowRight,
   Ruler,
   X,
-  Compass,
 } from 'lucide-react';
 import { catalogService } from '../services/catalogService';
 import { useCart } from '../contexts/CartContext';
@@ -37,6 +36,34 @@ export default function ProductDetail() {
   const [activeTab, setActiveTab] = useState('desc');
   const [showSizeModal, setShowSizeModal] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState([]);
+  const sizeDialogRef = useRef(null);
+
+  useEffect(() => {
+    const dialog = sizeDialogRef.current;
+    if (!dialog) return;
+    if (showSizeModal) {
+      if (!dialog.open) {
+        dialog.showModal();
+      }
+    } else if (dialog.open) {
+      dialog.close();
+    }
+  }, [showSizeModal]);
+
+  const handleSizeDialogBackdropClick = (event) => {
+    const dialog = sizeDialogRef.current;
+    if (!dialog || 'closedBy' in HTMLDialogElement.prototype) return;
+    if (event.target !== dialog) return;
+    const rect = dialog.getBoundingClientRect();
+    const isDialogContent =
+      rect.top <= event.clientY &&
+      event.clientY <= rect.top + rect.height &&
+      rect.left <= event.clientX &&
+      event.clientX <= rect.left + rect.width;
+    if (!isDialogContent) {
+      dialog.close();
+    }
+  };
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -225,7 +252,7 @@ export default function ProductDetail() {
             </p>
 
             {/* Price Line */}
-            <div className="mt-6 py-4 border-y border-[#E5E0D8] flex items-baseline justify-between">
+            <div className="mt-6 py-4 border-y border-[#E5E0D8] flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
               <div className="flex items-baseline gap-3">
                 <span className="font-serif-luxury text-3xl text-[#161514]">
                   {product.price}
@@ -236,7 +263,7 @@ export default function ProductDetail() {
                   </span>
                 )}
               </div>
-              <span className="text-[10px] tracking-[0.18em] uppercase text-[#8C8476] font-medium">
+              <span className="text-[10px] tracking-[0.16em] uppercase text-[#8C8476] font-medium">
                 ĐÃ GỒM THUẾ VAT &bull; MIỄN PHÍ VẬN CHUYỂN
               </span>
             </div>
@@ -280,10 +307,10 @@ export default function ProductDetail() {
                 <button
                   type="button"
                   onClick={() => setShowSizeModal(true)}
-                  className="flex items-center gap-1 text-[#C05A39] hover:underline cursor-pointer lowercase tracking-normal"
+                  className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#C05A39] hover:underline cursor-pointer"
                 >
                   <Ruler className="w-3.5 h-3.5" />
-                  <span>quy chuẩn size</span>
+                  <span>Bảng kích cỡ</span>
                 </button>
               </div>
 
@@ -342,7 +369,7 @@ export default function ProductDetail() {
                 onClick={handleLaunchTryOn}
                 className="btn-terracotta w-full py-4 text-xs font-semibold tracking-[0.2em] cursor-pointer"
               >
-                <span>Ướm Thử Thiết Kế Này (Fitting Suite)</span>
+                <span>Thử Trực Tuyến Thiết Kế Này</span>
                 <ArrowRight className="w-4 h-4 ml-1" />
               </button>
 
@@ -407,7 +434,7 @@ export default function ProductDetail() {
               activeTab === 'care' ? 'border-[#161514] text-[#161514] font-semibold' : 'border-transparent text-[#8C8476] hover:text-[#161514]'
             }`}
           >
-            Nghi Thức Bảo Quản Maison
+            Hướng Dẫn Bảo Quản
           </button>
           <button
             type="button"
@@ -467,10 +494,10 @@ export default function ProductDetail() {
           {activeTab === 'care' && (
             <div className="space-y-4">
               <h4 className="font-serif-luxury text-xl text-[#161514] font-normal mb-2">
-                Nghi Thức Giữ Gìn &amp; Chăm Sóc Sợi Vải Tự Nhiên
+                Hướng Dẫn Giữ Gìn &amp; Chăm Sóc Sợi Vải Tự Nhiên
               </h4>
               <p>
-                Trang phục chế tác từ sợi thiên nhiên mang vẻ đẹp sống động và bền bỉ khi được chăm sóc với những nghi thức chuẩn mực:
+                Trang phục chế tác từ sợi thiên nhiên giữ được độ bền và phom dáng lâu dài khi được chăm sóc theo hướng dẫn phù hợp:
               </p>
               <ul className="list-disc pl-5 space-y-2 text-[#6B655D]">
                 {enriched.careRitual.map((item, idx) => (
@@ -522,77 +549,86 @@ export default function ProductDetail() {
       )}
 
       {/* 5. Size Guide Modal */}
-      {showSizeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#161514]/70 backdrop-blur-xs">
-          <div className="bg-[#FAF8F5] max-w-lg w-full p-8 border border-[#E5E0D8] shadow-2xl">
-            <div className="flex items-center justify-between pb-4 border-b border-[#E5E0D8]">
-              <h3 className="font-serif-luxury text-xl font-normal text-[#161514] flex items-center gap-2">
-                <Ruler className="w-4 h-4 text-[#C05A39]" />
-                <span>Quy Chuẩn Đo Vóc Dáng Của Maison</span>
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowSizeModal(false)}
-                className="p-1 text-[#8C8476] hover:text-[#161514]"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+      <dialog
+        ref={sizeDialogRef}
+        closedby="any"
+        aria-labelledby="size-guide-dialog-title"
+        onClose={() => setShowSizeModal(false)}
+        onClick={handleSizeDialogBackdropClick}
+        className="m-auto w-[min(92vw,520px)] bg-[#FAF8F5] p-0 text-[#161514] border border-[#E5E0D8] shadow-2xl backdrop:bg-[#161514]/70 backdrop:backdrop-blur-xs"
+      >
+        <div className="p-8">
+          <div className="flex items-center justify-between pb-4 border-b border-[#E5E0D8]">
+            <h3
+              id="size-guide-dialog-title"
+              className="font-serif-luxury text-xl font-normal text-[#161514] flex items-center gap-2"
+            >
+              <Ruler className="w-4 h-4 text-[#C05A39]" />
+              <span>Bảng Kích Cỡ Chuẩn</span>
+            </h3>
+            <button
+              type="button"
+              onClick={() => setShowSizeModal(false)}
+              aria-label="Đóng bảng kích cỡ"
+              className="p-1 text-[#8C8476] hover:text-[#161514] cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
 
-            <div className="py-5 text-xs text-[#6B655D]">
-              <table className="w-full text-left border-collapse border border-[#E5E0D8]">
-                <thead>
-                  <tr className="bg-[#F7F5F0] text-[#161514] font-medium tracking-wider text-[11px] uppercase">
-                    <th className="p-2.5 border border-[#E5E0D8]">Size</th>
-                    <th className="p-2.5 border border-[#E5E0D8]">Chiều cao</th>
-                    <th className="p-2.5 border border-[#E5E0D8]">Cân nặng</th>
-                    <th className="p-2.5 border border-[#E5E0D8]">Vòng ngực</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#E5E0D8]">
-                  <tr>
-                    <td className="p-2.5 font-medium border border-[#E5E0D8]">S</td>
-                    <td className="p-2.5 border border-[#E5E0D8]">1m55 - 1m65</td>
-                    <td className="p-2.5 border border-[#E5E0D8]">48 - 56kg</td>
-                    <td className="p-2.5 border border-[#E5E0D8]">84 - 88cm</td>
-                  </tr>
-                  <tr>
-                    <td className="p-2.5 font-medium border border-[#E5E0D8]">M</td>
-                    <td className="p-2.5 border border-[#E5E0D8]">1m65 - 1m72</td>
-                    <td className="p-2.5 border border-[#E5E0D8]">57 - 65kg</td>
-                    <td className="p-2.5 border border-[#E5E0D8]">89 - 94cm</td>
-                  </tr>
-                  <tr>
-                    <td className="p-2.5 font-medium border border-[#E5E0D8]">L</td>
-                    <td className="p-2.5 border border-[#E5E0D8]">1m72 - 1m78</td>
-                    <td className="p-2.5 border border-[#E5E0D8]">66 - 74kg</td>
-                    <td className="p-2.5 border border-[#E5E0D8]">95 - 100cm</td>
-                  </tr>
-                  <tr>
-                    <td className="p-2.5 font-medium border border-[#E5E0D8]">XL</td>
-                    <td className="p-2.5 border border-[#E5E0D8]">1m78 - 1m85</td>
-                    <td className="p-2.5 border border-[#E5E0D8]">75 - 84kg</td>
-                    <td className="p-2.5 border border-[#E5E0D8]">101 - 108cm</td>
-                  </tr>
-                </tbody>
-              </table>
-              <p className="mt-4 text-[11px] text-[#8C8476] leading-relaxed">
-                Đặc quyền dịch vụ: Nếu quý khách cần hỗ trợ đổi size, Concierge của chúng tôi sẽ hỗ trợ đổi miễn phí tận nơi trong 30 ngày.
-              </p>
-            </div>
+          <div className="py-5 text-xs text-[#6B655D]">
+            <table className="w-full text-left border-collapse border border-[#E5E0D8]">
+              <thead>
+                <tr className="bg-[#F7F5F0] text-[#161514] font-medium tracking-wider text-[11px] uppercase">
+                  <th className="p-2.5 border border-[#E5E0D8]">Size</th>
+                  <th className="p-2.5 border border-[#E5E0D8]">Chiều cao</th>
+                  <th className="p-2.5 border border-[#E5E0D8]">Cân nặng</th>
+                  <th className="p-2.5 border border-[#E5E0D8]">Vòng ngực</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#E5E0D8]">
+                <tr>
+                  <td className="p-2.5 font-medium border border-[#E5E0D8]">S</td>
+                  <td className="p-2.5 border border-[#E5E0D8]">1m55 - 1m65</td>
+                  <td className="p-2.5 border border-[#E5E0D8]">48 - 56kg</td>
+                  <td className="p-2.5 border border-[#E5E0D8]">84 - 88cm</td>
+                </tr>
+                <tr>
+                  <td className="p-2.5 font-medium border border-[#E5E0D8]">M</td>
+                  <td className="p-2.5 border border-[#E5E0D8]">1m65 - 1m72</td>
+                  <td className="p-2.5 border border-[#E5E0D8]">57 - 65kg</td>
+                  <td className="p-2.5 border border-[#E5E0D8]">89 - 94cm</td>
+                </tr>
+                <tr>
+                  <td className="p-2.5 font-medium border border-[#E5E0D8]">L</td>
+                  <td className="p-2.5 border border-[#E5E0D8]">1m72 - 1m78</td>
+                  <td className="p-2.5 border border-[#E5E0D8]">66 - 74kg</td>
+                  <td className="p-2.5 border border-[#E5E0D8]">95 - 100cm</td>
+                </tr>
+                <tr>
+                  <td className="p-2.5 font-medium border border-[#E5E0D8]">XL</td>
+                  <td className="p-2.5 border border-[#E5E0D8]">1m78 - 1m85</td>
+                  <td className="p-2.5 border border-[#E5E0D8]">75 - 84kg</td>
+                  <td className="p-2.5 border border-[#E5E0D8]">101 - 108cm</td>
+                </tr>
+              </tbody>
+            </table>
+            <p className="mt-4 text-[11px] text-[#8C8476] leading-relaxed">
+              Chính sách đổi cỡ: Đội ngũ chăm sóc khách hàng hỗ trợ đổi size miễn phí tận nơi trong vòng 30 ngày kể từ ngày nhận hàng.
+            </p>
+          </div>
 
-            <div className="pt-4 border-t border-[#E5E0D8] text-right">
-              <button
-                type="button"
-                onClick={() => setShowSizeModal(false)}
-                className="btn-noir py-2 px-6 text-xs"
-              >
-                Đã Hiểu
-              </button>
-            </div>
+          <div className="pt-4 border-t border-[#E5E0D8] text-right">
+            <button
+              type="button"
+              onClick={() => setShowSizeModal(false)}
+              className="btn-noir py-2 px-6 text-xs cursor-pointer"
+            >
+              Đóng
+            </button>
           </div>
         </div>
-      )}
+      </dialog>
 
     </div>
   );

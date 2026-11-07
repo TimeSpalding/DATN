@@ -1,4 +1,4 @@
-import React from 'react';
+import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { X, ShoppingBag, Plus, Minus, Trash2, ArrowRight } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
@@ -21,6 +21,17 @@ export default function CartDrawer() {
     isFreeShipping,
   } = useCart();
 
+  useEffect(() => {
+    if (!isCartOpen) return undefined;
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        closeCart();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isCartOpen, closeCart]);
+
   if (!isCartOpen) return null;
 
   const diffForFreeShip = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
@@ -32,7 +43,7 @@ export default function CartDrawer() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
+    <div className="fixed inset-0 z-50 overflow-hidden" role="dialog" aria-modal="true" aria-label="Túi đồ">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-[#161514]/60 backdrop-blur-xs transition-opacity duration-300"
@@ -47,13 +58,14 @@ export default function CartDrawer() {
             <div className="flex items-center gap-2.5">
               <ShoppingBag className="w-4 h-4 text-[#C05A39]" />
               <h2 className="font-serif-luxury text-xl text-[#161514] font-normal tracking-wide">
-                Túi Đồ Của Quý Khách ({totalItemsCount})
+                Túi Đồ ({totalItemsCount})
               </h2>
             </div>
             <button
               type="button"
               onClick={closeCart}
-              className="w-8 h-8 flex items-center justify-center text-[#8C8476] hover:text-[#161514] transition-colors"
+              aria-label="Đóng túi đồ"
+              className="w-8 h-8 flex items-center justify-center text-[#8C8476] hover:text-[#161514] transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -64,10 +76,10 @@ export default function CartDrawer() {
             <div className="flex items-center justify-between text-xs mb-1.5">
               <span className="text-[11px] text-[#6B655D]">
                 {isFreeShipping ? (
-                  <span className="text-[#C05A39] font-medium uppercase tracking-wider">Đạt Tiêu Chuẩn Miễn Phí Vận Chuyển Tận Tay</span>
+                  <span className="text-[#C05A39] font-medium uppercase tracking-wider">Đủ Điều Kiện Miễn Phí Vận Chuyển</span>
                 ) : (
                   <span>
-                    Đặt thêm <strong className="text-[#161514] font-semibold">{diffForFreeShip.toLocaleString('vi-VN')}₫</strong> để freeship
+                    Mua thêm <strong className="text-[#161514] font-semibold">{diffForFreeShip.toLocaleString('vi-VN')}₫</strong> để được miễn phí vận chuyển
                   </span>
                 )}
               </span>
@@ -88,9 +100,9 @@ export default function CartDrawer() {
                 <div className="w-14 h-14 bg-[#F3EFE6] border border-[#E5E0D8] flex items-center justify-center text-[#8C8476] mb-4">
                   <ShoppingBag className="w-6 h-6 stroke-[1.5]" />
                 </div>
-                <h3 className="font-serif-luxury text-xl text-[#161514]">Túi đồ của quý khách đang trống</h3>
+                <h3 className="font-serif-luxury text-xl text-[#161514]">Túi đồ đang trống</h3>
                 <p className="text-xs text-[#8C8476] mt-2 max-w-[240px] leading-relaxed">
-                  Khám phá các thiết kế thời trang đương đại và trải nghiệm ướm thử tại phòng đo riêng.
+                  Khám phá bộ sưu tập trang phục thiết kế và thử trực tuyến trước khi đặt mua.
                 </p>
                 <Link
                   to="/catalog"
@@ -101,83 +113,94 @@ export default function CartDrawer() {
                 </Link>
               </div>
             ) : (
-              cartItems.map((item) => (
-                <div key={item.cartItemId} className="py-4 flex gap-4">
-                  {/* Item Image */}
-                  <div className="w-18 h-24 bg-[#F3EFE6] border border-[#E5E0D8] shrink-0 overflow-hidden">
-                    <img
-                      src={resolveImageUrl(item.image)}
-                      alt={item.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = '/samples/cloth-1.jpg';
-                      }}
-                    />
-                  </div>
+              cartItems.map((item) => {
+                const itemKey = item.id || item.cartItemId;
+                const prod = item.product || item;
+                const productLink = item.productId || prod.id;
+                const itemName = prod.name || item.name || 'Thiết kế thời trang';
+                const itemImage = prod.image || item.image;
+                const itemSize = item.size || item.selectedSize || 'M';
+                const itemColor = item.color || item.selectedColor;
+                const unitPrice = prod.rawPrice || item.rawPrice || 0;
 
-                  {/* Info */}
-                  <div className="flex-1 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-start justify-between gap-2">
-                        <Link
-                          to={`/products/${item.id}`}
-                          onClick={closeCart}
-                          className="font-serif-luxury text-base text-[#161514] font-normal hover:text-[#C05A39] transition-colors line-clamp-1"
-                        >
-                          {item.name}
-                        </Link>
-                        <button
-                          type="button"
-                          onClick={() => removeFromCart(item.cartItemId)}
-                          className="text-[#A8A196] hover:text-[#C05A39] transition-colors p-0.5"
-                          title="Xóa khỏi túi đồ"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-
-                      <div className="text-[10.5px] tracking-wider text-[#8C8476] uppercase mt-1 flex items-center gap-2">
-                        <span>Size: <strong className="text-[#161514] font-medium">{item.selectedSize}</strong></span>
-                        {item.selectedColor && (
-                          <>
-                            <span>&bull;</span>
-                            <span>Màu: <strong className="text-[#161514] font-medium">{item.selectedColor}</strong></span>
-                          </>
-                        )}
-                      </div>
+                return (
+                  <div key={itemKey} className="py-4 flex gap-4">
+                    {/* Item Image */}
+                    <div className="w-18 h-24 bg-[#F3EFE6] border border-[#E5E0D8] shrink-0 overflow-hidden">
+                      <img
+                        src={resolveImageUrl(itemImage)}
+                        alt={itemName}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = '/samples/cloth-1.jpg';
+                        }}
+                      />
                     </div>
 
-                    <div className="flex items-center justify-between mt-3 pt-2 border-t border-[#E5E0D8]">
-                      {/* Quantity stepper */}
-                      <div className="inline-flex items-center border border-[#E5E0D8] bg-[#FAF8F5]">
-                        <button
-                          type="button"
-                          onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
-                          className="w-6 h-6 flex items-center justify-center text-[#8C8476] hover:text-[#161514]"
-                        >
-                          <Minus className="w-2.5 h-2.5" />
-                        </button>
-                        <span className="w-7 text-center text-xs font-medium text-[#161514]">
-                          {item.quantity}
+                    {/* Info */}
+                    <div className="flex-1 min-w-0 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-start justify-between gap-2">
+                          <Link
+                            to={`/products/${productLink}`}
+                            onClick={closeCart}
+                            className="font-serif-luxury text-base text-[#161514] font-normal hover:text-[#C05A39] transition-colors line-clamp-1"
+                          >
+                            {itemName}
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => removeFromCart(itemKey)}
+                            className="text-[#A8A196] hover:text-[#C05A39] transition-colors p-0.5 cursor-pointer shrink-0"
+                            title="Xóa khỏi túi đồ"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        <div className="text-[10.5px] tracking-wider text-[#8C8476] uppercase mt-1 flex flex-wrap items-center gap-2">
+                          <span>Size: <strong className="text-[#161514] font-medium">{itemSize}</strong></span>
+                          {itemColor && (
+                            <>
+                              <span>&bull;</span>
+                              <span>Màu: <strong className="text-[#161514] font-medium">{itemColor}</strong></span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between mt-3 pt-2 border-t border-[#E5E0D8]">
+                        {/* Quantity stepper */}
+                        <div className="inline-flex items-center border border-[#E5E0D8] bg-[#FAF8F5]">
+                          <button
+                            type="button"
+                            onClick={() => updateQuantity(itemKey, item.quantity - 1)}
+                            className="w-6 h-6 flex items-center justify-center text-[#8C8476] hover:text-[#161514] cursor-pointer"
+                          >
+                            <Minus className="w-2.5 h-2.5" />
+                          </button>
+                          <span className="w-7 text-center text-xs font-medium text-[#161514]">
+                            {item.quantity}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => updateQuantity(itemKey, item.quantity + 1)}
+                            className="w-6 h-6 flex items-center justify-center text-[#8C8476] hover:text-[#161514] cursor-pointer"
+                          >
+                            <Plus className="w-2.5 h-2.5" />
+                          </button>
+                        </div>
+
+                        {/* Line Price */}
+                        <span className="font-medium text-xs text-[#161514]">
+                          {(unitPrice * item.quantity).toLocaleString('vi-VN')}₫
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
-                          className="w-6 h-6 flex items-center justify-center text-[#8C8476] hover:text-[#161514]"
-                        >
-                          <Plus className="w-2.5 h-2.5" />
-                        </button>
                       </div>
-
-                      {/* Line Price */}
-                      <span className="font-medium text-xs text-[#161514]">
-                        {(item.rawPrice * item.quantity).toLocaleString('vi-VN')}₫
-                      </span>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 
@@ -190,19 +213,19 @@ export default function CartDrawer() {
                   <span className="text-[#161514] font-medium">{subtotal.toLocaleString('vi-VN')}₫</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Phí vận chuyển tận nơi</span>
+                  <span>Phí vận chuyển</span>
                   <span className="text-[#161514] font-medium">
                     {shippingFee === 0 ? 'Miễn phí' : `${shippingFee.toLocaleString('vi-VN')}₫`}
                   </span>
                 </div>
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-[#C05A39]">
-                    <span>Ưu đãi áp dụng</span>
+                    <span>Giảm giá</span>
                     <span>-{discountAmount.toLocaleString('vi-VN')}₫</span>
                   </div>
                 )}
                 <div className="flex justify-between pt-2.5 border-t border-[#E5E0D8] text-sm font-semibold text-[#161514]">
-                  <span className="font-serif-luxury text-base">Tổng giá trị đơn</span>
+                  <span className="font-serif-luxury text-base">Tổng cộng</span>
                   <span className="font-serif-luxury text-lg">{totalAmount.toLocaleString('vi-VN')}₫</span>
                 </div>
               </div>
@@ -213,7 +236,7 @@ export default function CartDrawer() {
                   onClick={handleCheckoutClick}
                   className="btn-terracotta w-full py-3.5 text-xs font-semibold tracking-[0.2em]"
                 >
-                  <span>Tiến Hành Đặt Hàng &bull; Thanh Toán</span>
+                  <span>Tiến Hành Thanh Toán</span>
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </button>
 

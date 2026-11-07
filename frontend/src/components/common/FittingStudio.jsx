@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Plus, Equal, AlertCircle, Camera } from 'lucide-react';
 import ImageUploader from './ImageUploader';
 import ResultViewer from './ResultViewer';
@@ -163,7 +163,7 @@ export default function FittingStudio({ initialGarment = null }) {
           SUITE D'ESSAYAGE &bull; PHÒNG THỬ ĐỒ TRỰC TUYẾN
         </p>
 
-        <h2 className="font-serif-luxury text-3xl sm:text-4xl md:text-5xl font-normal text-[#161514] tracking-wide">
+        <h2 className="font-serif-luxury text-3xl sm:text-4xl font-normal text-[#161514] tracking-wide text-balance">
           Gương Soi Thời Trang Kỹ Thuật Số
         </h2>
 

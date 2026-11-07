@@ -1,11 +1,13 @@
 import { CATALOG_PRODUCTS } from "./catalogData";
 
 export const getMockSearchResponse = ({
-  page = 0,
+  page = 1,
   size = 20,
   searchType = "SEMANTIC",
 }) => {
-  const startIndex = page * size;
+  const normalizedPage = Math.max(Number(page) || 1, 1);
+  const pageIndex = normalizedPage - 1;
+  const startIndex = pageIndex * size;
   const pageProducts = CATALOG_PRODUCTS.slice(startIndex, startIndex + size);
 
   return {
@@ -38,7 +40,8 @@ export const getMockSearchResponse = ({
           height: 1000,
         };
       }),
-      pageNumber: page,
+      page: pageIndex,
+      pageNumber: pageIndex,
       pageSize: size,
       totalElements: CATALOG_PRODUCTS.length,
       totalPages: Math.ceil(CATALOG_PRODUCTS.length / size),

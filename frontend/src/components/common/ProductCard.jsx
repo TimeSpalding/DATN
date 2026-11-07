@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Heart, ArrowRight } from 'lucide-react';
 import { useWishlist } from '../../contexts/WishlistContext';
@@ -107,11 +106,11 @@ export default function ProductCard({ product, onTryOnNow }) {
       {/* 2. Product Narrative & Specifications */}
       <div className="p-4 flex flex-col flex-1 justify-between bg-[#FAF8F5]">
         <div>
-          <div className="flex items-center justify-between text-[10px] tracking-[0.2em] text-[#8C8476] uppercase font-medium">
-            <span className="truncate max-w-[140px]">
+          <div className="flex items-center justify-between gap-2 text-[10px] tracking-[0.2em] text-[#8C8476] uppercase font-medium">
+            <span className="min-w-0 truncate">
               {enriched.enrichedFabric?.composition?.split(' ')[0]} {enriched.enrichedFabric?.composition?.split(' ')[1] || 'ATELIER'}
             </span>
-            <span>{enriched.atelierCode}</span>
+            <span className="shrink-0">{enriched.atelierCode}</span>
           </div>
 
           <Link to={`/products/${product.id}`} className="block mt-1.5">
@@ -122,8 +121,8 @@ export default function ProductCard({ product, onTryOnNow }) {
         </div>
 
         {/* Price & Atelier Signature */}
-        <div className="mt-3 pt-3 border-t border-[#E5E0D8] flex items-baseline justify-between">
-          <div className="flex items-baseline gap-2">
+        <div className="mt-3 pt-3 border-t border-[#E5E0D8] flex items-baseline justify-between gap-2 flex-wrap">
+          <div className="flex items-baseline gap-2 flex-wrap">
             <span className="font-medium text-sm text-[#161514] tracking-wide">
               {product.price}
             </span>
@@ -134,7 +133,7 @@ export default function ProductCard({ product, onTryOnNow }) {
             )}
           </div>
 
-          <span className="text-[10px] tracking-[0.15em] text-[#8C8476] uppercase font-medium">
+          <span className="hidden sm:inline shrink-0 text-[10px] tracking-[0.15em] text-[#8C8476] uppercase font-medium">
             Sẵn hàng
           </span>
         </div>

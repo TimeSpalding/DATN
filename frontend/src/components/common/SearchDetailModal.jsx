@@ -10,7 +10,6 @@ import {
   Search,
   Shirt,
   SlidersHorizontal,
-  Sparkles,
   X,
 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -232,7 +231,7 @@ function SearchDetailDialog({ result, onClose, onSearchSimilar }) {
               <div className="mt-4 border border-[#E5E0D8] bg-[#F7F5F0] p-3.5">
                 <div className="flex items-center justify-between gap-2">
                   <span className="flex items-center gap-1.5 text-xs font-medium text-[#161514]">
-                    <Sparkles aria-hidden="true" className="h-3.5 w-3.5 text-[#C05A39]" />
+                    <CheckCircle2 aria-hidden="true" className="h-3.5 w-3.5 text-[#C05A39]" />
                     <span>Mức độ tương đồng</span>
                   </span>
                   <span className="text-xs font-semibold text-[#C05A39]">
@@ -368,10 +367,10 @@ function SearchDetailDialog({ result, onClose, onSearchSimilar }) {
               <button
                 type="button"
                 onClick={() => onSearchSimilar?.(result)}
-                className="flex w-full cursor-pointer items-center justify-center gap-2 bg-[#161514] px-4 py-2.5 text-[10.5px] font-semibold tracking-[0.15em] text-[#FAF8F5] uppercase transition-colors hover:bg-[#2B2825]"
+                className="flex w-full cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap bg-[#161514] px-3 py-2.5 text-[10.5px] font-semibold tracking-[0.14em] text-[#FAF8F5] uppercase transition-colors hover:bg-[#2B2825]"
               >
-                <Search aria-hidden="true" className="h-3 w-3" />
-                <span>Tìm Mẫu Tương Tự</span>
+                <Search aria-hidden="true" className="h-3 w-3 shrink-0" />
+                <span>Mẫu Tương Tự</span>
               </button>
 
               <button

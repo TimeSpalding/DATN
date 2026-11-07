@@ -406,15 +406,13 @@ export const SearchResult = () => {
 
   const modeLabel = getModeLabel(type, mode);
   const descriptionLabel = getDescriptionLabel(type, mode);
-  const descriptionValue = USE_MOCK_SEARCH_RESULTS
-    ? "dữ liệu mock"
-    : isComposedSearch
-      ? modificationText
-      : isSimilarSearch
-        ? `ảnh có ID: #${imageId}`
-        : isImageSearch
-          ? imageFile?.name || "ảnh đã tải lên"
-          : query;
+  const descriptionValue = isComposedSearch
+    ? modificationText || "kết hợp ảnh và mô tả"
+    : isSimilarSearch
+      ? `ảnh có mã #${imageId}`
+      : isImageSearch
+        ? imageFile?.name || "ảnh đã tải lên"
+        : query || "Bộ sưu tập thiết kế";
 
   const visibleImageIds = useMemo(
     () => [...new Set(searchData.results.map((item) => item.imageId))],
@@ -750,7 +748,7 @@ export const SearchResult = () => {
               <div className="flex items-center gap-3 px-5 py-2.5 border border-[#161514] bg-[#FAF8F5]">
                 <div className="h-4 w-4 animate-spin border border-[#161514] border-t-transparent" />
                 <span className="text-xs uppercase tracking-widest text-[#161514]">
-                  Đang tải thêm tác phẩm...
+                  Đang tải thêm sản phẩm...
                 </span>
               </div>
             ) : searchQuery.hasNextPage ? (

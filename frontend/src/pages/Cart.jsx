@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ShoppingBag,
@@ -59,7 +59,7 @@ export default function Cart() {
           Túi Đồ Của Quý Khách Đang Trống
         </h1>
         <p className="text-xs sm:text-sm text-[#8C8476] mt-3 max-w-md mx-auto leading-relaxed">
-          Chưa có trang phục nào trong danh sách. Kính mời quý khách khám phá bộ sưu tập thời trang và trải nghiệm ướm thử tại phòng đo riêng.
+          Chưa có trang phục nào trong danh sách. Mời quý khách khám phá bộ sưu tập thời trang và thử trang phục trực tuyến trước khi đặt mua.
         </p>
         <div className="mt-8 flex justify-center gap-4">
           <Link
@@ -72,7 +72,7 @@ export default function Cart() {
             to="/try-on"
             className="btn-outline-luxury"
           >
-            Vào Phòng Ướm Thử
+            Vào Phòng Thử Đồ
           </Link>
         </div>
       </div>
@@ -111,7 +111,7 @@ export default function Cart() {
             <Truck className="w-4 h-4 text-[#C05A39]" />
             {isFreeShipping ? (
               <span className="text-[#C05A39] font-medium uppercase tracking-wider">
-                Đơn hàng của quý khách đủ điều kiện MIỄN PHÍ VẬN CHUYỂN &bull; ĐỔI SIZE TẬN TAY
+                Đơn hàng của quý khách đủ điều kiện MIỄN PHÍ VẬN CHUYỂN &bull; HỖ TRỢ ĐỔI SIZE 30 NGÀY
               </span>
             ) : (
               <span>
@@ -314,9 +314,9 @@ export default function Cart() {
             <button
               type="button"
               onClick={() => navigate('/checkout')}
-              className="btn-terracotta w-full py-4 text-xs font-semibold tracking-[0.2em] mt-4"
+              className="btn-terracotta w-full py-4 text-xs font-semibold tracking-[0.2em] mt-4 whitespace-nowrap"
             >
-              <span>Tiến Hành Đặt Hàng &bull; Thanh Toán</span>
+              <span>Tiến Hành Thanh Toán</span>
               <ArrowRight className="w-4 h-4 ml-1" />
             </button>
           </div>

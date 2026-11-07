@@ -21,43 +21,43 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <div className="border-l border-[#2E2B27] pl-5">
             <p className="text-[10px] font-medium tracking-[0.25em] text-[#C05A39] uppercase mb-1">
-              HAUTE ATELIER
+              THIẾT KẾ CHUẨN MỰC
             </p>
             <p className="font-serif-luxury text-base text-[#FAF8F5] tracking-wide">
-              Nghệ thuật thiết kế chuẩn mực
+              Kỹ nghệ may đo tinh xảo
             </p>
             <p className="text-[11px] text-[#8C8476] mt-1 leading-relaxed">
-              Từng đường may, ve áo và khuy xà cừ đều được chế tác theo tiêu chuẩn thời trang cao cấp.
+              Từng đường may, ve áo và khuy xà cừ đều được hoàn thiện tỉ mỉ theo tiêu chuẩn cao cấp.
             </p>
           </div>
 
           <div className="border-l border-[#2E2B27] pl-5">
             <p className="text-[10px] font-medium tracking-[0.25em] text-[#C05A39] uppercase mb-1">
-              SUITE D'ESSAYAGE
+              THỬ ĐỒ TRỰC TUYẾN
             </p>
             <p className="font-serif-luxury text-base text-[#FAF8F5] tracking-wide">
-              Ướm thử tư gia trực tuyến
+              Phòng thử đồ trực tuyến
             </p>
             <p className="text-[11px] text-[#8C8476] mt-1 leading-relaxed">
-              Trải nghiệm ướm thử độ rủ sợi dệt và phom dáng chuẩn xác trên người mặc trước khi quyết định.
+              Quan sát trực quan độ rủ chất liệu và phom dáng trang phục trên vóc dáng trước khi đặt mua.
             </p>
           </div>
 
           <div className="border-l border-[#2E2B27] pl-5">
             <p className="text-[10px] font-medium tracking-[0.25em] text-[#C05A39] uppercase mb-1">
-              BESPOKE CONCIERGE
+              DỊCH VỤ KHÁCH HÀNG
             </p>
             <p className="font-serif-luxury text-base text-[#FAF8F5] tracking-wide">
-              Giao hàng &amp; Chỉnh sửa tận nơi
+              Giao hàng &amp; Đổi size tận nơi
             </p>
             <p className="text-[11px] text-[#8C8476] mt-1 leading-relaxed">
-              Miễn phí vận chuyển và hỗ trợ căn chỉnh kích cỡ theo số đo riêng của quý khách.
+              Miễn phí vận chuyển cho đơn từ 500.000₫ và hỗ trợ đổi kích cỡ miễn phí trong 30 ngày.
             </p>
           </div>
 
           <div className="border-l border-[#2E2B27] pl-5">
             <p className="text-[10px] font-medium tracking-[0.25em] text-[#C05A39] uppercase mb-1">
-              CIRCULAR LUXURY
+              CHẤT LIỆU TỰ NHIÊN
             </p>
             <p className="font-serif-luxury text-base text-[#FAF8F5] tracking-wide">
               Vật liệu bền vững tự nhiên
@@ -71,7 +71,6 @@ export default function Footer() {
 
       {/* 2. Main Editorial Footer */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10">
-        
         {/* Brand Narrative & Newsletter (Col 1-5) */}
         <div className="lg:col-span-5 pr-0 lg:pr-8">
           <Link to="/" className="inline-flex flex-col mb-4">
@@ -82,23 +81,23 @@ export default function Footer() {
               CENTRAL &bull; MAISON DE COUTURE
             </span>
           </Link>
-          
+
           <p className="text-[#8C8476] leading-relaxed text-xs max-w-md mb-8">
-            Lấy cảm hứng từ sự thanh lịch vượt thời gian của kiến trúc Noucentisme tại Barcelona, Grand Atelier Central kết nối kỹ nghệ thiết kế thời trang cùng trải nghiệm ướm thử tư gia tinh tế.
+            Lấy cảm hứng từ sự thanh lịch vượt thời gian của kiến trúc Noucentisme tại Barcelona, Grand Atelier Central kết hợp kỹ nghệ thiết kế trang phục chuẩn mực cùng trải nghiệm thử đồ trực tuyến tiện lợi.
           </p>
 
           {/* Newsletter Box */}
           <div className="max-w-md">
             <p className="text-[11px] font-medium tracking-[0.2em] text-[#FAF8F5] uppercase mb-2">
-              THƯ PHẨM PHONG CÁCH TỪ MAISON
+              BẢN TIN THỜI TRANG
             </p>
             <p className="text-[11px] text-[#8C8476] mb-3">
-              Đăng ký để nhận thông tin về các bộ sưu tập phiên bản giới hạn và lời mời tham dự các sự kiện thời trang độc quyền.
+              Đăng ký nhận thông tin về bộ sưu tập mới và các chương trình ưu đãi dành riêng cho thành viên.
             </p>
 
             {subscribed ? (
               <p className="text-xs text-[#C05A39] font-medium">
-                Cảm ơn quý khách đã đăng ký nhận thông tin từ Grand Atelier Central.
+                Cảm ơn quý khách đã đăng ký nhận bản tin từ Grand Atelier Central.
               </p>
             ) : (
               <form onSubmit={handleSubscribe} className="flex border-b border-[#3D3A35] focus-within:border-[#FAF8F5] transition-colors pb-1">
@@ -106,7 +105,9 @@ export default function Footer() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Địa chỉ thư điện tử của quý khách..."
+                  placeholder="Nhập địa chỉ email của quý khách..."
+                  autoComplete="email"
+                  spellCheck={false}
                   required
                   className="bg-transparent border-none text-xs text-[#FAF8F5] placeholder-[#6B655D] focus:outline-none flex-1 py-1"
                 />
@@ -114,7 +115,7 @@ export default function Footer() {
                   type="submit"
                   className="text-[#FAF8F5] hover:text-[#C05A39] transition-colors text-[11px] font-medium tracking-widest uppercase flex items-center gap-1 cursor-pointer"
                 >
-                  <span>Gửi</span>
+                  <span>Đăng ký</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </form>
@@ -150,7 +151,7 @@ export default function Footer() {
             </li>
             <li>
               <Link to="/try-on" className="hover:text-[#FAF8F5] transition-colors text-[#C05A39] font-medium">
-                Phòng Thử Đồ Tư Gia
+                Phòng Thử Đồ Trực Tuyến
               </Link>
             </li>
           </ul>
@@ -159,17 +160,17 @@ export default function Footer() {
         {/* The House (Col 8-9) */}
         <div className="lg:col-span-2">
           <h4 className="font-medium text-[#FAF8F5] uppercase tracking-[0.2em] text-[11px] mb-4">
-            MAISON &amp; DỊCH VỤ
+            THƯƠNG HIỆU &amp; DỊCH VỤ
           </h4>
           <ul className="space-y-2.5 text-xs text-[#8C8476]">
             <li>
               <Link to="/about" className="hover:text-[#FAF8F5] transition-colors">
-                Di Sản &amp; Kiến Trúc
+                Câu Chuyện Thương Hiệu
               </Link>
             </li>
             <li>
               <Link to="/about" className="hover:text-[#FAF8F5] transition-colors">
-                Nguồn Gốc Sợi Vải
+                Nguồn Gốc Chất Liệu
               </Link>
             </li>
             <li>
@@ -178,22 +179,22 @@ export default function Footer() {
               </Link>
             </li>
             <li>
-              <a href="#size-guide" className="hover:text-[#FAF8F5] transition-colors">
-                Bảng Kích Cỡ Chuẩn (Size)
-              </a>
+              <Link to="/catalog" className="hover:text-[#FAF8F5] transition-colors">
+                Bảng Kích Cỡ Chuẩn
+              </Link>
             </li>
             <li>
-              <a href="#care-guide" className="hover:text-[#FAF8F5] transition-colors">
-                Nghi Thức Bảo Quản
-              </a>
+              <Link to="/orders" className="hover:text-[#FAF8F5] transition-colors">
+                Tra Cứu Đơn Hàng
+              </Link>
             </li>
           </ul>
         </div>
 
-        {/* Concierge & Locations (Col 10-12) */}
+        {/* Contact & Locations (Col 10-12) */}
         <div className="lg:col-span-3">
           <h4 className="font-medium text-[#FAF8F5] uppercase tracking-[0.2em] text-[11px] mb-4">
-            LIÊN HỆ CONCIERGE
+            LIÊN HỆ &amp; CỬA HÀNG
           </h4>
           <ul className="space-y-3 text-xs text-[#8C8476]">
             <li className="flex items-start gap-2.5">
@@ -206,10 +207,10 @@ export default function Footer() {
             </li>
             <li className="flex items-center gap-2.5">
               <Mail className="w-3.5 h-3.5 text-[#C05A39]" />
-              <span>concierge@grandatelier.vn</span>
+              <span>cskh@grandatelier.vn</span>
             </li>
             <li className="pt-2 text-[11px] text-[#6B655D] leading-relaxed">
-              Thời gian tiếp đón khách: 09:00 - 21:00 hàng ngày. Giao hàng hỏa tốc trong 24 giờ.
+              Giờ mở cửa: 09:00 - 21:00 hàng ngày. Hỗ trợ giao nhanh nội thành trong 24 giờ.
             </li>
           </ul>
         </div>
@@ -219,12 +220,12 @@ export default function Footer() {
       <div className="border-t border-[#23211F] py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10.5px] text-[#6B655D]">
           <p>
-            &copy; 2026 Grand Atelier Central. Mọi quyền được bảo lưu. Dự án nghiên cứu &amp; triển khai thời trang đương đại tích hợp thị giác máy tính.
+            &copy; 2026 Grand Atelier Central. Thương hiệu thời trang thiết kế đương đại. Mọi quyền được bảo lưu.
           </p>
           <div className="flex items-center gap-6">
             <span className="hover:text-[#FAF8F5] transition-colors cursor-pointer">Chính Sách Bảo Mật</span>
             <span className="hover:text-[#FAF8F5] transition-colors cursor-pointer">Điều Khoản Dịch Vụ</span>
-            <span className="hover:text-[#FAF8F5] transition-colors cursor-pointer">Tiêu Chuẩn Sợi Dệt</span>
+            <span className="hover:text-[#FAF8F5] transition-colors cursor-pointer">Chính Sách Đổi Trả</span>
           </div>
         </div>
       </div>

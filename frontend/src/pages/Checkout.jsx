@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   ShieldCheck,
@@ -7,7 +7,6 @@ import {
   Lock,
   ArrowRight,
   QrCode,
-  Building,
 } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -46,19 +45,19 @@ export default function Checkout() {
     return (
       <div className="w-full max-w-xl mx-auto px-4 py-28 text-center bg-[#FAF8F5]">
         <p className="text-[10px] font-semibold tracking-[0.25em] text-[#C05A39] uppercase mb-2">
-          LA COMMANDE &bull; BESPOKE SERVICE
+          GRAND ATELIER &bull; ĐẶT HÀNG
         </p>
         <h2 className="font-serif-luxury text-3xl font-normal text-[#161514]">
-          Túi Đồ Của Quý Khách Đang Trống
+          Giỏ Hàng Đang Trống
         </h2>
         <p className="text-xs text-[#6B655D] mt-2 max-w-sm mx-auto leading-relaxed">
-          Quý khách chưa lựa chọn thiết kế nào. Vui lòng khám phá danh mục tuyển chọn để thêm sản phẩm vào túi đồ trước khi tiến hành đặt mua.
+          Chưa có sản phẩm nào trong túi đồ. Vui lòng chọn sản phẩm trong bộ sưu tập trước khi tiến hành đặt hàng.
         </p>
         <Link
           to="/catalog"
           className="mt-8 inline-flex items-center gap-2 px-8 py-3.5 bg-[#161514] hover:bg-[#2A2725] text-[#FAF8F5] text-xs font-medium tracking-[0.2em] uppercase transition-all"
         >
-          <span>Khám Phá Danh Mục Tuyển Chọn</span>
+          <span>Xem Bộ Sưu Tập</span>
           <ArrowRight className="w-3.5 h-3.5 stroke-[1.5]" />
         </Link>
       </div>
@@ -75,9 +74,9 @@ export default function Checkout() {
 
   const validateForm = () => {
     const errors = {};
-    if (!formData.fullName.trim()) errors.fullName = 'Vui lòng cung cấp danh xưng hoặc họ tên';
-    if (!formData.phone.trim()) errors.phone = 'Vui lòng cung cấp số điện thoại liên hệ';
-    if (!formData.address.trim()) errors.address = 'Vui lòng cung cấp địa chỉ nhận trang phục';
+    if (!formData.fullName.trim()) errors.fullName = 'Vui lòng nhập họ và tên người nhận';
+    if (!formData.phone.trim()) errors.phone = 'Vui lòng nhập số điện thoại liên hệ';
+    if (!formData.address.trim()) errors.address = 'Vui lòng nhập địa chỉ nhận hàng';
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -102,7 +101,7 @@ export default function Checkout() {
 
       if (result?.success && result?.data) {
         clearCart();
-        showToast('Đơn hàng đã được ghi nhận. Maison sẽ sớm liên hệ xác nhận đơn.');
+        showToast('Đặt hàng thành công. Cửa hàng sẽ sớm liên hệ xác nhận đơn.');
         navigate(`/order-success/${result.data.id}`, { state: { order: result.data } });
       }
     } catch (err) {
@@ -120,13 +119,13 @@ export default function Checkout() {
       {/* Title Header */}
       <div className="mb-10 pb-6 border-b border-[#E5E0D8]">
         <p className="text-[10px] font-semibold tracking-[0.25em] text-[#C05A39] uppercase mb-1.5">
-          SERVICE SUR-MESURE &bull; FINALISATION
+          GRAND ATELIER &bull; THANH TOÁN ĐƠN HÀNG
         </p>
         <h1 className="font-serif-luxury text-3xl sm:text-4xl font-normal text-[#161514] tracking-wide">
           Hoàn Tất Đơn Hàng &amp; Giao Nhận
         </h1>
         <p className="text-xs text-[#6B655D] mt-2 max-w-xl leading-relaxed">
-          Quý khách vui lòng xác nhận thông tin tư gia và nghi thức giao nhận. Đội ngũ Maison Central sẽ kiểm tra sản phẩm và đóng gói trang phục theo chuẩn mực boutique.
+          Vui lòng kiểm tra thông tin người nhận và chọn phương thức vận chuyển, thanh toán phù hợp trước khi xác nhận đặt hàng.
         </p>
       </div>
 
@@ -139,14 +138,14 @@ export default function Checkout() {
             <div className="flex items-center gap-3 pb-4 mb-6 border-b border-[#E5E0D8]">
               <span className="font-serif-luxury text-sm font-semibold text-[#C05A39]">I.</span>
               <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-[#161514]">
-                Thông Tin Tư Gia &amp; Người Nhận
+                Thông Tin Giao Hàng &amp; Người Nhận
               </h2>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
                 <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#6B655D] mb-1.5">
-                  Họ và tên quý khách *
+                  Họ và tên người nhận *
                 </label>
                 <input
                   type="text"
@@ -180,7 +179,7 @@ export default function Checkout() {
 
               <div className="sm:col-span-2">
                 <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#6B655D] mb-1.5">
-                  Thư điện tử (Nhận xác thực đơn hàng &amp; chứng thư vải)
+                  Địa chỉ email (Nhận xác nhận đơn hàng)
                 </label>
                 <input
                   type="email"
@@ -220,7 +219,7 @@ export default function Checkout() {
 
               <div className="sm:col-span-2">
                 <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#6B655D] mb-1.5">
-                  Địa chỉ chi tiết (Số nhà, tòa nhà, căn hộ) *
+                  Địa chỉ chi tiết (Số nhà, tòa nhà, phường/xã) *
                 </label>
                 <input
                   type="text"
@@ -237,7 +236,7 @@ export default function Checkout() {
 
               <div className="sm:col-span-2">
                 <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#6B655D] mb-1.5">
-                  Ghi chú đơn hàng (Tùy chọn)
+                  Ghi chú giao hàng (Tùy chọn)
                 </label>
                 <textarea
                   name="notes"
@@ -256,7 +255,7 @@ export default function Checkout() {
             <div className="flex items-center gap-3 pb-4 mb-6 border-b border-[#E5E0D8]">
               <span className="font-serif-luxury text-sm font-semibold text-[#C05A39]">II.</span>
               <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-[#161514]">
-                Nghi Thức Vận Chuyển &amp; Giao Nhận
+                Phương Thức Vận Chuyển
               </h2>
             </div>
 
@@ -276,12 +275,12 @@ export default function Checkout() {
                     className="accent-[#161514]"
                   />
                   <div>
-                    <p className="text-xs font-medium text-[#161514]">Chuyển phát tiêu chuẩn Maison (2 - 3 ngày làm việc)</p>
-                    <p className="text-[11px] text-[#8C8476]">Đóng gói túi vải canvas chống ẩm &amp; móc treo bảo quản</p>
+                    <p className="text-xs font-medium text-[#161514]">Giao hàng tiêu chuẩn (2 - 3 ngày làm việc)</p>
+                    <p className="text-[11px] text-[#8C8476]">Đóng gói hộp cứng kèm túi vải bảo quản trang phục</p>
                   </div>
                 </div>
                 <span className="text-xs font-semibold text-[#161514]">
-                  {shippingFee === 0 ? <span className="text-[#C05A39]">Đặc quyền miễn phí</span> : `${shippingFee.toLocaleString('vi-VN')}₫`}
+                  {shippingFee === 0 ? <span className="text-[#C05A39]">Miễn phí</span> : `${shippingFee.toLocaleString('vi-VN')}₫`}
                 </span>
               </label>
 
@@ -300,8 +299,8 @@ export default function Checkout() {
                     className="accent-[#161514]"
                   />
                   <div>
-                    <p className="text-xs font-medium text-[#161514]">Chuyển phát đặc phái trong 24 giờ</p>
-                    <p className="text-[11px] text-[#8C8476]">Giao tận cửa có hẹn giờ trước &amp; nhân sự kiểm định riêng</p>
+                    <p className="text-xs font-medium text-[#161514]">Giao hàng nhanh trong 24 giờ</p>
+                    <p className="text-[11px] text-[#8C8476]">Hỗ trợ hẹn khung giờ nhận hàng nội thành</p>
                   </div>
                 </div>
                 <span className="text-xs font-semibold text-[#161514]">
@@ -337,8 +336,8 @@ export default function Checkout() {
                     className="accent-[#161514]"
                   />
                   <div>
-                    <p className="text-xs font-medium text-[#161514]">Thanh toán khi nhận trang phục (COD)</p>
-                    <p className="text-[11px] text-[#8C8476]">Quý khách kiểm tra chất lượng sợi vải và đường may trước khi thanh toán</p>
+                    <p className="text-xs font-medium text-[#161514]">Thanh toán khi nhận hàng (COD)</p>
+                    <p className="text-[11px] text-[#8C8476]">Kiểm tra sản phẩm trước khi thanh toán cho nhân viên giao hàng</p>
                   </div>
                 </div>
                 <Truck className="w-4 h-4 text-[#8C8476] stroke-[1.5]" />
@@ -361,8 +360,8 @@ export default function Checkout() {
                       className="accent-[#161514]"
                     />
                     <div>
-                      <p className="text-xs font-medium text-[#161514]">Chuyển khoản ngân hàng trực tuyến (VietQR)</p>
-                      <p className="text-[11px] text-[#8C8476]">Xác nhận thanh toán tự động qua hệ thống Maison Concierge</p>
+                      <p className="text-xs font-medium text-[#161514]">Chuyển khoản ngân hàng (VietQR)</p>
+                      <p className="text-[11px] text-[#8C8476]">Xác nhận thanh toán tự động qua mã QR ngân hàng</p>
                     </div>
                   </div>
                   <QrCode className="w-4 h-4 text-[#C05A39] stroke-[1.5]" />
@@ -373,7 +372,7 @@ export default function Checkout() {
                     <p className="font-semibold text-[#161514]">Ngân hàng: TMCP Ngoại Thương Việt Nam (Vietcombank)</p>
                     <p>Số tài khoản: <strong className="text-[#161514]">0011004899999</strong></p>
                     <p>Chủ tài khoản: <strong className="text-[#161514]">GRAND ATELIER CENTRAL CO., LTD</strong></p>
-                    <p>Nội dung: <strong className="text-[#C05A39]">ATELIER [Số điện thoại của quý khách]</strong></p>
+                    <p>Nội dung: <strong className="text-[#C05A39]">ATELIER [Số điện thoại người nhận]</strong></p>
                   </div>
                 )}
               </label>
@@ -394,7 +393,7 @@ export default function Checkout() {
                     className="accent-[#161514]"
                   />
                   <div>
-                    <p className="text-xs font-medium text-[#161514]">Cổng thanh toán thẻ quốc tế &amp; VNPAY-QR</p>
+                    <p className="text-xs font-medium text-[#161514]">Thẻ quốc tế &amp; Cổng VNPAY-QR</p>
                     <p className="text-[11px] text-[#8C8476]">Chấp nhận thẻ Visa, Mastercard, JCB và ứng dụng ngân hàng</p>
                   </div>
                 </div>
@@ -409,60 +408,67 @@ export default function Checkout() {
           <div className="p-7 bg-[#FAF8F5] border border-[#E5E0D8] flex flex-col gap-4">
             <div className="pb-3 border-b border-[#E5E0D8] flex items-center justify-between">
               <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-[#161514]">
-                Bản Kê Đơn Hàng
+                Tóm Tắt Đơn Hàng
               </h3>
               <span className="text-[10px] text-[#8C8476] tracking-wider uppercase">
-                {cartItems.length} tác phẩm
+                {cartItems.length} sản phẩm
               </span>
             </div>
 
             {/* Items mini list */}
             <div className="divide-y divide-[#E5E0D8] max-h-72 overflow-y-auto pr-1">
-              {cartItems.map((item) => (
-                <div key={item.id} className="py-3 flex items-center gap-3">
-                  <img
-                    src={resolveImageUrl(item.product.image)}
-                    alt={item.product.name}
-                    className="w-12 h-16 object-cover bg-[#F3EFE6] border border-[#E5E0D8] shrink-0"
-                    onError={(e) => {
-                      e.currentTarget.onerror = null;
-                      e.currentTarget.src = '/samples/cloth-1.jpg';
-                    }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-serif-luxury text-sm font-normal text-[#161514] truncate">
-                      {item.product.name}
-                    </p>
-                    <p className="text-[10px] text-[#8C8476] tracking-wider uppercase mt-0.5">
-                      Cỡ: {item.size} &bull; {item.color} &bull; SL: {item.quantity}
-                    </p>
+              {cartItems.map((item) => {
+                const prod = item.product || item;
+                const unitPrice = prod.rawPrice || item.rawPrice || 0;
+                const itemSize = item.size || item.selectedSize || 'M';
+                const itemColor = item.color || item.selectedColor || 'Tiêu chuẩn';
+
+                return (
+                  <div key={item.id || item.cartItemId} className="py-3 flex items-center gap-3">
+                    <img
+                      src={resolveImageUrl(prod.image || item.image)}
+                      alt={prod.name || item.name}
+                      className="w-12 h-16 object-cover bg-[#F3EFE6] border border-[#E5E0D8] shrink-0"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = '/samples/cloth-1.jpg';
+                      }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-serif-luxury text-sm font-normal text-[#161514] truncate">
+                        {prod.name || item.name}
+                      </p>
+                      <p className="text-[10px] text-[#8C8476] tracking-wider uppercase mt-0.5">
+                        Cỡ: {itemSize} &bull; {itemColor} &bull; SL: {item.quantity}
+                      </p>
+                    </div>
+                    <span className="text-xs font-medium text-[#161514] tracking-wide">
+                      {(unitPrice * item.quantity).toLocaleString('vi-VN')}₫
+                    </span>
                   </div>
-                  <span className="text-xs font-medium text-[#161514] tracking-wide">
-                    {((item.product.rawPrice || 0) * item.quantity).toLocaleString('vi-VN')}₫
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Calculations */}
             <div className="pt-4 border-t border-[#E5E0D8] space-y-2.5 text-xs text-[#6B655D]">
               <div className="flex justify-between">
-                <span>Tạm tính giá trị tác phẩm:</span>
+                <span>Tạm tính:</span>
                 <span className="font-medium text-[#161514]">{subtotal.toLocaleString('vi-VN')}₫</span>
               </div>
 
               {discountAmount > 0 && (
                 <div className="flex justify-between text-[#C05A39]">
-                  <span>Đặc quyền ưu đãi:</span>
+                  <span>Giảm giá:</span>
                   <span className="font-medium">-{discountAmount.toLocaleString('vi-VN')}₫</span>
                 </div>
               )}
 
               <div className="flex justify-between">
-                <span>Nghi thức vận chuyển:</span>
+                <span>Phí vận chuyển:</span>
                 <span className="font-medium text-[#161514]">
                   {shippingMethod === 'express'
-                    ? `${(shippingFee + 20000).toLocaleString('vi-VN')}₫ (Hỏa tốc 24h)`
+                    ? `${(shippingFee + 20000).toLocaleString('vi-VN')}₫ (Giao nhanh 24h)`
                     : shippingFee === 0
                     ? <span className="text-[#C05A39] font-medium">Miễn phí</span>
                     : `${shippingFee.toLocaleString('vi-VN')}₫`}
@@ -471,7 +477,7 @@ export default function Checkout() {
 
               <div className="pt-3 border-t border-[#E5E0D8] flex justify-between items-baseline">
                 <span className="text-xs font-semibold uppercase tracking-wider text-[#161514]">
-                  Tổng giá trị đơn may:
+                  Tổng thanh toán:
                 </span>
                 <span className="font-serif-luxury text-2xl font-normal text-[#161514]">
                   {finalTotal.toLocaleString('vi-VN')}₫
@@ -486,12 +492,12 @@ export default function Checkout() {
               className="mt-3 w-full py-4 bg-[#C05A39] hover:bg-[#A64B2E] text-[#FAF8F5] text-xs font-medium tracking-[0.2em] uppercase flex items-center justify-center gap-2 transition-all cursor-pointer disabled:bg-[#D8D2C5]"
             >
               <Lock className="w-3.5 h-3.5 stroke-[1.5]" />
-              <span>{isSubmitting ? 'Đang xác nhận đơn hàng...' : 'Xác Nhận Đặt Hàng'}</span>
+              <span>{isSubmitting ? 'Đang xử lý đơn hàng...' : 'Xác Nhận Đặt Hàng'}</span>
             </button>
 
             <div className="flex items-center justify-center gap-2 text-[10px] text-[#8C8476] tracking-wide text-center mt-1">
               <ShieldCheck className="w-3.5 h-3.5 text-[#C05A39] stroke-[1.5]" />
-              <span>Thông tin đơn hàng được bảo mật theo quy chuẩn Maison Atelier</span>
+              <span>Thông tin thanh toán và giao nhận được bảo mật an toàn</span>
             </div>
           </div>
         </div>

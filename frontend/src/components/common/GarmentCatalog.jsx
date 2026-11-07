@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowRight, Check } from 'lucide-react';
 import { CATALOG_PRODUCTS } from '../../mocks/catalogData';
 import { catalogService } from '../../services/catalogService';
@@ -52,10 +52,10 @@ export default function GarmentCatalog({ selectedGarmentId, onSelectGarment }) {
             BỘ SƯU TẬP TUYỂN LỰA
           </p>
           <h2 className="font-serif-luxury text-3xl sm:text-4xl font-normal text-[#161514] tracking-wide">
-            Thiết Kế Sẵn Sàng Cho Phòng Ướm Thử
+            Thiết Kế Sẵn Sàng Để Thử Trực Tuyến
           </h2>
           <p className="text-xs sm:text-sm text-[#6B655D] mt-2 max-w-xl leading-relaxed">
-            Chọn bất kỳ thiết kế nào bên dưới để nạp trực tiếp vào phòng thử đồ tư gia, hoặc tải lên ảnh trang phục riêng của quý khách.
+            Chọn bất kỳ thiết kế nào bên dưới để nạp trực tiếp vào phòng thử đồ trực tuyến, hoặc tải lên ảnh trang phục riêng của quý khách.
           </p>
         </div>
 

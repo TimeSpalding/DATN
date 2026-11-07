@@ -116,11 +116,11 @@ export default function Navbar() {
           : 'sticky top-0 bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#E5E0D8] text-[#161514]'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
-        <div className="flex items-center justify-between gap-3 sm:gap-6">
+      <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-3.5">
+        <div className="flex items-center justify-between gap-2 sm:gap-6">
           
           {/* Left: Primary Collections Navigation */}
-          <nav aria-label="Điều hướng chính" className="hidden lg:flex items-center gap-5 xl:gap-7 shrink-0">
+          <nav aria-label="Điều hướng chính" className="hidden xl:flex items-center gap-6 shrink-0">
             <Link to="/" className={getNavLinkClass(isHomeActive)}>
               Trang Chủ
             </Link>
@@ -182,7 +182,7 @@ export default function Navbar() {
           <div className="flex flex-col items-center text-center shrink-0">
             <Link to="/" className="group flex flex-col items-center">
               <span
-                className={`font-brand text-lg sm:text-2xl font-medium tracking-[0.24em] uppercase transition-colors whitespace-nowrap ${
+                className={`font-brand text-[15px] sm:text-xl xl:text-2xl font-medium tracking-[0.18em] sm:tracking-[0.22em] xl:tracking-[0.24em] uppercase transition-colors whitespace-nowrap ${
                   isTransparent
                     ? 'text-[#FAF8F5] group-hover:text-[#D8D2C5]'
                     : 'text-[#161514] group-hover:text-[#C05A39]'
@@ -191,7 +191,7 @@ export default function Navbar() {
                 GRAND ATELIER
               </span>
               <span
-                className={`text-[8px] sm:text-[8.5px] tracking-[0.32em] uppercase font-medium -mt-0.5 whitespace-nowrap ${
+                className={`hidden min-[380px]:block text-[7px] sm:text-[8px] xl:text-[8.5px] tracking-[0.2em] sm:tracking-[0.28em] xl:tracking-[0.32em] uppercase font-medium -mt-0.5 whitespace-nowrap ${
                   isTransparent ? 'text-[#D8D2C5]/80' : 'text-[#8C8476]'
                 }`}
               >
@@ -201,9 +201,9 @@ export default function Navbar() {
           </div>
 
           {/* Right: Bespoke Services & Utilities */}
-          <div className="flex items-center gap-3 sm:gap-5 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-3.5 xl:gap-4 shrink-0">
             {/* Desktop Experience Links */}
-            <nav aria-label="Tiện ích cửa hàng" className="hidden lg:flex items-center gap-4 xl:gap-5 mr-1">
+            <nav aria-label="Tiện ích cửa hàng" className="hidden xl:flex items-center gap-5 mr-0.5">
               <Link
                 to="/try-on"
                 className={`whitespace-nowrap text-[11px] font-medium tracking-[0.16em] uppercase transition-all py-1.5 border-b ${
@@ -265,7 +265,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={openCart}
-              className={`whitespace-nowrap flex items-center gap-2 px-3 py-1.5 text-[10.5px] font-medium tracking-[0.16em] uppercase transition-all cursor-pointer ${
+              className={`whitespace-nowrap flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[10.5px] font-medium tracking-[0.14em] sm:tracking-[0.16em] uppercase transition-all cursor-pointer ${
                 isTransparent
                   ? 'bg-[#FAF8F5]/15 backdrop-blur-xs text-[#FAF8F5] border border-[#FAF8F5]/40 hover:bg-[#FAF8F5] hover:text-[#161514]'
                   : 'bg-[#161514] text-[#FAF8F5] hover:bg-[#C05A39]'
@@ -273,12 +273,12 @@ export default function Navbar() {
               title="Mở túi đồ"
             >
               <ShoppingBag aria-hidden="true" className="w-3.5 h-3.5 stroke-[1.75]" />
-              <span className="inline whitespace-nowrap">Túi Đồ</span>
-              <span className="text-[10px] opacity-80 whitespace-nowrap">({totalItemsCount})</span>
+              <span className="hidden sm:inline whitespace-nowrap">Túi Đồ</span>
+              <span className="text-[10px] opacity-85 whitespace-nowrap">({totalItemsCount})</span>
             </button>
 
             {/* User Account / Auth Dropdown */}
-            <div ref={userDropdownRef} className="relative">
+            <div ref={userDropdownRef} className="relative flex items-center gap-1">
               {isAuthenticated ? (
                 <div>
                   <button
@@ -299,7 +299,7 @@ export default function Navbar() {
                       {displayName.charAt(0)}
                     </div>
                     <span
-                      className={`hidden lg:inline text-[11px] font-medium tracking-wider max-w-[90px] truncate ${
+                      className={`hidden xl:inline text-[11px] font-medium tracking-wider max-w-[90px] truncate ${
                         isTransparent ? 'text-[#FAF8F5]' : 'text-[#161514]'
                       }`}
                     >
@@ -367,7 +367,7 @@ export default function Navbar() {
                   )}
                 </div>
               ) : (
-                <div className="hidden sm:flex items-center gap-2.5 whitespace-nowrap">
+                <div className="hidden xl:flex items-center gap-2.5 whitespace-nowrap">
                   <Link
                     to="/login"
                     className={`text-[11px] font-medium tracking-[0.16em] uppercase transition-colors ${
@@ -393,7 +393,7 @@ export default function Navbar() {
                 type="button"
                 aria-expanded={mobileMenuOpen}
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className={`p-1.5 lg:hidden hover:text-[#C05A39] transition-colors ${
+                className={`p-1.5 xl:hidden hover:text-[#C05A39] transition-colors ${
                   isTransparent ? 'text-[#FAF8F5]' : 'text-[#161514]'
                 }`}
                 aria-label="Mở menu điều hướng"
@@ -407,7 +407,7 @@ export default function Navbar() {
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-[#E5E0D8] bg-[#FAF8F5] px-6 py-6 flex flex-col gap-3 shadow-xl text-[#161514]">
+        <div className="xl:hidden border-t border-[#E5E0D8] bg-[#FAF8F5] px-6 py-6 flex flex-col gap-3 shadow-xl text-[#161514]">
           <Link
             to="/"
             onClick={() => setMobileMenuOpen(false)}

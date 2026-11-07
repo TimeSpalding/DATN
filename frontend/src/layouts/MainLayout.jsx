@@ -1,4 +1,3 @@
-import React from 'react';
 import Navbar from '../components/ui/Navbar';
 import Footer from '../components/ui/Footer';
 import CartDrawer from '../components/common/CartDrawer';
@@ -16,18 +15,18 @@ export default function MainLayout({ children }) {
       {/* Global Slide-over Cart Drawer */}
       <CartDrawer />
 
-      {/* Toast Notification Container */}
+      {/* Toast Notification Container (left-aligned so it never covers CartDrawer actions) */}
       {toastNotification && (
-        <div className="fixed bottom-6 right-6 z-50 animate-bounce-in max-w-sm">
+        <div className="fixed bottom-6 left-6 z-[60] animate-bounce-in max-w-sm">
           <div className="bg-[#161514] text-[#FAF8F5] px-4 py-3 shadow-2xl flex items-center gap-3 border border-[#E5E0D8]/20">
             {toastNotification.type === 'error' ? (
               <AlertCircle className="w-5 h-5 text-[#C05A39] shrink-0" />
             ) : toastNotification.type === 'info' ? (
-              <Info className="w-5 h-5 text-blue-400 shrink-0" />
+              <Info className="w-5 h-5 text-[#D8D2C5] shrink-0" />
             ) : (
               <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
             )}
-            <p className="text-xs font-semibold text-slate-100">{toastNotification.message}</p>
+            <p className="text-xs font-semibold text-[#FAF8F5]">{toastNotification.message}</p>
           </div>
         </div>
       )}

@@ -137,7 +137,7 @@ export const resolveImageUrl = (value, imageId) => {
     return value;
   }
 
-  if (value.startsWith("/api/")) {
+  if (value.startsWith("/api/") || value.startsWith("/samples/") || value.startsWith("/assets/")) {
     return value;
   }
 

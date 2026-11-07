@@ -1,4 +1,4 @@
-import { FaAlignLeft, FaClock, FaFont, FaHashtag, FaImage } from "react-icons/fa";
+import { FaAlignLeft, FaClock, FaFont, FaImage } from "react-icons/fa";
 import { resolveImageUrl } from "../../utils/imageUrl";
 import { ImageWithFallback } from "../common/ImageWithFallback";
 import { formatDateTime } from "../../utils/formatDateTime";
@@ -87,7 +87,7 @@ export const SearchHistoryCard = ({ history, onClick }) => {
       <div className="flex flex-1 flex-col justify-between p-4 bg-[#FAF8F5]">
         <div className="space-y-1">
           <h3 className="line-clamp-2 font-serif-luxury text-base font-normal text-[#161514] leading-snug group-hover:text-[#C05A39] transition-colors">
-            {isImageSearch ? `Tác phẩm tham chiếu #${historyId}` : queryText}
+            {isImageSearch ? `Hình ảnh tìm kiếm #${historyId}` : queryText}
           </h3>
           <p className="text-[10px] text-[#8C8476] tracking-wider uppercase">
             {formatDateTime(history.createdAt || history.createAt)}

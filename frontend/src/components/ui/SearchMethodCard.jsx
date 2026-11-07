@@ -6,21 +6,18 @@ export const SearchMethodCard = ({
   description,
 }) => {
   return (
-    <div className="group flex flex-1 flex-col items-center text-center p-8 bg-white rounded-3xl border border-gray-100 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:border-indigo-100 hover:shadow-xl hover:shadow-indigo-500/5">
-      
+    <div className="group flex flex-1 flex-col items-center text-center p-8 bg-[#FAF8F5] border border-[#E5E0D8] transition-all duration-300 hover:border-[#161514]">
       <div
-        className={`w-16 h-16 mb-6 ${iconBackgroundClassName} rounded-2xl flex justify-center items-center transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}
+        className={`w-14 h-14 mb-5 ${iconBackgroundClassName} flex justify-center items-center`}
       >
-        <Icon className={`w-7 h-7 ${iconClassName}`} />
+        <Icon className={`w-5 h-5 ${iconClassName}`} />
       </div>
-      
-      <div className="mb-3 text-zinc-900 text-xl font-bold font-['Inter'] transition-colors group-hover:text-indigo-600">
+
+      <h3 className="mb-2.5 font-serif-luxury text-xl font-normal text-[#161514] transition-colors group-hover:text-[#C05A39]">
         {title}
-      </div>
-      
-      <div className="text-gray-500 text-sm font-normal font-['Inter'] leading-relaxed">
-        {description}
-      </div>
+      </h3>
+
+      <p className="text-[#6B655D] text-xs leading-relaxed">{description}</p>
     </div>
   );
 };

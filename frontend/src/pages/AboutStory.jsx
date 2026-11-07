@@ -1,6 +1,5 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, MapPin, Compass, Scissors, Award } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import StudioBenefits from '../components/common/StudioBenefits';
 
 export default function AboutStory() {
@@ -113,7 +112,7 @@ export default function AboutStory() {
       <section className="w-full bg-[#161514] text-[#FAF8F5] py-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
           <p className="text-[10px] font-semibold tracking-[0.3em] uppercase text-[#C05A39]">
-            CHƯƠNG III &bull; TRIẾT LÝ PHÒNG ƯỚM THỬ TƯ GIA
+            CHƯƠNG III &bull; PHÒNG THỬ ĐỒ TRỰC TUYẾN
           </p>
           <h2 className="font-serif-luxury text-3xl sm:text-5xl font-normal tracking-wide text-[#FAF8F5]">
             Công Nghệ Phục Vụ Sự Tinh Tế, Không Phải Sự Phô Trương
@@ -130,7 +129,7 @@ export default function AboutStory() {
               to="/try-on"
               className="btn-terracotta"
             >
-              <span>Trải Nghiệm Phòng Thử Đồ Tư Gia</span>
+              <span>Trải Nghiệm Phòng Thử Đồ</span>
               <ArrowRight className="w-4 h-4 ml-1" />
             </Link>
           </div>

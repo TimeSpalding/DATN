@@ -19,11 +19,10 @@ export const CATALOG_PRODUCTS = [
     material: 'Cotton Dệt Kim Co Giãn 4 Chiều',
     origin: 'Việt Nam (Tiêu chuẩn xuất khẩu EU)',
     description: 'Áo polo dệt kim phong cách retro cổ điển với khóa zip kim loại mạ bạc cao cấp. Phom dáng Regular-fit tôn dáng, sợi dệt bông tự nhiên mang lại cảm giác mềm mại và thoáng khí tuyệt đối cho cả ngày năng động.',
-    image: '/samples/cloth-1.jpg',
+    image: 'https://images.unsplash.com/photo-1586363104862-3a5e2ab60d99?auto=format&fit=crop&w=800&q=80',
     gallery: [
-      '/samples/cloth-1.jpg',
-      '/samples/cloth-polo-black.jpg',
-      'https://images.unsplash.com/photo-1625910513413-7e28ce19e5c7?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1586363104862-3a5e2ab60d99?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?auto=format&fit=crop&w=800&q=80',
     ],
     colors: [
       { name: 'Xanh Navy Họa Tiết', hex: '#1e293b' },

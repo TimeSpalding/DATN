@@ -1,4 +1,3 @@
-import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -11,9 +10,9 @@ const ATELIER_PILLARS = [
   },
   {
     number: '02',
-    title: 'Phòng Thử Đồ Tư Gia',
+    title: 'Phòng Thử Đồ Trực Tuyến',
     subtitle: 'Mô Phỏng Độ Rủ Chuẩn Xác',
-    desc: 'Trải nghiệm ướm thử kỹ thuật số tái hiện chính xác cấu trúc sợi vải và tỷ lệ vóc dáng của người mặc trước khi hoàn thiện đơn hàng.'
+    desc: 'Trải nghiệm thử đồ trực tuyến tái hiện chính xác cấu trúc sợi vải và tỷ lệ vóc dáng của người mặc trước khi hoàn thiện đơn hàng.'
   },
   {
     number: '03',

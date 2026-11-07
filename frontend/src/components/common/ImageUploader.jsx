@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import { Upload, User, Shirt, X, RefreshCw } from 'lucide-react';
 
 export default function ImageUploader({ 
@@ -30,12 +30,12 @@ export default function ImageUploader({
   return (
     <div className="w-full max-w-[360px] lg:max-w-none lg:w-full flex flex-col justify-self-center">
       {/* Label Header */}
-      <div className="flex min-h-8 items-center justify-between gap-3 mb-2 px-1">
-        <span className="text-[10.5px] font-medium uppercase tracking-[0.2em] text-[#161514] flex items-center gap-1.5 min-w-0">
-          <IconComponent className="w-3.5 h-3.5 text-[#8C8476] stroke-[1.75]" />
+      <div className="flex min-h-8 items-center justify-between gap-2 mb-2 px-0.5">
+        <span className="text-[10px] sm:text-[10.5px] font-medium uppercase tracking-[0.14em] text-[#161514] flex items-center gap-1.5 whitespace-nowrap shrink-0">
+          <IconComponent className="w-3.5 h-3.5 text-[#8C8476] stroke-[1.75] shrink-0" />
           <span>{label}</span>
         </span>
-        <div className="shrink-0 max-w-[68%]">
+        <div className="shrink-0">
           {headerRight}
         </div>
       </div>

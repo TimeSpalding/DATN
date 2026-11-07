@@ -1,14 +1,15 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useInView } from "react-intersection-observer";
 import { useEffect, useState } from "react";
-import { FaBookmark, FaArrowUp, FaImage, FaTrash, FaTrashRestore, FaArrowLeft, FaHome, FaTimes } from "react-icons/fa";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { FaArrowUp, FaImage, FaTrash, FaTrashRestore, FaTimes } from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
 import { deleteBookmark, getBookmarks } from "../services/bookmarkService";
 import { getImageBlob } from "../services/imageService";
-import { resolveStorageUrl } from "../utils/imageUrl";
-import AOS from "aos";
+import { resolveImageUrl, resolveStorageUrl } from "../utils/imageUrl";
 import { ImagePreviewModal } from "../components/common/ImagePreviewModal";
 import { getCleanGarmentTitle } from "../utils/garmentTitle";
+import { useWishlist } from "../contexts/WishlistContext";
+import { CATALOG_PRODUCTS } from "../mocks/catalogData";
 
 const PAGE_SIZE = 20;
 
@@ -24,7 +25,12 @@ const normalizeBookmarkResponse = (response) => {
   };
 };
 
-const isDirectImageUrl = (value) => /^https?:\/\//i.test(value) || value?.startsWith("data:") || value?.startsWith("blob:");
+const isDirectImageUrl = (value) =>
+  /^https?:\/\//i.test(value) ||
+  value?.startsWith("data:") ||
+  value?.startsWith("blob:") ||
+  value?.startsWith("/samples/") ||
+  value?.startsWith("/assets/");
 const isInternalMinioUrl = (value) => {
   if (!/^https?:\/\//i.test(value || "")) return false;
 
@@ -160,9 +166,9 @@ const HighResPreviewModal = ({ bookmark, onClose }) => {
 };
 
 export const BookMark = () => {
-  const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { wishlistItems, toggleWishlist } = useWishlist();
 
   const [previewImage, setPreviewImage] = useState(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -193,6 +199,7 @@ export const BookMark = () => {
   } = useInfiniteQuery({
     queryKey: ["bookmarks"],
     initialPageParam: 0,
+    retry: false,
     queryFn: ({ pageParam }) => getBookmarks({ page: pageParam, pageSize: PAGE_SIZE }),
     getNextPageParam: (lastPage, allPages) => {
       const normalizedLastPage = normalizeBookmarkResponse(lastPage);
@@ -206,12 +213,16 @@ export const BookMark = () => {
     }
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  const allBookmarks = data?.pages.flatMap((page) => {
-    const normalizedPage = normalizeBookmarkResponse(page);
-    return normalizedPage.results || [];
-  }) || [];
+  const allBookmarks = isError
+    ? []
+    : data?.pages.flatMap((page) => {
+        const normalizedPage = normalizeBookmarkResponse(page);
+        return normalizedPage.results || [];
+      }) || [];
 
+  const savedProducts = CATALOG_PRODUCTS.filter((prod) => wishlistItems.includes(prod.id));
   const bookmarkData = normalizeBookmarkResponse(data?.pages?.[0]);
+  const totalSavedCount = (isError ? 0 : bookmarkData.totalElements) + savedProducts.length;
 
   const deleteMutation = useMutation({
     mutationFn: deleteBookmark,
@@ -287,20 +298,20 @@ export const BookMark = () => {
       <div className="flex flex-col gap-4 border-b border-[#E5E0D8] pb-8 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-[10px] font-semibold tracking-[0.25em] text-[#C05A39] uppercase mb-1.5">
-            L'ARCHIVE PRIVÉE &bull; SÉLECTION
+            GRAND ATELIER &bull; DANH SÁCH LƯU TRỮ
           </p>
           <h1 className="font-serif-luxury text-3xl sm:text-4xl font-normal text-[#161514] tracking-wide">
             Danh Sách Yêu Thích
           </h1>
           <p className="mt-2 text-xs text-[#6B655D] max-w-xl leading-relaxed">
-            Các mẫu trang phục và hình ảnh tham khảo đã được đánh dấu trong quá trình tìm kiếm sản phẩm.
+            Các mẫu trang phục yêu thích từ cửa hàng và hình ảnh tham khảo đã đánh dấu trong quá trình tìm kiếm.
           </p>
         </div>
 
         <div className="flex items-center gap-3 mt-4 sm:mt-0">
           <div className="px-4 py-2.5 bg-[#FAF8F5] border border-[#E5E0D8] text-xs text-[#6B655D]">
             <span>Tổng số: </span>
-            <strong className="text-[#161514] font-medium">{bookmarkData.totalElements}</strong> ảnh
+            <strong className="text-[#161514] font-medium">{totalSavedCount}</strong> mục
           </div>
 
           <button
@@ -314,29 +325,73 @@ export const BookMark = () => {
         </div>
       </div>
 
-      {isLoading ? (
+      {isLoading && savedProducts.length === 0 ? (
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {Array.from({ length: PAGE_SIZE }).map((_, index) => (
+          {Array.from({ length: 5 }).map((_, index) => (
             <div key={index} className="aspect-[3/4] animate-pulse bg-[#F3EFE6] border border-[#E5E0D8]" />
           ))}
         </div>
-      ) : isError ? (
-        <div className="border border-[#C05A39]/30 bg-[#C05A39]/10 p-6 text-xs text-[#C05A39]">
-          Không thể tải danh mục hình ảnh lưu trữ. Vui lòng kiểm tra lại kết nối.
-        </div>
-      ) : allBookmarks.length === 0 ? (
+      ) : savedProducts.length === 0 && allBookmarks.length === 0 ? (
         <div className="flex flex-col items-center border border-[#E5E0D8] bg-[#FAF8F5] p-16 text-center">
           <div className="flex h-12 w-12 items-center justify-center border border-[#E5E0D8] bg-[#F3EFE6] text-[#8C8476] mb-4">
             <FaImage className="h-5 w-5 stroke-[1.25]" />
           </div>
-          <h2 className="font-serif-luxury text-2xl font-normal text-[#161514]">Chưa Có Ảnh Đã Lưu</h2>
+          <h2 className="font-serif-luxury text-2xl font-normal text-[#161514]">Chưa Có Mục Yêu Thích</h2>
           <p className="mt-2 max-w-sm text-xs text-[#6B655D] leading-relaxed">
-            Khi lưu mẫu trang phục từ trang kết quả tìm kiếm, sản phẩm sẽ xuất hiện tại đây để tiện theo dõi.
+            Nhấn biểu tượng trái tim trên sản phẩm hoặc lưu mẫu từ kết quả tìm kiếm để theo dõi tại đây.
           </p>
+          <Link to="/catalog" className="btn-noir mt-6">
+            Khám Phá Bộ Sưu Tập
+          </Link>
         </div>
       ) : (
         <>
           <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {savedProducts.map((prod) => (
+              <article
+                key={`wishlist-${prod.id}`}
+                className="group relative border border-[#E5E0D8] bg-[#FAF8F5] hover:border-[#161514] transition-all duration-300 flex flex-col"
+              >
+                <div
+                  className="relative aspect-[3/4] overflow-hidden cursor-pointer bg-[#F3EFE6]"
+                  onClick={() => navigate(`/products/${prod.id}`)}
+                >
+                  <img
+                    src={resolveImageUrl(prod.image)}
+                    alt={prod.name}
+                    className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                    loading="lazy"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleWishlist(prod.id);
+                      addToast("Đã xóa khỏi danh sách yêu thích", "info");
+                    }}
+                    aria-label="Bỏ lưu sản phẩm"
+                    className="absolute right-2.5 top-2.5 cursor-pointer flex h-8 w-8 items-center justify-center bg-[#FAF8F5]/90 border border-[#E5E0D8] text-[#161514] hover:text-[#C05A39] hover:bg-[#FAF8F5] transition-all"
+                  >
+                    <FaTrash className="h-3 w-3" />
+                  </button>
+                </div>
+
+                <div className="p-3.5 border-t border-[#E5E0D8] bg-[#FAF8F5] flex-1 flex flex-col justify-between">
+                  <Link
+                    to={`/products/${prod.id}`}
+                    className="text-xs font-medium text-[#161514] hover:text-[#C05A39] line-clamp-2 font-serif-luxury transition-colors"
+                  >
+                    {prod.name}
+                  </Link>
+                  <div className="mt-2 flex items-center justify-between text-[10.5px]">
+                    <span className="font-semibold text-[#C05A39]">{prod.price}</span>
+                    <span className="uppercase tracking-wider text-[#8C8476] text-[9px]">{prod.sku}</span>
+                  </div>
+                </div>
+              </article>
+            ))}
+
             {allBookmarks.map((bookmark) => {
               const fileName = getCleanGarmentTitle(bookmark);
               const isDeleting = deleteMutation.isPending && deleteMutation.variables === bookmark.imageId;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   SlidersHorizontal,
@@ -176,25 +176,25 @@ export default function Catalog() {
       <div className="mb-12 pb-8 border-b border-[#E5E0D8] flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <p className="text-[10px] font-semibold tracking-[0.25em] text-[#C05A39] uppercase mb-1.5">
-            HAUTE COUTURE &bull; CATÁLOGO EXCLUSIVO
+            GRAND ATELIER &bull; BỘ SƯU TẬP THIẾT KẾ
           </p>
           <h1 className="font-serif-luxury text-3xl sm:text-4xl md:text-5xl font-normal text-[#161514] tracking-wide">
             Bộ Sưu Tập Thời Trang Grand Atelier
           </h1>
           <p className="text-xs sm:text-sm text-[#6B655D] mt-2 max-w-xl leading-relaxed">
-            Hơn 1.000 thiết kế tinh tuyển từ sợi tự nhiên cao cấp. Mỗi tác phẩm sẵn sàng cho trải nghiệm ướm thử tư gia trực tuyến trước khi quý khách quyết định đặt mua.
+            Hơn 1.000 thiết kế tinh tuyển từ sợi tự nhiên cao cấp. Mỗi thiết kế đều sẵn sàng để thử trực tuyến trước khi quý khách quyết định đặt mua.
           </p>
         </div>
 
         {/* Search Bar & Sort Dropdown */}
-        <div className="flex flex-wrap items-center gap-3">
-          <form onSubmit={handleSearchSubmit} className="relative">
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 w-full md:w-auto">
+          <form onSubmit={handleSearchSubmit} className="relative flex-1 min-w-[160px] sm:flex-none">
             <input
               type="text"
               placeholder="Tìm theo tên, mã thiết kế..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 pr-4 py-2.5 bg-[#FAF8F5] border border-[#D8D2C5] text-xs text-[#161514] placeholder-[#8C8476] focus:outline-none focus:border-[#161514] w-56 sm:w-64"
+              className="w-full sm:w-64 pl-9 pr-4 py-2.5 bg-[#FAF8F5] border border-[#D8D2C5] text-xs text-[#161514] placeholder-[#8C8476] focus:outline-none focus:border-[#161514]"
             />
             <Search className="w-3.5 h-3.5 text-[#8C8476] absolute left-3 top-3" />
           </form>
@@ -460,7 +460,7 @@ export default function Catalog() {
                 <div className="mt-16 pt-8 border-t border-[#E5E0D8] flex flex-col lg:flex-row items-center justify-between gap-6">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-center sm:text-left">
                     <p className="text-[11px] font-semibold tracking-[0.2em] text-[#161514] uppercase">
-                      Hiển thị {startItem}–{endItem} trên tổng số {totalCount.toLocaleString('vi-VN')} tác phẩm
+                      Hiển thị {startItem}–{endItem} trên tổng số {totalCount.toLocaleString('vi-VN')} thiết kế
                     </p>
                     <span className="hidden sm:inline text-[#D8D2C5]">&bull;</span>
                     <p className="text-[11px] text-[#8C8476] tracking-wider uppercase">

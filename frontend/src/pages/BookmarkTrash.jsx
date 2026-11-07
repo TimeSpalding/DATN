@@ -1,12 +1,11 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { FaChevronLeft, FaChevronRight, FaImage, FaTrash, FaArrowLeft, FaHome, FaTimes, FaTrashRestore, FaUndo } from "react-icons/fa";
+import { FaImage, FaTrash, FaArrowLeft, FaTimes, FaTrashRestore, FaUndo } from "react-icons/fa";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { getDeletedBookmarks, restoreBookmark, permanentDeleteBookmark } from "../services/bookmarkService";
 import { getImageBlob } from "../services/imageService";
 import { resolveStorageUrl } from "../utils/imageUrl";
-import AOS from "aos";
-import Swal from 'sweetalert2';
+import { getCleanGarmentTitle } from "../utils/garmentTitle";
 import { ImagePreviewModal } from "../components/common/ImagePreviewModal";
 
 const PAGE_SIZE = 20;
@@ -22,7 +21,12 @@ const normalizeBookmarkResponse = (response) => {
     };
 };
 
-const isDirectImageUrl = (value) => /^https?:\/\//i.test(value) || value?.startsWith("data:") || value?.startsWith("blob:");
+const isDirectImageUrl = (value) =>
+    /^https?:\/\//i.test(value) ||
+    value?.startsWith("data:") ||
+    value?.startsWith("blob:") ||
+    value?.startsWith("/samples/") ||
+    value?.startsWith("/assets/");
 const isInternalMinioUrl = (value) => {
     if (!/^https?:\/\//i.test(value || "")) return false;
     try {
@@ -115,11 +119,14 @@ export const BookmarkTrash = () => {
 
     const trashQuery = useQuery({
         queryKey: ["bookmarks-trash", page],
+        retry: false,
         queryFn: () => getDeletedBookmarks({ page, pageSize: PAGE_SIZE }),
         placeholderData: keepPreviousData,
     });
 
-    const trashData = normalizeBookmarkResponse(trashQuery.data);
+    const trashData = trashQuery.isError
+        ? { results: [], page: 0, pageSize: PAGE_SIZE, totalElements: 0, totalPages: 0 }
+        : normalizeBookmarkResponse(trashQuery.data);
 
     const restoreMutation = useMutation({
         mutationFn: restoreBookmark,
@@ -169,7 +176,7 @@ export const BookmarkTrash = () => {
             <div className="flex flex-col gap-4 border-b border-[#E5E0D8] pb-8 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <p className="text-[10px] font-semibold tracking-[0.25em] text-[#C05A39] uppercase mb-1.5">
-                        CORBEILLE &bull; ARCHIVE SUPPRIMÉE
+                        GRAND ATELIER &bull; LƯU TRỮ TẠM THỜI
                     </p>
                     <h1 className="font-serif-luxury text-3xl sm:text-4xl font-normal text-[#161514] tracking-wide">
                         Thùng Rác &amp; Ảnh Đã Xóa
@@ -198,13 +205,9 @@ export const BookmarkTrash = () => {
 
             {trashQuery.isLoading ? (
                 <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                    {Array.from({ length: PAGE_SIZE }).map((_, index) => (
+                    {Array.from({ length: 5 }).map((_, index) => (
                         <div key={index} className="aspect-[3/4] animate-pulse bg-[#F3EFE6] border border-[#E5E0D8]" />
                     ))}
-                </div>
-            ) : trashQuery.isError ? (
-                <div className="border border-[#C05A39]/30 bg-[#C05A39]/10 p-6 text-xs text-[#C05A39]">
-                    Không thể tải dữ liệu thùng rác. Vui lòng thử lại sau.
                 </div>
             ) : trashData.results.length === 0 ? (
                 <div className="flex flex-col items-center border border-[#E5E0D8] bg-[#FAF8F5] p-16 text-center">
@@ -220,7 +223,7 @@ export const BookmarkTrash = () => {
                 <>
                     <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                         {trashData.results.map((bookmark) => {
-                            const fileName = bookmark.originalFilename || `Ảnh #${bookmark.imageId}`;
+                            const fileName = getCleanGarmentTitle(bookmark);
                             const isRestoring = restoreMutation.isPending && restoreMutation.variables === bookmark.imageId;
                             const isDeleting = permanentDeleteMutation.isPending && permanentDeleteMutation.variables === bookmark.imageId;
 

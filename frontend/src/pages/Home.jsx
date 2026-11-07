@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Compass, Scissors, Sparkles } from 'lucide-react';
+import { ArrowRight, Compass } from 'lucide-react';
 import FittingStudio from '../components/common/FittingStudio';
 import GarmentCatalog from '../components/common/GarmentCatalog';
 import StudioBenefits from '../components/common/StudioBenefits';
@@ -50,7 +50,7 @@ export default function Home() {
           </h1>
 
           <p className="font-serif-luxury text-base sm:text-xl text-[#D8D2C5] mt-6 max-w-2xl leading-relaxed italic">
-            "Chào mừng quý khách đến với Grand Atelier Central — nơi từng thớ sợi dệt tự nhiên hòa cùng kỹ nghệ rập chuẩn mực và trải nghiệm ướm thử tư gia độc bản."
+            "Chào mừng quý khách đến với Grand Atelier Central — nơi từng thớ sợi dệt tự nhiên hòa cùng kỹ nghệ rập chuẩn mực và trải nghiệm thử đồ trực tuyến chân thực."
           </p>
 
           {/* Action CTAs: Terracotta, Outline Light, and Noir */}
@@ -59,7 +59,7 @@ export default function Home() {
               href="#studio"
               className="btn-terracotta"
             >
-              <span>Phòng Thử Đồ Tư Gia</span>
+              <span>Phòng Thử Đồ Trực Tuyến</span>
               <ArrowRight className="w-4 h-4 ml-1" />
             </a>
 
@@ -167,7 +167,7 @@ export default function Home() {
                 Khởi nguồn từ tình yêu sâu sắc với trường phái kiến trúc Noucentisme tinh tế tại Barcelona và kỹ nghệ thiết kế thời trang chuẩn mực, Grand Atelier Central được xây dựng như một ngôi nhà mở nơi thời trang tìm về bản chất thuần khiết nhất: sự thoải mái, vừa vặn và bền bỉ cùng thời gian.
               </p>
               <p>
-                Chúng tôi chắt lọc sợi bông Pima vùng Piura, lanh Normandy và len Merino sinh thái không qua hóa chất làm bóng. Sự kết hợp giữa kỹ nghệ may giấu chỉ blind-stitch và phòng thử đồ tư gia cho phép quý khách quan sát chân thực độ rủ của tà áo trên vóc dáng của mình trước khi quyết định đặt mua.
+                Chúng tôi chắt lọc sợi bông Pima vùng Piura, lanh Normandy và len Merino sinh thái không qua hóa chất làm bóng. Sự kết hợp giữa kỹ nghệ may giấu chỉ blind-stitch và phòng thử đồ trực tuyến cho phép quý khách quan sát chân thực độ rủ của tà áo trên vóc dáng của mình trước khi quyết định đặt mua.
               </p>
             </div>
 
@@ -205,7 +205,7 @@ export default function Home() {
               GRAND ATELIER &bull; TÌM KIẾM SẢN PHẨM
             </p>
             
-            <h2 className="font-serif-luxury text-3xl sm:text-4xl text-[#161514] font-normal tracking-wide">
+            <h2 className="font-serif-luxury text-3xl sm:text-4xl text-[#161514] font-normal tracking-wide text-balance">
               Tìm Kiếm Trang Phục Bằng Hình Ảnh &amp; Mô Tả
             </h2>
 
