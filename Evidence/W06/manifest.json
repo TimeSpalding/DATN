@@ -1,0 +1,48 @@
+{
+  "milestone": "Tuan6",
+  "week": "W06",
+  "date": "2026-11-07",
+  "git_tag": "w06",
+  "project": "Multimodal Fashion E-Commerce & Virtual Try-On System (GPU Optimization, 25 Unpaired Benchmark & Frontend Harmonization)",
+  "institution": "Hoc vien Cong nghe Buu chinh Vien thong (PTIT)",
+  "faculty": "Khoa Cong nghe Thong tin",
+  "cohort": "D21",
+  "deliverables_summary": {
+    "gpu_profiling_and_ablation": "Phan ra do tre 4 pha GPU va doi sanh FP32 vs FP16 (tang toc 2.82x) vs BF16 (OOM tren Turing T4)",
+    "benchmark_25_unpaired_pairs": "Kiem thu va nhan xet thi giac truc tiep 25 cap thu do hoan doi trang phuc khac biet (P-01 den P-25)",
+    "frontend_grand_atelier_audit": "Xu ly phan hoi UI/UX va dong bo thiet ke Grand Atelier tren 48 tep React, kiem thu 37 trang thai tren Chrome (1440px, 1080px, 390px)"
+  },
+  "metrics_summary": {
+    "total_pairs_evaluated": 25,
+    "unpaired_cross_tryon_pairs": 25,
+    "paired_same_garment_pairs": 0,
+    "mean_inference_seconds": 51.32,
+    "mean_e2e_latency_seconds": 54.37,
+    "mean_ssim_out_of_mask_all": 0.9421,
+    "mean_ssim_upper_23_pairs": 0.9566,
+    "mean_ssim_overall_2_pairs": 0.7756,
+    "mean_psnr_db": 29.72,
+    "mean_visual_score_10": 7.94,
+    "quality_tier_counts": {
+      "excellent_or_very_good": 10,
+      "good_or_fair_minor_artifacts": 9,
+      "moderate_or_severe_failure": 6
+    }
+  },
+  "files": {
+    "README.md": "Bao cao tong hop minh chung tien do Tuan 6, phan cong nhiem vu, so lieu dinh luong va phan tich loi",
+    "metrics.csv": "Bang chi so dinh luong Profiling 4 pha, Mixed Precision Ablation va Benchmark 25 cap Unpaired",
+    "test-results.json": "Du lieu do luong chi tiet va nhan xet thi giac bang mat thuong cho tung cap P-01 den P-25",
+    "results/": {
+      "P-01_result.png -> P-25_result.png": "25 tep anh ket qua thu do hoan doi thuc te tu CatVTON FP16",
+      "P-01_grid.jpg -> P-25_grid.jpg": "25 anh ghep ba khung [Nguoi mau goc | Trang phuc dich | Ket qua CatVTON]"
+    },
+    "figures/": {
+      "fig_w6_latency_breakdown.png": "Bieu do phan ra thoi gian xu ly 4 pha GPU va truyen tai mang",
+      "fig_w6_precision_ablation.png": "Bieu do doi sanh thoi gian suy dien va VRAM giua FP32, FP16 va BF16",
+      "fig_w6_25pairs_overview.jpg": "Luoi anh tong hop truc quan toan bo 25 cap thu do hoan doi (5x5)",
+      "fig_w6_quality_distribution.png": "Bieu do phan bo xep loai chat luong thi giac va chi so SSIM tren 25 cap",
+      "fig_w6_failure_taxonomy.jpg": "Bang minh chung doi chieu truc quan 5 nhom co che loi thuc te"
+    }
+  }
+}

@@ -1,0 +1,18 @@
+Execution_Domain,Configuration,Hardware,Metric,Measured_Value,Unit,Note
+GPU Profiling (25 Pairs),CatVTON FP16 (20 steps),1x Tesla T4,Cold_Start_Latency,42.8,seconds,Thời gian khởi tạo pipeline và trọng số ban đầu
+GPU Profiling (25 Pairs),CatVTON FP16 (20 steps),1x Tesla T4,Mean_Preprocess_Latency,0.933,seconds,Phân đoạn cơ thể DensePose + SCHP AutoMasker
+GPU Profiling (25 Pairs),CatVTON FP16 (20 steps),1x Tesla T4,Mean_UNet_Inference_Latency,51.32,seconds,Suy diễn khuếch tán 20 bước DPM++ 2M Karras (768x1024)
+GPU Profiling (25 Pairs),CatVTON FP16 (20 steps),1x Tesla T4,Min_UNet_Inference_Latency,50.65,seconds,Thời gian suy diễn nhanh nhất (P-03)
+GPU Profiling (25 Pairs),CatVTON FP16 (20 steps),1x Tesla T4,Max_UNet_Inference_Latency,53.1,seconds,Thời gian suy diễn cao nhất (P-01)
+GPU Profiling (25 Pairs),CatVTON FP16 (20 steps),1x Tesla T4,Mean_Postprocess_Latency,0.288,seconds,Giải mã không gian tiềm ẩn qua VAE Decoder
+GPU Profiling (25 Pairs),CatVTON FP16 (20 steps),1x Tesla T4,Mean_E2E_Latency,54.37,seconds,Tổng độ trễ đầu-cuối qua đường hầm HTTP Multipart
+GPU Profiling (25 Pairs),CatVTON FP16 (20 steps),1x Tesla T4,Steady_Peak_VRAM,4.324,GB,Mức chiếm dụng bộ nhớ GPU ổn định khi suy diễn
+Precision Ablation,FP32 Baseline (torch.float32),1x Tesla T4,Mean_Inference_Latency,157.56,seconds,Mốc tham chiếu độ chính xác đơn FP32 (VRAM đỉnh 6.57 GB)
+Precision Ablation,FP16 Mixed Precision (torch.float16),1x Tesla T4,Mean_Inference_Latency,55.95,seconds,"Tăng tốc 2.82x nhờ nhân Turing Tensor Cores (VRAM 6.26 GB, SSIM vs FP32 = 0.8903)"
+Precision Ablation,BF16 Emulation (torch.bfloat16),1x Tesla T4,CUDA_OOM_Allocation,36.0,GB,Không tương thích phần cứng kiến trúc Turing CC 7.5 (lỗi tràn VRAM)
+25 Unpaired Benchmark,All 25 Cross-Try-On Pairs,1x Tesla T4,Mean_Out_Of_Mask_SSIM,0.9421,score (0-1),Độ bảo toàn cấu trúc hậu cảnh trung bình toàn tập 25 cặp
+25 Unpaired Benchmark,Upper Category (23 Pairs),1x Tesla T4,Mean_Upper_SSIM,0.9566,score (0-1),Độ bảo toàn cấu trúc nhóm trang phục thân trên (23 cặp)
+25 Unpaired Benchmark,Overall Category (2 Pairs),1x Tesla T4,Mean_Overall_SSIM,0.7756,score (0-1),Suy giảm do xung đột mặt nạ toàn thân trên P-20 và P-25
+25 Unpaired Benchmark,All 25 Cross-Try-On Pairs,1x Tesla T4,Mean_PSNR,29.72,dB,Tỷ số tín hiệu trên nhiễu trung bình 25 cặp
+25 Unpaired Benchmark,Direct Visual Inspection,25 Pairs,Mean_Visual_Quality_Score,7.94,score (0-10),Điểm kiểm định thị giác trực tiếp trung bình trên thang 10
+Frontend Quality Audit,Grand Atelier UI System,Chrome Multi-Viewport,Audited_States_Passed,37.0,screens,"Kiểm thử thực tế trên Chrome ở 1440px, 1080px, 390px (48 tệp cập nhật)"
