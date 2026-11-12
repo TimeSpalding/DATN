@@ -1,6 +1,5 @@
 package com.imagesearch.backend_java.search.service;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.imagesearch.backend_java.auth.entity.User;
@@ -88,23 +87,13 @@ public class SearchService {
                     .build();
             queryImage = imageRepository.save(queryImage);
 
-            EmbeddingResponse embeddingResponse = aiEmbeddingClient.getImageEmbeddingResponse(EmbeddingRequest.builder()
-                    .type("image")
-                    .imageUrl(imageUrl)
-                    .storagePath(storagePath)
-                    .mimeType(queryImage.getMimeType())
-                    .build());
-            log.info("Get embedding success");
-            
-            List<Float> embedding = embeddingResponse.getEmbedding();
-            Map<String, List<String>> queryFilters = embeddingResponse.getFilters();
-            
-            // Lấy lượng ứng viên lớn hơn (vd: limit x 3 hoặc tối đa 50) để re-rank
+            // Python backend-ai: tính embedding, gọi Qdrant, re-rank, trả về imageId đã xếp hạng
             int fetchLimit = Math.max(pageCriteria.limit() * 10, 200);
-            List<SearchResultItem> rawResults = searchQdrant(embedding, fetchLimit);
-            
-            // Re-rank bằng hybrid score (Cosine + Attribute Overlap)
-            List<SearchResultItem> results = rerankByAttributes(rawResults, queryFilters, java.util.Collections.emptyList(), pageCriteria.limit());
+            AiEmbeddingClient.ImageSearchResult searchResult =
+                    aiEmbeddingClient.searchByImage(storagePath, null, fetchLimit);
+            log.info("[SearchByImage] Python returned {} results", 
+                searchResult.getResults() != null ? searchResult.getResults().size() : 0);
+            List<SearchResultItem> results = buildResultsFromRanked(searchResult.getResults());
             SearchHistory history = pageCriteria.page() == 0 ? saveHistory(
                     username,
                     SearchType.IMAGE_TO_IMAGE,
@@ -138,26 +127,14 @@ public class SearchService {
                 .orElseThrow(() -> new SearchException("IMAGE_NOT_FOUND", "Image not found", HttpStatus.NOT_FOUND));
 
         try {
-            // Lấy lượng ứng viên lớn hơn (vd: limit x 3 hoặc tối đa 50) để re-rank
+            // Python backend-ai: lấy vector từ Qdrant theo imageId, re-rank, trả về danh sách
             int fetchLimit = Math.max(pageCriteria.limit() * 10, 200);
-            JsonObject rawResult = qdrantVectorService.searchByPointId(imageId, fetchLimit + 1);
-            List<SearchResultItem> rawResults = mapQdrantResults(rawResult, imageId);
-            
-            // Lấy attributes của ảnh gốc từ Database để làm query filters
-            Map<String, List<String>> queryFilters = null;
-            if (queryImage.getMetadataAi() != null && !queryImage.getMetadataAi().isEmpty()) {
-                try {
-                    com.google.gson.JsonObject json = com.google.gson.JsonParser.parseString(queryImage.getMetadataAi()).getAsJsonObject();
-                    queryFilters = new java.util.HashMap<>();
-                    for (String key : json.keySet()) {
-                        queryFilters.put(key, List.of(json.get(key).getAsString()));
-                    }
-                } catch (Exception e) {
-                    log.error("Failed to parse metadataAi of original image", e);
-                }
-            }
-            
-            List<SearchResultItem> results = rerankByAttributes(rawResults, queryFilters, java.util.Collections.emptyList(), pageCriteria.limit());
+            AiEmbeddingClient.ImageSearchResult searchResult =
+                    aiEmbeddingClient.searchByImageId(imageId, fetchLimit);
+            log.info("[SearchSimilar] Python returned {} results",
+                searchResult.getResults() != null ? searchResult.getResults().size() : 0);
+            List<SearchResultItem> results = buildResultsFromRanked(searchResult.getResults());
+
             SearchHistory history = pageCriteria.page() == 0 ? saveHistory(
                     username,
                     SearchType.IMAGE_TO_IMAGE,
@@ -263,46 +240,17 @@ public class SearchService {
                 imageRepository.save(queryImage);
             }
 
-            // Gọi backend-ai để lấy composed embedding + merged filters
-            EmbeddingResponse embeddingResponse = aiEmbeddingClient.getComposedEmbedding(composedReq);
-            log.info("[Composed] Got composed embedding. Filters: {}", embeddingResponse.getFilters());
-
-            List<Float> embedding = embeddingResponse.getEmbedding();
-            Map<String, List<String>> rawFilters = embeddingResponse.getFilters();
-
-            // Tách riêng: hardFilters (chỉ category lớn cho Qdrant) & targetAttributes (để re-rank mềm)
-            Map<String, List<String>> targetAttributes = new java.util.HashMap<>();
-            Map<String, List<String>> hardFilters = new java.util.HashMap<>();
-            if (rawFilters != null) {
-                for (Map.Entry<String, List<String>> entry : rawFilters.entrySet()) {
-                    String key = entry.getKey();
-                    if (key.startsWith("target_")) {
-                        targetAttributes.put(key.substring(7), entry.getValue());
-                    } else if (!key.equals("textKeys")) {
-                        hardFilters.put(key, entry.getValue());
-                    }
-                }
-            }
-            log.info("[Composed] hardFilters={}, targetAttributes={}", hardFilters, targetAttributes);
-
-            // Lấy 200 ứng viên từ Qdrant theo hard filter (loại trừ chính ảnh gốc imageId nếu có)
+            // Gọi Python backend-ai — tự gọi Qdrant, đọc metadata_ai, re-rank
+            // và trả về danh sách imageId đã xếp hạng. Java chỉ cần fetch DB theo ID.
             int fetchLimit = Math.max(pageCriteria.limit() * 10, 200);
-            List<SearchResultItem> rawResults = searchQdrant(embedding, hardFilters, fetchLimit, imageId);
+            AiEmbeddingClient.ComposedSearchResult searchResult =
+                    aiEmbeddingClient.getComposedSearchResults(composedReq, fetchLimit, imageId);
 
-            // Fallback: nếu filter category quá hẹp không có kết quả, nới lỏng sang pure vector search
-            if (rawResults.isEmpty() && !hardFilters.isEmpty()) {
-                log.warn("[Composed] 0 results with hardFilters — fallback to pure vector search");
-                rawResults = searchQdrant(embedding, null, fetchLimit, imageId);
-            }
+            log.info("[Composed] Python re-ranked {} candidates", 
+                searchResult.getResults() != null ? searchResult.getResults().size() : 0);
 
-            // Trích textKeys để weighted re-rank
-            List<String> textKeysList = new java.util.ArrayList<>();
-            if (rawFilters != null && rawFilters.containsKey("textKeys")) {
-                textKeysList = rawFilters.get("textKeys");
-            }
-
-            // Re-rank mềm ứng viên theo target attributes (weighted + penalty)
-            List<SearchResultItem> results = rerankByAttributes(rawResults, targetAttributes, textKeysList, pageCriteria.limit());
+            // Chuyển kết quả Python sang SearchResultItem (Java chỉ fetch DB theo imageId)
+            List<SearchResultItem> results = buildResultsFromRanked(searchResult.getResults());
 
             // Lưu lịch sử
             SearchHistory history = pageCriteria.page() == 0 ? saveHistory(
@@ -351,33 +299,16 @@ public class SearchService {
 
     private TextSearchResponse searchTextSemantic(String query, String username, long startTime, SearchPageCriteria pageCriteria) {
         try {
-            log.info("Call AI embedding text");
-            EmbeddingResponse embeddingResponse = aiEmbeddingClient.getTextEmbedding(query);
-            log.info("Get embedding text success");
-            Map<String, List<String>> filters = embeddingResponse.getFilters() != null 
-                    ? new java.util.HashMap<>(embeddingResponse.getFilters()) 
-                    : new java.util.HashMap<>();
-            boolean autoAddedViewAngle = false;
-            if (!filters.containsKey("view_angle")) {
-                filters.put("view_angle", java.util.Collections.singletonList("mặt trước"));
-                autoAddedViewAngle = true;
-            }
+            log.info("[TextSemantic] Delegating to Python search pipeline");
+            // Python: tính embedding, gọi Qdrant với hard filter, fallback 2 lớp
+            AiEmbeddingClient.TextSearchResult searchResult =
+                    aiEmbeddingClient.searchByText(query, pageCriteria.limit());
+            log.info("[TextSemantic] Python returned {} results",
+                searchResult.getResults() != null ? searchResult.getResults().size() : 0);
 
-            List<SearchResultItem> results = searchQdrant(embeddingResponse.getEmbedding(), filters, pageCriteria.limit());
-            
-            // LỚP FALLBACK 1: Nếu 0 kết quả và có chèn ngầm "mặt trước", gỡ riêng "mặt trước" ra
-            if (results.isEmpty() && autoAddedViewAngle) {
-                log.warn("Hard filter with view_angle returned 0 results. Dropping view_angle and retrying...");
-                filters.remove("view_angle");
-                results = searchQdrant(embeddingResponse.getEmbedding(), filters, pageCriteria.limit());
-            }
+            // Fetch thông tin đầy đủ từ DB theo imageId trả về
+            List<SearchResultItem> results = buildResultsFromRanked(searchResult.getResults());
 
-            // LỚP FALLBACK 2: Nếu vẫn 0 kết quả, gỡ toàn bộ các filter còn lại (Semantic thuần)
-            if (results.isEmpty() && !filters.isEmpty()) {
-                log.warn("Still 0 results. Fallback to pure semantic search.");
-                results = searchQdrant(embeddingResponse.getEmbedding(), null, pageCriteria.limit());
-            }
-            
             SearchHistory history = pageCriteria.page() == 0
                     ? saveHistory(username, SearchType.TEXT_SEMANTIC, query, null, null, startTime)
                     : null;
@@ -414,82 +345,6 @@ public class SearchService {
                 ? saveHistory(username, SearchType.TEXT_OCR, query, null, null, startTime)
                 : null;
         return buildTextResponse(query, "ocr", SearchType.TEXT_OCR, history, results, pageCriteria);
-    }
-
-    private List<SearchResultItem> searchQdrant(List<Float> embedding, int limit) throws IOException {
-        return searchQdrant(embedding, null, limit);
-    }
-
-    private List<SearchResultItem> searchQdrant(List<Float> embedding, Map<String, List<String>> filters, int limit) throws IOException {
-        return searchQdrant(embedding, filters, limit, null);
-    }
-
-    private List<SearchResultItem> searchQdrant(List<Float> embedding, Map<String, List<String>> filters, int limit, Long excludedImageId) throws IOException {
-        JsonObject rawResult = qdrantVectorService.searchByEmbedding(embedding, limit, filters);
-        return mapQdrantResults(rawResult, excludedImageId);
-    }
-
-    private List<SearchResultItem> mapQdrantResults(JsonObject rawResult, Long excludedImageId) {
-        JsonArray points = extractQdrantPoints(rawResult);
-
-        List<QdrantHit> hits = new ArrayList<>();
-        Float previousScore = null;
-        for (JsonElement pointElement : points) {
-            JsonObject point = pointElement.getAsJsonObject();
-            Long imageId = readPointId(point);
-            if (imageId == null || imageId.equals(excludedImageId)) {
-                continue;
-            }
-            Float score = point.has("score") ? point.get("score").getAsFloat() : null;
-
-            if (score != null) {
-                boolean absoluteDrop = score < MIN_ABSOLUTE_SCORE;
-                boolean elbowDrop = previousScore != null && (previousScore - score) > ELBOW_DROP_THRESHOLD;
-                if (absoluteDrop || elbowDrop) {
-                    // Qdrant trả kết quả theo score giảm dần, nên phần còn lại chắc chắn
-                    // còn tệ hơn -> cắt bỏ toàn bộ phần đuôi thay vì lọc từng điểm.
-                    break;
-                }
-                previousScore = score;
-            }
-
-            hits.add(new QdrantHit(imageId, score));
-        }
-
-        if (hits.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        Map<Long, ImageEntity> imagesById = imageRepository.findAllByIdInAndDeletedFalse(
-                        hits.stream().map(QdrantHit::imageId).toList()
-                ).stream()
-                .collect(Collectors.toMap(ImageEntity::getId, Function.identity()));
-
-        List<SearchResultItem> results = new ArrayList<>();
-        int rank = 1;
-        for (QdrantHit hit : hits) {
-            ImageEntity image = imagesById.get(hit.imageId());
-            if (image != null) {
-                results.add(toSearchResultItem(image, hit.score(), rank++));
-            }
-        }
-        return results;
-    }
-
-    private JsonArray extractQdrantPoints(JsonObject rawResult) {
-        if (rawResult == null || !rawResult.has("result")) {
-            return new JsonArray();
-        }
-        JsonElement result = rawResult.get("result");
-        if (result.isJsonArray()) {
-            return result.getAsJsonArray();
-        }
-        if (result.isJsonObject()
-                && result.getAsJsonObject().has("points")
-                && result.getAsJsonObject().get("points").isJsonArray()) {
-            return result.getAsJsonObject().getAsJsonArray("points");
-        }
-        return new JsonArray();
     }
 
     private Long readPointId(JsonObject point) {
@@ -655,94 +510,42 @@ public class SearchService {
     private record SearchPageCriteria(int limit, int page, int pageSize) {
     }
 
+
     /**
-     * Re-rank ứng viên theo weighted attribute overlap + penalty.
-     * Trọng số: textKeys=3.0, category=2.0, others=1.0
-     * Penalty x0.35 nếu sản phẩm có attribute user yêu cầu nhưng sai giá trị.
-     * Công thức: 0.35*normCos + 0.65*weightedOverlap  (×0.35 nếu penalized)
+     * Chuyển danh sách {imageId, score} từ Python sang SearchResultItem
+     * bằng cách batch-fetch thông tin đầy đủ từ PostgreSQL.
      */
-    private List<SearchResultItem> rerankByAttributes(
-            List<SearchResultItem> candidates,
-            Map<String, List<String>> queryAttributes,
-            List<String> textKeys,
-            int finalLimit
+    private List<SearchResultItem> buildResultsFromRanked(
+            List<AiEmbeddingClient.RankedItem> ranked
     ) {
-        if (candidates.isEmpty()) return candidates;
+        if (ranked == null || ranked.isEmpty()) return Collections.emptyList();
 
-        List<String> keysToMatch = List.of("category", "color", "pattern", "sleeve", "neckline", "style", "gender");
-        boolean hasQueryAttrs = queryAttributes != null && !queryAttributes.isEmpty();
-        java.util.Set<String> textKeySet = (textKeys != null) ? new java.util.HashSet<>(textKeys) : java.util.Collections.emptySet();
-
-        // Build weight map
-        java.util.Map<String, Float> weightMap = new java.util.HashMap<>();
-        for (String k : keysToMatch) {
-            float w = 1.0f;
-            if (textKeySet.contains(k)) w = 3.0f;
-            if ("category".equals(k)) w = Math.max(w, 2.0f);
-            weightMap.put(k, w);
-        }
-
-        // Min-Max normalize cosine scores
-        float minCos = Float.MAX_VALUE, maxCos = -Float.MAX_VALUE;
-        for (SearchResultItem ci : candidates) {
-            float s = ci.getSimilarityScore() != null ? ci.getSimilarityScore() : 0f;
-            if (s < minCos) minCos = s;
-            if (s > maxCos) maxCos = s;
-        }
-        float cosRange = maxCos - minCos + 1e-6f;
-
-        for (SearchResultItem item : candidates) {
-            float cosineScore = item.getSimilarityScore() != null ? item.getSimilarityScore() : 0f;
-            float normCos = (cosineScore - minCos) / cosRange;
-
-            float weightedOverlap = 0f;
-            boolean penalized = false;
-
-            if (hasQueryAttrs) {
-                String metadataJson = item.getMetadataAi();
-                com.google.gson.JsonObject candidateAttrs = null;
-                if (metadataJson != null && !metadataJson.isEmpty()) {
-                    try {
-                        candidateAttrs = com.google.gson.JsonParser.parseString(metadataJson).getAsJsonObject();
-                    } catch (Exception ignored) {}
-                }
-
-                float totalWeight = 0f, matchedWeight = 0f;
-                for (String key : keysToMatch) {
-                    List<String> qVals = queryAttributes.get(key);
-                    if (qVals == null || qVals.isEmpty()) continue;
-                    float w = weightMap.getOrDefault(key, 1.0f);
-                    totalWeight += w;
-                    String qStr = qVals.get(0);
-                    if (candidateAttrs != null && candidateAttrs.has(key) && !candidateAttrs.get(key).isJsonNull()) {
-                        String cStr = candidateAttrs.get(key).getAsString();
-                        if (qStr != null && qStr.equalsIgnoreCase(cStr)) {
-                            matchedWeight += w;
-                        } else if (textKeySet.contains(key)) {
-                            penalized = true; // user yêu cầu key này nhưng sai giá trị
-                        }
-                    }
-                }
-                if (totalWeight > 0f) weightedOverlap = matchedWeight / totalWeight;
-            }
-
-            float hybridScore = 0.35f * normCos + 0.65f * weightedOverlap;
-            if (penalized) hybridScore *= 0.35f;
-
-            log.debug("[Rerank] normCos={} overlap={} pen={} hybrid={}", normCos, weightedOverlap, penalized, hybridScore);
-            item.setSimilarityScore(hybridScore);
-        }
-
-        List<SearchResultItem> sorted = candidates.stream()
-                .sorted((a, b) -> Float.compare(b.getSimilarityScore(), a.getSimilarityScore()))
-                .limit(finalLimit)
+        List<Long> imageIds = ranked.stream()
+                .map(AiEmbeddingClient.RankedItem::getImageId)
+                .filter(java.util.Objects::nonNull)
                 .toList();
 
-        for (int i = 0; i < sorted.size(); i++) {
-            sorted.get(i).setRankPosition(i + 1);
-        }
+        Map<Long, Float> scoreById = ranked.stream()
+                .filter(r -> r.getImageId() != null && r.getScore() != null)
+                .collect(Collectors.toMap(
+                        AiEmbeddingClient.RankedItem::getImageId,
+                        AiEmbeddingClient.RankedItem::getScore,
+                        (a, b) -> a
+                ));
 
-        return sorted;
+        Map<Long, ImageEntity> imagesById = imageRepository.findAllByIdInAndDeletedFalse(imageIds)
+                .stream()
+                .collect(Collectors.toMap(ImageEntity::getId, Function.identity()));
+
+        List<SearchResultItem> results = new ArrayList<>();
+        int rank = 1;
+        for (Long imgId : imageIds) {
+            ImageEntity img = imagesById.get(imgId);
+            if (img != null) {
+                results.add(toSearchResultItem(img, scoreById.get(imgId), rank++));
+            }
+        }
+        return results;
     }
 
     private String extractFirstString(Object val) {
