@@ -75,6 +75,95 @@ public class AiEmbeddingClient {
         return response;
     }
 
+
+    /**
+     * Gọi Python /api/v1/search/composed — Python tự gọi Qdrant, đọc metadata_ai,
+     * re-rank và trả về danh sách {imageId, score} đã xếp hạng.
+     * Java chỉ cần fetch thông tin đầy đủ từ DB theo imageId.
+     */
+    public ComposedSearchResult getComposedSearchResults(
+            ComposedEmbeddingRequest composedRequest,
+            int fetchLimit,
+            Long excludedImageId
+    ) throws IOException {
+        java.util.Map<String, Object> body = new java.util.LinkedHashMap<>();
+        if (composedRequest.getImageEmbedding() != null) body.put("imageEmbedding", composedRequest.getImageEmbedding());
+        if (composedRequest.getStoragePath() != null) body.put("storagePath", composedRequest.getStoragePath());
+        body.put("modificationText", composedRequest.getModificationText());
+        body.put("imageWeight", composedRequest.getImageWeight());
+        body.put("limit", fetchLimit);
+        if (excludedImageId != null) body.put("excludedImageId", excludedImageId);
+
+        ComposedSearchResult result = okHttpHelper.httpPost(
+                buildUrl(searchConfig.getComposedSearchPath()),
+                null, body, ComposedSearchResult.class, null, null
+        );
+        if (result == null) {
+            throw new IOException("ComposedSearch response is null");
+        }
+        return result;
+    }
+
+    // DTO nội bộ cho response của /api/v1/search/composed
+    @lombok.Data
+    public static class ComposedSearchResult {
+        private java.util.List<RankedItem> results;
+        private java.util.Map<String, java.util.List<String>> targetAttributes;
+        private java.util.List<String> textKeys;
+    }
+
+    @lombok.Data
+    public static class RankedItem {
+        private Long imageId;
+        private Float score;
+    }
+
+
+    /** Tìm kiếm bằng ảnh upload mới — Python gọi Qdrant + rerank, Java chỉ fetch DB. */
+    public ImageSearchResult searchByImage(String storagePath, List<Float> imageEmbedding, int fetchLimit) throws IOException {
+        java.util.Map<String, Object> body = new java.util.LinkedHashMap<>();
+        if (imageEmbedding != null) body.put("imageEmbedding", imageEmbedding);
+        if (storagePath != null)    body.put("storagePath", storagePath);
+        body.put("limit", fetchLimit);
+        ImageSearchResult result = okHttpHelper.httpPost(
+                buildUrl(searchConfig.getImageSearchPath()), null, body, ImageSearchResult.class, null, null);
+        if (result == null) throw new IOException("searchByImage response is null");
+        return result;
+    }
+
+    /** Tìm ảnh tương tự theo imageId đã index — Python lấy vector từ Qdrant + rerank. */
+    public ImageSearchResult searchByImageId(Long imageId, int fetchLimit) throws IOException {
+        java.util.Map<String, Object> body = new java.util.LinkedHashMap<>();
+        body.put("imageId", imageId);
+        body.put("limit", fetchLimit);
+        ImageSearchResult result = okHttpHelper.httpPost(
+                buildUrl(searchConfig.getImageByIdSearchPath()), null, body, ImageSearchResult.class, null, null);
+        if (result == null) throw new IOException("searchByImageId response is null");
+        return result;
+    }
+
+    /** Text semantic search — Python tính embedding, gọi Qdrant, fallback 2 lớp. */
+    public TextSearchResult searchByText(String query, int limit) throws IOException {
+        java.util.Map<String, Object> body = new java.util.LinkedHashMap<>();
+        body.put("query", query);
+        body.put("limit", limit);
+        TextSearchResult result = okHttpHelper.httpPost(
+                buildUrl(searchConfig.getTextSearchPath()), null, body, TextSearchResult.class, null, null);
+        if (result == null) throw new IOException("searchByText response is null");
+        return result;
+    }
+
+    @lombok.Data
+    public static class ImageSearchResult {
+        private java.util.List<RankedItem> results;
+        private java.util.Map<String, java.util.List<String>> queryAttributes;
+    }
+
+    @lombok.Data
+    public static class TextSearchResult {
+        private java.util.List<RankedItem> results;
+    }
+
     private List<Float> getEmbedding(String url, EmbeddingRequest request, String mockSeed) throws IOException {
         return getFullEmbeddingResponse(url, request, mockSeed).getEmbedding();
     }

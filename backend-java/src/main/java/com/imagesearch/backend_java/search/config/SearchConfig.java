@@ -12,6 +12,10 @@ public class SearchConfig {
     private final String imageEmbeddingPath = "/api/v1/embeddings/image";
     private final String textEmbeddingPath = "/api/v1/embeddings/text";
     private final String composedEmbeddingPath = "/api/v1/embeddings/composed";
+    private final String composedSearchPath = "/api/v1/search/composed";
+    private final String imageSearchPath     = "/api/v1/search/by-image";
+    private final String imageByIdSearchPath = "/api/v1/search/by-image-id";
+    private final String textSearchPath      = "/api/v1/search/by-text";
     private final long maxImageSizeBytes = 10 * 1024 * 1024;
     private final int defaultSearchLimit = 20;
     private final int defaultPage = 0;
