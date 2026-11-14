@@ -6,9 +6,10 @@
 - **Mốc thời gian**: 01/11/2026 – 07/11/2026
 - **Nhãn phiên bản Git**: `w06`
 - **Báo cáo chi tiết đính kèm**:
-  - `bao_cao_hang_tuan/Báo cáo tiến độ đồ án tốt nghiệp tuần 6.docx`
-  - `bao_cao_hang_tuan/Báo cáo nghiên cứu phân rã hiệu năng và tối ưu hóa CatVTON GPU.docx`
-  - `bao_cao_hang_tuan/Bao_cao_danh_gia_25_cap_thu_do_CatVTON_va_phan_tich_loi.xlsx`
+  - `Evidence/W06/Báo cáo tiến độ đồ án tốt nghiệp tuần 6.docx`
+  - `Evidence/W06/Báo cáo nghiên cứu phân rã hiệu năng và tối ưu hóa CatVTON GPU.docx`
+  - `Evidence/W06/Báo cáo quyển đồ án cập nhật tuần 6.docx`
+  - `Evidence/W06/Bao_cao_danh_gia_25_cap_thu_do_CatVTON_va_phan_tich_loi_tiennd.xlsx`
 
 ---
 
@@ -16,8 +17,8 @@
 
 | Thành viên | Nhiệm vụ kỹ thuật trọng tâm tuần 6 | Hiện vật bàn giao (Deliverables) |
 | :--- | :--- | :--- |
-| **Lê Như Tùng** | - Đo đạc phân rã độ trễ 4 pha GPU có đồng bộ phần cứng `torch.cuda.synchronize()`.<br>- Thực nghiệm đối sánh chế độ dấu phẩy động Mixed Precision (`FP32`, `FP16`, `BF16`) trên GPU NVIDIA Tesla T4.<br>- Vận hành máy chủ suy diễn trực tuyến phục vụ kiểm thử mở rộng 25 cặp hoán đổi. | - `research/vton-profiling-optimization/results/precision_ablation.csv`<br>- `research/vton-profiling-optimization/results/profiling_latency.csv`<br>- `Evidence/W06/figures/fig_w6_latency_breakdown.png`<br>- `Evidence/W06/figures/fig_w6_precision_ablation.png` |
-| **Nguyễn Đình Tiến** | - Thiết kế và kiểm định thị giác trực tiếp toàn bộ 25 cặp thử đồ hoán đổi chéo (`Unpaired`, `P-01` đến `P-25`), lập bảng phân tích 5 nhóm lỗi thực tế.<br>- Khắc phục toàn diện phản hồi giao diện (`FeedbackFE`), đồng bộ hệ thống thiết kế Grand Atelier trên 48 tệp React và kiểm thử 37 trạng thái trên Chrome (`1440px`, `1080px`, `390px`). | - `bao_cao_hang_tuan/Bao_cao_danh_gia_25_cap_thu_do_CatVTON_va_phan_tich_loi.xlsx`<br>- `Evidence/W06/results/` (25 ảnh kết quả & 25 ảnh ghép)<br>- `frontend/src/` (48 tệp giao diện chuẩn hóa)<br>- `bao_cao_hang_tuan/Báo cáo tiến độ đồ án tốt nghiệp tuần 6.docx` |
+| **Lê Như Tùng** | - Đo đạc phân rã độ trễ 4 pha GPU có đồng bộ phần cứng `torch.cuda.synchronize()`.<br>- Thực nghiệm đối sánh chế độ dấu phẩy động Mixed Precision (`FP32`, `FP16`, `BF16`) trên GPU NVIDIA Tesla T4.<br>- Vận hành máy chủ suy diễn trực tuyến phục vụ kiểm thử mở rộng 25 cặp hoán đổi. | - `Evidence/W06/vton-profiling-optimization/results/precision_ablation.csv`<br>- `Evidence/W06/vton-profiling-optimization/results/profiling_latency.csv`<br>- `Evidence/W06/figures/fig_w6_latency_breakdown.png`<br>- `Evidence/W06/figures/fig_w6_precision_ablation.png` |
+| **Nguyễn Đình Tiến** | - Thiết kế và kiểm định thị giác trực tiếp toàn bộ 25 cặp thử đồ hoán đổi chéo (`Unpaired`, `P-01` đến `P-25`), lập bảng phân tích 5 nhóm lỗi thực tế.<br>- Khắc phục toàn diện phản hồi giao diện (`FeedbackFE`), đồng bộ hệ thống thiết kế Grand Atelier trên 48 tệp React và kiểm thử 37 trạng thái trên Chrome (`1440px`, `1080px`, `390px`). | - `Evidence/W06/Bao_cao_danh_gia_25_cap_thu_do_CatVTON_va_phan_tich_loi_tiennd.xlsx`<br>- `Evidence/W06/results/` (25 ảnh kết quả & 25 ảnh ghép)<br>- `frontend/src/` (48 tệp giao diện chuẩn hóa)<br>- `Evidence/W06/Báo cáo tiến độ đồ án tốt nghiệp tuần 6.docx` |
 
 ---
 

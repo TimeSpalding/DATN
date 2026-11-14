@@ -194,6 +194,7 @@ danh-gia-hien-trang*.md
 yeucau.md
 frontend/*-report.md
 frontend/baocaoFE.md
+FeedbackFE.docx
 
 # ------------------------------------------------------------------------------
 # Datacard and docs
@@ -205,6 +206,3 @@ docs/
 evaluation/
 
 /image_*
-*.docx
-!bao_cao_hang_tuan/**
-!bao_cao_hang_tuan/*.docx

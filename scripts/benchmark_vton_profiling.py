@@ -75,7 +75,7 @@ def _safe_float(val, fallback=0.0):
 
 def run_profiling(
     api_url: str = DEFAULT_API_URL,
-    output_csv: str = "research/vton-profiling-optimization/results/profiling_latency.csv",
+    output_csv: str = "Evidence/W06/vton-profiling-optimization/results/profiling_latency.csv",
 ):
     total_pairs = len(PAIRS)
     print(f"=== BAT DAU CHAY PROFILING {total_pairs} CAP VTON UNPAIRED ===")
@@ -107,7 +107,7 @@ def run_profiling(
         p_path = os.path.join("datacard/test_img", p["person"])
         c_path = os.path.join("datacard/test_color", p["cloth"])
         out_path = os.path.join(
-            "research/vton-profiling-optimization/results/raw_logs",
+            "Evidence/W06/vton-profiling-optimization/results/raw_logs",
             f"{pid}_profiled.png",
         )
         os.makedirs(os.path.dirname(out_path), exist_ok=True)
@@ -237,7 +237,7 @@ if __name__ == "__main__":
     parser.add_argument("--url", default=DEFAULT_API_URL, help="Kaggle tryon API endpoint URL")
     parser.add_argument(
         "--out",
-        default="research/vton-profiling-optimization/results/profiling_latency.csv",
+        default="Evidence/W06/vton-profiling-optimization/results/profiling_latency.csv",
         help="Output CSV path",
     )
     args = parser.parse_args()
