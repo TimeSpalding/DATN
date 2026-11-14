@@ -25,7 +25,7 @@ Nghiên cứu này được thiết kế và thực thi nhằm giải quyết tr
 ## 2. Cấu trúc thư mục nghiên cứu
 
 ```text
-research/vton-profiling-optimization/
+Evidence/W06/vton-profiling-optimization/
 ├── README.md                          # Tài liệu tổng quan nghiên cứu và phương pháp luận
 ├── failure-modes.md                   # Phân loại và phân tích chi tiết 5 nhóm lỗi thị giác
 ├── configs/
@@ -63,7 +63,7 @@ research/vton-profiling-optimization/
 
 ### 5.1. Phân rã độ trễ và tài nguyên GPU (Thí nghiệm 1 - 25 cặp benchmark Unpaired)
 
-Dữ liệu thực tế được đo lường trực tiếp qua `torch.cuda.synchronize()` trên GPU Tesla T4 (tổng hợp tại [`profiling_latency.csv`](file:///d:/neit_ng/prjs_i/ptit_s9_pj/DATN/research/vton-profiling-optimization/results/profiling_latency.csv)):
+Dữ liệu thực tế được đo lường trực tiếp qua `torch.cuda.synchronize()` trên GPU Tesla T4 (tổng hợp tại [`profiling_latency.csv`](./results/profiling_latency.csv)):
 
 | Chỉ số đo lường | Giá trị thực tế | Ghi chú kỹ thuật |
 | :--- | :--- | :--- |
@@ -81,7 +81,7 @@ Dữ liệu thực tế được đo lường trực tiếp qua `torch.cuda.sync
 
 ### 5.2. Đối sánh thực nghiệm Mixed Precision (Thí nghiệm 2 - Ablation Study trên ảnh người thật)
 
-Dữ liệu thực nghiệm thu được từ tệp [`precision_ablation.csv`](file:///d:/neit_ng/prjs_i/ptit_s9_pj/DATN/research/vton-profiling-optimization/results/precision_ablation.csv) khi kiểm thử trực tiếp trên các mẫu ảnh người và trang phục thực tế của CatVTON:
+Dữ liệu thực nghiệm thu được từ tệp [`precision_ablation.csv`](./results/precision_ablation.csv) khi kiểm thử trực tiếp trên các mẫu ảnh người và trang phục thực tế của CatVTON:
 
 | Chế độ Precision | Kiểu dữ liệu PyTorch | Thời gian suy diễn (s) | Đỉnh VRAM (GB) | SSIM so với FP32 | PSNR so với FP32 (dB) | Trạng thái và kết luận phần cứng |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
