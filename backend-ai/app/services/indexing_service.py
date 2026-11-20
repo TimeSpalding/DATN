@@ -12,11 +12,14 @@ from decimal import Decimal
 from PIL import Image
 from sqlalchemy.orm import Session
 from sqlalchemy import select
+from qdrant_client.http.models import PointStruct
 
 from app.clients.postgres_client import ImageEntity
 from app.clients.minio_client import minio_client_wrapper
 from app.embedding.clip_model import clip_model
 from app.qdrant.client import qdrant_client_wrapper
+from app.qdrant.images_v2_client import images_v2_client, encode_point_id
+from app.detector.garment_detector import garment_detector, GarmentLabel
 
 
 logger = logging.getLogger(__name__)
@@ -110,6 +113,11 @@ def process_pending_images(db: Session):
 
             qdrant_client_wrapper.upsert_vectors(point_ids=valid_ids, vectors=embeddings, payloads=payloads)
 
+            # ── BƯỚC BỔ SUNG: Đánh chỉ mục YOLO crop vào images_v2 ──────────
+            # Chạy GarmentDetector cho từng ảnh, encode crop, upsert vào images_v2.
+            # Thực hiện sau khi đã upsert xong images_full để không block commit DB.
+            _index_garment_crops(valid_ids, image_cache_dict)
+
             for image in pending_images:
                 if image.id in valid_ids:
                     image.index_status = 'INDEXED'
@@ -164,3 +172,77 @@ def process_pending_images(db: Session):
         torch.cuda.empty_cache()
 
     logger.info("[MEM] Đã dọn sạch bộ nhớ sau batch.")
+
+
+def _index_garment_crops(image_ids: list[int], image_cache: dict[int, Image.Image]) -> None:
+    """
+    Chạy YOLOv8n Detector trên mỗi ảnh, encode từng crop bằng FashionCLIP,
+    rồi upsert vào collection images_v2 trong Qdrant.
+
+    Mỗi ảnh có thể tạo ra 1..N điểm trong images_v2:
+      - 1 điểm: nếu fallback (không detect được box nào) → toàn ảnh
+      - N điểm: N BBox detect được (N ≥ 1)
+
+    Point ID: encode_point_id(image_id, box_index) = image_id * 100 + box_index
+    Payload : image_id, box_index, label, confidence, is_fallback, area_ratio
+
+    Thực hiện best-effort: lỗi từng ảnh chỉ log warning, không làm cả batch thất bại.
+    """
+    if garment_detector.is_stub:
+        logger.info(
+            "[IndexGarmentCrops] GarmentDetector chạy ở chế độ STUB "
+            "(ONNX model chưa được mount). Bỏ qua indexing images_v2."
+        )
+        return
+
+    t0 = time.time()
+    total_points = 0
+
+    for img_id in image_ids:
+        img = image_cache.get(img_id)
+        if img is None:
+            logger.warning("[IndexGarmentCrops] Không tìm thấy ảnh id=%d trong cache.", img_id)
+            continue
+
+        try:
+            # Xóa points cũ (nếu ảnh đã được index lại)
+            images_v2_client.delete_by_image_id(img_id)
+
+            # Phát hiện tất cả các món đồ trong ảnh
+            garments = garment_detector.detect(img)
+
+            # Encode tất cả crops trong 1 lần gọi batch để tối ưu throughput
+            crops = [g.crop for g in garments]
+            vectors = clip_model.get_image_embeddings(crops)   # list[list[float]]
+
+            points_batch: list[PointStruct] = []
+            for box_idx, (garment, vector) in enumerate(zip(garments, vectors)):
+                point_id = encode_point_id(img_id, box_idx)
+                payload = {
+                    "image_id":    img_id,
+                    "box_index":   box_idx,
+                    "label":       garment.label.value,
+                    "confidence":  round(garment.confidence, 4),
+                    "is_fallback": garment.label.value == "full",
+                    "area_ratio":  round(garment.area_ratio, 4),
+                }
+                points_batch.append(PointStruct(id=point_id, vector=vector, payload=payload))
+
+            images_v2_client.upsert_batch(points_batch)
+            total_points += len(points_batch)
+
+            logger.debug(
+                "[IndexGarmentCrops] image_id=%d → %d point(s) upserted vào images_v2.",
+                img_id, len(points_batch),
+            )
+
+        except Exception as exc:
+            logger.warning(
+                "[IndexGarmentCrops] Lỗi khi xử lý image_id=%d: %s", img_id, exc
+            )
+
+    elapsed = time.time() - t0
+    logger.info(
+        "[IndexGarmentCrops] Hoàn thành: %d ảnh → %d points vào images_v2 trong %.2fs.",
+        len(image_ids), total_points, elapsed,
+    )

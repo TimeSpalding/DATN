@@ -351,6 +351,18 @@ class CLIPModelWrapper:
                     f"sẽ bị CLIP tự cắt cuối câu: '{p[:60]}...'"
                 )
 
+    @staticmethod
+    def _extract_feature_tensor(feat) -> torch.Tensor:
+        if isinstance(feat, torch.Tensor):
+            return feat
+        if hasattr(feat, "pooler_output") and feat.pooler_output is not None:
+            return feat.pooler_output
+        if hasattr(feat, "text_embeds") and feat.text_embeds is not None:
+            return feat.text_embeds
+        if hasattr(feat, "image_embeds") and feat.image_embeds is not None:
+            return feat.image_embeds
+        return feat[0]
+
     def _precompute_attribute_vocab_vectors(self):
         logger.info("Đang sinh vector mẫu cho 7 nhóm thuộc tính thời trang...")
         for attr_name, labels in _ATTRIBUTE_VOCAB.items():
@@ -364,7 +376,7 @@ class CLIPModelWrapper:
                         text=label_prompts, return_tensors="pt", padding=True, truncation=True, max_length=77
                     ).to(self.device)
                     with torch.inference_mode():
-                        feat = self.model.get_text_features(**inputs)
+                        feat = self._extract_feature_tensor(self.model.get_text_features(**inputs))
                         # Tính trung bình cộng các vector của cùng 1 nhãn
                         avg_feat = feat.mean(dim=0, keepdim=True)
                         avg_feat = F.normalize(avg_feat, dim=-1)
@@ -387,7 +399,7 @@ class CLIPModelWrapper:
                 text=prompts, return_tensors="pt", padding=True, truncation=True, max_length=77
             ).to(self.device)
             with torch.inference_mode():
-                feat = self.model.get_text_features(**inputs)
+                feat = self._extract_feature_tensor(self.model.get_text_features(**inputs))
                 feat = F.normalize(feat, dim=-1)
             self._attribute_vectors[attr_name] = feat  # shape: (num_labels, dim)
         logger.info("Đã sinh xong vector mẫu cho toàn bộ thuộc tính.")
@@ -396,7 +408,7 @@ class CLIPModelWrapper:
     def get_image_embedding(self, img: Image.Image) -> list[float]:
         inputs = self.processor(images=img, return_tensors="pt").to(self.device)
         with torch.inference_mode():
-            feat = self.model.get_image_features(**inputs)
+            feat = self._extract_feature_tensor(self.model.get_image_features(**inputs))
             feat = F.normalize(feat, dim=-1)
         return feat.cpu().numpy()[0].tolist()
 
@@ -406,7 +418,7 @@ class CLIPModelWrapper:
             return []
         inputs = self.processor(images=imgs, return_tensors="pt").to(self.device)
         with torch.inference_mode():
-            feat = self.model.get_image_features(**inputs)
+            feat = self._extract_feature_tensor(self.model.get_image_features(**inputs))
             feat = F.normalize(feat, dim=-1)
         return feat.cpu().numpy().tolist()
 
@@ -426,7 +438,7 @@ class CLIPModelWrapper:
             max_length=77
         ).to(self.device)
         with torch.inference_mode():
-            feat = self.model.get_text_features(**inputs)
+            feat = self._extract_feature_tensor(self.model.get_text_features(**inputs))
             feat = F.normalize(feat, dim=-1)
         return feat.cpu().numpy()[0].tolist()
 
