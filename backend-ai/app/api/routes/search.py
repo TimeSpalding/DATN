@@ -6,6 +6,8 @@ from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 
 from app.embedding.clip_model import clip_model, NO_SLEEVE_NECK, expand_category_group
+from app.detector.garment_detector import garment_detector, GarmentLabel
+from app.qdrant.images_v2_client import images_v2_client
 
 logger = logging.getLogger(__name__)
 
@@ -578,6 +580,7 @@ class ImageSearchRequest(BaseModel):
     """Tìm kiếm bằng ảnh: upload mới (storagePath) hoặc từ vector sẵn (imageEmbedding)."""
     storagePath: str | None = None
     imageEmbedding: list[float] | None = None
+    targetCategory: str | None = None  # Chủ đích người dùng: upper_clothes, lower_clothes, dress, pants, v.v.
     limit: int = 200
 
 
@@ -601,8 +604,18 @@ class ImageSearchResult(BaseModel):
 async def search_by_image(request: ImageSearchRequest):
     """
     Tìm kiếm ảnh tương tự bằng upload ảnh mới hoặc vector có sẵn.
-    Python tự gọi Qdrant, đọc metadata_ai, re-rank theo attribute overlap.
-    Java chỉ cần fetch thông tin đầy đủ từ DB theo imageId.
+
+    Pipeline nâng cấp (Cấu hình b - Only Crop):
+      1. Tải ảnh từ MinIO
+      2. Chạy GarmentDetector (YOLOv8n ONNX) → chọn BBox tốt nhất (Auto mode)
+         Fallback tự động: nếu không detect được box → dùng toàn ảnh
+      3. FashionCLIP encode ảnh crop
+      4. Tìm trong images_v2 (crop index) với Soft Bonus theo label
+      5. Gom nhóm theo image_id gốc (tránh cùng sản phẩm chiếm nhiều slot)
+      6. Re-rank = 0.35 × normCos + 0.60 × attrOverlap + 0.05 × labelBonus
+      7. Fallback về images_full nếu images_v2 chưa có dữ liệu (YOLO STUB)
+
+    Java chỉ cần fetch thông tin đầy đủ từ DB theo imageId trả về.
     """
     import io
     from PIL import Image
@@ -611,38 +624,106 @@ async def search_by_image(request: ImageSearchRequest):
     from sqlalchemy import select
 
     if not request.storagePath and not request.imageEmbedding:
-        from fastapi import HTTPException
         raise HTTPException(status_code=400, detail="storagePath or imageEmbedding required")
 
     try:
-        # Lấy vector ảnh
-        if request.imageEmbedding:
-            v_img = request.imageEmbedding
-        else:
+        # ── BƯỚC 1: Tải ảnh gốc ──────────────────────────────────────────────
+        pil_image: Image.Image | None = None
+        if request.storagePath:
             from app.clients.minio_client import minio_client_wrapper
             image_bytes = minio_client_wrapper.download_image(request.storagePath)
             pil_image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-            v_img = clip_model.get_image_embedding(pil_image)
 
-        img_attrs = clip_model.predict_all_attributes(v_img)
+        # ── BƯỚC 2: Phát hiện và cắt trang phục bằng YOLOv8n ────────────────
+        # imageEmbedding đã có sẵn → không có ảnh gốc → bỏ qua bước detect,
+        # dùng vector trực tiếp và tìm trong images_full (compatible mode).
+        enable_v2 = os.environ.get("ENABLE_IMAGES_V2", "true").lower() in ("true", "1", "yes")
+        use_v2 = (pil_image is not None) and (not garment_detector.is_stub) and enable_v2
+        detected_label: str | None = None
+
+        if use_v2:
+            # Nếu người dùng có chọn loại đồ (targetCategory) → detect đúng loại đó
+            if request.targetCategory:
+                garment = garment_detector.detect_target(pil_image, request.targetCategory)
+            else:
+                garment = garment_detector.detect_best(pil_image)
+
+            detected_label = garment.label.value
+            is_fallback_detect = (garment.label.value == "full")
+            # Encode crop (hoặc toàn ảnh nếu fallback)
+            v_query = clip_model.get_image_embedding(garment.crop)
+            logger.info(
+                "[SearchByImage] YOLO detect: label=%s (fine=%s) conf=%.3f fallback=%s",
+                detected_label, garment.fine_label, garment.confidence, is_fallback_detect,
+            )
+        else:
+            # Không có ảnh gốc hoặc STUB → encode toàn ảnh / dùng vector sẵn
+            if request.imageEmbedding:
+                v_query = request.imageEmbedding
+            else:
+                v_query = clip_model.get_image_embedding(pil_image)
+            is_fallback_detect = True
+
+        img_attrs = clip_model.predict_all_attributes(v_query)
         query_filters = _image_attribute_filters(img_attrs)
-
-        # Gọi Qdrant
         fetch_limit = max(request.limit, 200)
-        qdrant_hits = qdrant_client_wrapper.client.search(
-            collection_name=qdrant_client_wrapper.collection_name,
-            query_vector=v_img,
-            limit=fetch_limit,
-            with_payload=False,
-            with_vectors=False,
+
+        # ── BƯỚC 3: Tìm kiếm trong Qdrant ────────────────────────────────────
+        # Ưu tiên images_v2 (crop index). Nếu STUB → fallback images_full.
+        if use_v2 and not is_fallback_detect:
+            # Tìm trong images_v2 — KHÔNG dùng label filter cứng (Soft Filter)
+            # để tránh bỏ sót khi catalog bị gán nhãn sai.
+            v2_hits = images_v2_client.search(
+                query_vector=v_query,
+                limit=fetch_limit,
+                label_filter=None,  # Soft: cho điểm thưởng thay vì chặn cứng
+            )
+
+            # Nếu images_v2 có quá ít kết quả (< 5) → re-index có thể chưa xong → fallback images_full
+            min_expected = min(5, fetch_limit)
+            if not v2_hits or len(v2_hits) < min_expected:
+                logger.warning(
+                    "[SearchByImage] images_v2 có quá ít kết quả (%d < %d) → fallback sang images_full.",
+                    len(v2_hits) if v2_hits else 0, min_expected
+                )
+                use_v2 = False
+
+        if use_v2 and not is_fallback_detect and v2_hits:
+            # Gom nhóm theo image_id gốc: giữ điểm cao nhất mỗi sản phẩm
+            # (1 sản phẩm có thể có nhiều BBox: áo + quần → 2 points)
+            best_per_image: dict[int, tuple[float, dict]] = {}
+            for orig_id, score, payload in v2_hits:
+                prev_score, _ = best_per_image.get(orig_id, (-1.0, {}))
+                if score > prev_score:
+                    best_per_image[orig_id] = (score, payload)
+
+            candidate_ids = list(best_per_image.keys())
+            cosine_scores = {img_id: score for img_id, (score, _) in best_per_image.items()}
+            payload_by_id = {img_id: pl for img_id, (_, pl) in best_per_image.items()}
+            search_mode = "images_v2"
+        else:
+            # Fallback: tìm trong images_full (collection cũ, toàn ảnh)
+            full_hits = qdrant_client_wrapper.client.search(
+                collection_name=qdrant_client_wrapper.collection_name,
+                query_vector=v_query,
+                limit=fetch_limit,
+                with_payload=False,
+                with_vectors=False,
+            )
+            candidate_ids = [int(h.id) for h in full_hits]
+            cosine_scores  = {int(h.id): h.score for h in full_hits}
+            payload_by_id  = {}
+            search_mode = "images_full"
+
+        logger.info(
+            "[SearchByImage] mode=%s candidates=%d detected_label=%s",
+            search_mode, len(candidate_ids), detected_label,
         )
-        candidate_ids = [int(h.id) for h in qdrant_hits]
-        cosine_scores = {int(h.id): h.score for h in qdrant_hits}
 
         if not candidate_ids:
             return ImageSearchResult(results=[], queryAttributes=query_filters)
 
-        # Đọc metadata_ai từ PostgreSQL
+        # ── BƯỚC 4: Đọc metadata_ai từ PostgreSQL ────────────────────────────
         db = SessionLocal()
         try:
             rows = db.execute(
@@ -655,9 +736,10 @@ async def search_by_image(request: ImageSearchRequest):
 
         metadata_by_id = {int(r[0]): (r[1] if isinstance(r[1], dict) else {}) for r in rows if r[1]}
 
-        # Re-rank bằng attribute overlap (không penalty vì không có textKeys)
-        KEYS = ["category", "color", "pattern", "sleeve", "neckline", "style", "gender"]
+        # ── BƯỚC 5: Re-rank = normCos + attrOverlap + labelBonus ─────────────
+        KEYS    = ["category", "color", "pattern", "sleeve", "neckline", "style", "gender"]
         WEIGHTS = {"category": 2.0}
+        LABEL_BONUS = 0.05  # Thưởng nếu label crop của kết quả khớp label query
 
         all_scores = list(cosine_scores.values())
         min_cos = min(all_scores) if all_scores else 0.0
@@ -670,6 +752,7 @@ async def search_by_image(request: ImageSearchRequest):
             norm_cos = (cos - min_cos) / cos_range
             meta = metadata_by_id.get(img_id, {})
 
+            # Attribute overlap (giống logic images_full cũ)
             total_w, matched_w = 0.0, 0.0
             for key in KEYS:
                 q_vals = query_filters.get(key)
@@ -682,7 +765,16 @@ async def search_by_image(request: ImageSearchRequest):
                     matched_w += w
 
             overlap = matched_w / total_w if total_w > 0 else 0.0
-            hybrid = 0.35 * norm_cos + 0.65 * overlap
+
+            # Soft Label Bonus: nếu tìm bằng images_v2 và label khớp
+            label_bonus = 0.0
+            if search_mode == "images_v2" and detected_label:
+                result_label = payload_by_id.get(img_id, {}).get("label", "")
+                if result_label == detected_label:
+                    label_bonus = LABEL_BONUS
+
+            # Trọng số cân bằng thực nghiệm: 0.50 Cosine, 0.40 AttrOverlap, 0.10 LabelBonus
+            hybrid = 0.50 * norm_cos + 0.40 * overlap + (label_bonus * 2.0)
             ranked.append((img_id, hybrid))
 
         ranked.sort(key=lambda x: x[1], reverse=True)
@@ -690,7 +782,6 @@ async def search_by_image(request: ImageSearchRequest):
         return ImageSearchResult(results=results, queryAttributes=query_filters)
 
     except Exception as e:
-        from fastapi import HTTPException
         logger.error("[SearchByImage] Error: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error")
 
