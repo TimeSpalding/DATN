@@ -140,6 +140,29 @@ def _feather_and_threshold(mask_bool: np.ndarray, ksize: int, threshold: int = 1
     return blurred >= threshold
 
 
+def _fill_small_garment_holes(
+    mask_bool: np.ndarray,
+    background_bool: np.ndarray,
+    max_hole_area: int,
+) -> np.ndarray:
+    """Lap kin cac lo trong ben trong than ao nhung giu lai khoang nen trong giua tay chong hong."""
+    filled = ndimage.binary_fill_holes(mask_bool)
+    holes = filled & (~mask_bool)
+    if not holes.any():
+        return mask_bool
+    labeled, n_comp = ndimage.label(holes)
+    out = mask_bool.copy()
+    for cid in range(1, n_comp + 1):
+        comp = labeled == cid
+        area = int(comp.sum())
+        if area <= 0:
+            continue
+        non_bg_ratio = float((comp & (~background_bool)).sum()) / float(area)
+        if area <= max_hole_area or non_bg_ratio > 0.35:
+            out |= comp
+    return out
+
+
 def refined_cloth_agnostic_mask(
     densepose_mask: Image.Image,
     schp_lip_mask: Image.Image,
@@ -147,10 +170,11 @@ def refined_cloth_agnostic_mask(
     part: str = "upper",
 ) -> Image.Image:
     """
-    Tao mat na da hieu chinh cho CatVTON:
+    Tao mat na da hieu chinh cho CatVTON (v2):
     1. Bo convex hull (hull_mask) khi part != 'overall' de tranh lap kin lo chong tay/tui xach.
-    2. Giam nhan lam mo vien va tru lai toan bo vung bao ve (toc, tui, ban tay, quan) sau cung.
-    3. Tach Dress/Jumpsuits khoi strong_mask cua upper va chan bien duoi theo khop dui DensePose.
+    2. Mo rong bien nhe (~8px o anh 1024) ra vung nen va canh tay de xoa sach vien tay/co ao cu,
+       dong thoi lap lo trong than ao va cho phep giu Coat/Dress o phan than tren khop dui.
+    3. Tru lai toan bo vung bao ve (mat, ban tay, tui, toc, quan/vay) o buoc cuoi cung.
     """
     assert part in ["upper", "lower", "overall", "inner", "outer"], f"Invalid part: {part}"
     w, h = densepose_mask.size
@@ -159,12 +183,16 @@ def refined_cloth_agnostic_mask(
     lip = np.array(schp_lip_mask)
     atr = np.array(schp_atr_mask)
 
-    dilate_k = max(3, max(w, h) // 250)
-    if dilate_k % 2 == 0:
-        dilate_k += 1
+    dilate_small_k = max(3, min(7, max(w, h) // 320))
+    if dilate_small_k % 2 == 0:
+        dilate_small_k += 1
 
-    # Nhan dong nho (~1.5% chieu cao) chi han khe ho vai, khong bac cau qua khuyu tay (~10-20% anh)
-    close_k = max(7, min(19, max(w, h) // 64))
+    edge_dilate_k = max(5, min(19, max(w, h) // 60))
+    if edge_dilate_k % 2 == 0:
+        edge_dilate_k += 1
+
+    # Nhan dong nho (~2% chieu cao) chi han khe ho vai/co ao, khong bac cau qua khuyu tay (~10-20% anh)
+    close_k = max(7, min(23, max(w, h) // 48))
     if close_k % 2 == 0:
         close_k += 1
 
@@ -173,28 +201,52 @@ def refined_cloth_agnostic_mask(
     if blur_k % 2 == 0:
         blur_k += 1
 
-    # 1. Vung bao ve manh: mat + ban tay (DensePose hands khong bat buoc giao rong voi SCHP) + tui/phu kien
+    # 1. Vung bao ve manh: mat + ban tay + tui/phu kien (dem mong 3px de khong an vao co tay ao)
     dp_hands = part_mask_of(["hands", "feet"], dp, DENSE_INDEX_MAP)
-    dp_hands = _dilate(dp_hands, dilate_k, iterations=1)
+    dp_hands = _dilate(dp_hands, dilate_small_k, iterations=1)
     schp_arms = part_mask_of(["Left-arm", "Right-arm"], atr, ATR_MAPPING) | part_mask_of(["Left-arm", "Right-arm"], lip, LIP_MAPPING)
 
-    # Neu tay cam vat the (tui/coc), DensePose van giu duoc vung ban tay ngay ca khi SCHP bi nham
     hands_protect = dp_hands | (dp_hands & schp_arms)
     face_protect = part_mask_of("Face", lip, LIP_MAPPING) | part_mask_of("Face", atr, ATR_MAPPING)
     bag_protect = part_mask_of(["Bag", "Glove"], atr, ATR_MAPPING) | part_mask_of(["Glove"], lip, LIP_MAPPING)
-    bag_protect = _dilate(bag_protect, dilate_k, iterations=1)
+    bag_protect = _dilate(bag_protect, dilate_small_k, iterations=1)
 
     strong_protect = hands_protect | face_protect | bag_protect
 
-    # 2. Vung bao ve toc, phu kien va trang phuc khong thuoc vung thu
+    # 2. Vung bao ve toc, phu kien va trang phuc khong thuoc vung thu (bo Scarf vi hay gan nham len co ao)
     body_protect = part_mask_of(PROTECT_BODY_PARTS[part], lip, LIP_MAPPING) | part_mask_of(PROTECT_BODY_PARTS[part], atr, ATR_MAPPING)
     hair_protect = part_mask_of(["Hair"], lip, LIP_MAPPING) | part_mask_of(["Hair"], atr, ATR_MAPPING)
     cloth_protect = (
         part_mask_of(PROTECT_CLOTH_PARTS[part]["LIP"], lip, LIP_MAPPING)
         | part_mask_of(PROTECT_CLOTH_PARTS[part]["ATR"], atr, ATR_MAPPING)
     )
-    acc_parts = ["Hat", "Sunglasses", "Left-shoe", "Right-shoe", "Scarf", "Socks"]
+    acc_parts = ["Hat", "Sunglasses", "Left-shoe", "Right-shoe", "Socks"]
     acc_protect = part_mask_of(acc_parts, lip, LIP_MAPPING) | part_mask_of(acc_parts, atr, ATR_MAPPING)
+
+    # Uoc luong khop dui truoc de phan biet Dress/Skirt nham tren than ao voi phan than duoi
+    y_hip_cut = h
+    if part == "upper":
+        thighs = part_mask_of(["thighs", "legs"], dp, DENSE_INDEX_MAP)
+        thigh_ys = np.where(thighs)[0]
+        if len(thigh_ys) >= max(50, int(0.001 * w * h)):
+            y_hip_cut = int(np.percentile(thigh_ys, 5)) + int(0.03 * h)
+
+        # Loai cac dom nhieu Pants/Skirt nam hoan toan phia tren khop dui hoac qua nho (ao toi mau bi nhan nham)
+        if cloth_protect.any():
+            labeled_cp, n_cp = ndimage.label(cloth_protect)
+            clean_cp = np.zeros_like(cloth_protect, dtype=bool)
+            min_cp_area = max(64, int(0.01 * w * h))
+            for cid in range(1, n_cp + 1):
+                comp = labeled_cp == cid
+                ys_c = np.where(comp)[0]
+                if len(ys_c) == 0:
+                    continue
+                if y_hip_cut < h:
+                    if ys_c.max() >= y_hip_cut and len(ys_c) >= max(32, int(0.002 * w * h)):
+                        clean_cp |= comp
+                elif len(ys_c) >= min_cp_area:
+                    clean_cp |= comp
+            cloth_protect = clean_cp
 
     all_protect = strong_protect | body_protect | hair_protect | cloth_protect | acc_protect
 
@@ -203,34 +255,37 @@ def refined_cloth_agnostic_mask(
         part_mask_of(REFINED_MASK_CLOTH_PARTS[part], lip, LIP_MAPPING)
         | part_mask_of(REFINED_MASK_CLOTH_PARTS[part], atr, ATR_MAPPING)
     )
+    if part == "upper":
+        dress_mask = part_mask_of(["Dress"], lip, LIP_MAPPING) | part_mask_of(["Dress"], atr, ATR_MAPPING)
+        below_hip = np.zeros((h, w), dtype=bool)
+        below_hip[min(y_hip_cut, h) :, :] = True
+        strong_mask = strong_mask | (dress_mask & (~below_hip))
+
     background = part_mask_of(["Background"], lip, LIP_MAPPING) & part_mask_of(["Background"], atr, ATR_MAPPING)
     mask_dense = part_mask_of(MASK_DENSE_PARTS[part], dp, DENSE_INDEX_MAP)
-    mask_dense = _dilate(mask_dense, dilate_k, iterations=2)
+    mask_dense = _dilate(mask_dense, dilate_small_k, iterations=2)
+    if part in ("upper", "overall", "outer"):
+        mask_dense = mask_dense | (schp_arms & (~hands_protect))
 
-    # Bo sung vung co the tren ao + DensePose (nhung giu nguyen vung nen trong giua tay chong hong)
-    mask_area = ((~all_protect) & (~background) & (strong_mask | mask_dense)) | (mask_dense & (~all_protect))
-
-    # Chi dung morphological closing nho, khong dung convex hull cho upper
+    mask_area = (strong_mask | mask_dense) & (~all_protect)
+    # Mo rong bien ra vung nen/canh tay de tranh sot vien 2-5px cua tay ao hoac co ao cu
+    mask_area = _dilate(mask_area, edge_dilate_k, iterations=1)
     mask_area = _close_holes(mask_area, close_k)
-    mask_area = _feather_and_threshold(mask_area, blur_k, threshold=110)
-
-    # Hop voi strong_mask (ao dai tay co tay hep de bi DensePose bo sot o co tay -> can strong_mask)
+    mask_area = _fill_small_garment_holes(mask_area, background, max_hole_area=max(64, int(0.004 * w * h)))
+    mask_area = _feather_and_threshold(mask_area, blur_k, threshold=105)
     mask_area = mask_area | strong_mask
-    mask_area = _dilate(mask_area, dilate_k, iterations=1)
 
-    # 4. Chan bien duoi khi part == 'upper' dua vao vung dui DensePose de tranh tran mask khi ao/quan den tiep mau
-    if part == "upper":
-        thighs = part_mask_of(["thighs", "legs"], dp, DENSE_INDEX_MAP)
-        thigh_ys = np.where(thighs)[0]
-        if len(thigh_ys) >= max(50, int(0.001 * w * h)):
-            y_hip_cut = int(np.percentile(thigh_ys, 5)) + int(0.025 * h)
-            # Chi cho phep giu phan duoi y_hip_cut neu ca LIP va ATR deu xac nhan la Upper-clothes
-            strict_upper = part_mask_of(["Upper-clothes"], lip, LIP_MAPPING) & part_mask_of(["Upper-clothes"], atr, ATR_MAPPING)
-            below_cut = np.zeros_like(mask_area, dtype=bool)
-            below_cut[min(y_hip_cut, h) :, :] = True
-            mask_area = mask_area & (~(below_cut & (~strict_upper)))
+    # 4. Chan bien duoi khi part == 'upper', nhung van giu tron ven ao khoac (Coat) neu ATR/LIP khop than ao
+    if part == "upper" and y_hip_cut < h:
+        strict_upper = (
+            part_mask_of(["Upper-clothes", "Coat"], lip, LIP_MAPPING)
+            & part_mask_of(["Upper-clothes", "Coat"], atr, ATR_MAPPING)
+        )
+        below_cut = np.zeros_like(mask_area, dtype=bool)
+        below_cut[min(y_hip_cut, h) :, :] = True
+        mask_area = mask_area & (~(below_cut & (~strict_upper)))
 
-    # 5. Tru lai toan bo vung bao ve o buoc CUOI CUNG sau khi blur va dilate
+    # 5. Tru lai toan bo vung bao ve o buoc CUOI CUNG sau khi mo rong bien va lam muot
     final_mask = mask_area & (~all_protect)
 
     return Image.fromarray((final_mask.astype(np.uint8)) * 255)

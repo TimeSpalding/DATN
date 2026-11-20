@@ -92,6 +92,37 @@ class TestW08ReproAndMaskRefiner(unittest.TestCase):
         self.assertFalse(triggered2)
         self.assertEqual(padded2.getpixel((5, 5)), (255, 255, 255))
 
+    def test_v2_fixes_chest_hole_coat_cutoff_and_sleeve_margin(self):
+        h, w = 256, 192
+        dp = np.zeros((h, w), dtype=np.uint8)
+        lip = np.zeros((h, w), dtype=np.uint8)
+        atr = np.zeros((h, w), dtype=np.uint8)
+
+        # Ao khoac (Coat o LIP, Upper-clothes o ATR) phu xuong qua muc dui
+        dp[55:155, 50:140] = 1
+        lip[55:185, 50:140] = LIP_MAPPING["Coat"]
+        atr[55:185, 50:140] = ATR_MAPPING["Upper-clothes"]
+        dp[160:230, 58:132] = DENSE_INDEX_MAP["right thigh"][0]
+
+        # Dom nhieu SCHP ben trong nguc ao (misclassified Scarf/Pants speck + thieu DensePose)
+        lip[85:102, 85:105] = LIP_MAPPING["Scarf"]
+        atr[85:102, 85:105] = ATR_MAPPING["Pants"]
+        dp[85:102, 85:105] = 0
+
+        # Canh tay SCHP can duoc mo rong vien ra Background (~2-4px) nhung van giu bao ve quan/chan o duoi
+        lip[70:130, 35:48] = LIP_MAPPING["Left-arm"]
+        atr[70:130, 35:48] = ATR_MAPPING["Left-arm"]
+
+        out = refined_cloth_agnostic_mask(
+            Image.fromarray(dp), Image.fromarray(lip), Image.fromarray(atr), part="upper"
+        )
+        m = np.asarray(out) > 127
+
+        self.assertGreater(m[88:99, 88:102].mean(), 0.9, "Small internal misclassified torso hole should be filled")
+        self.assertGreater(m[165:180, 70:120].mean(), 0.9, "Coat labeled Coat+Upper-clothes should not be cut off at hip")
+        self.assertGreater(m[90:115, 33:35].mean(), 0.5, "Outer sleeve margin into Background should be included")
+        self.assertEqual(m[200:225, 65:125].sum(), 0, "Thigh region below coat should stay unmasked")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
