@@ -1,0 +1,13 @@
+group,exp_name,t_total_s,mask_area_pct,lpips_out_unified,ssim_out_unified,clip_gain,dino_gain
+mask_boundary,C0_baseline_s20_g45,41.6217,32.206,0.0395,0.9729,0.0852,0.1454
+mask_boundary,C1_refined_s20_g45,41.2524,23.116,0.0354,0.9804,0.0726,0.0828
+mask_boundary,C2_refined_s12_g25,25.3189,23.116,0.0204,0.9885,0.0892,0.0943
+occlusion,C0_baseline_s20_g45,42.1155,14.604,0.0663,0.8915,0.0743,0.1494
+occlusion,C1_refined_s20_g45,41.1923,10.764,0.0618,0.8922,0.0641,0.126
+occlusion,C2_refined_s12_g25,25.3002,10.764,0.0361,0.9105,0.0758,0.1405
+pose_overall,C0_baseline_s20_g45,42.1958,23.424,0.0659,0.8907,0.069,0.092
+pose_overall,C1_refined_s20_g45,41.2148,16.656,0.0622,0.8901,0.0608,0.0413
+pose_overall,C2_refined_s12_g25,25.3686,16.656,0.0379,0.9044,0.043,0.0333
+standard,C0_baseline_s20_g45,41.568,33.98,0.0362,0.986,0.0393,0.1763
+standard,C1_refined_s20_g45,41.1843,26.738,0.028,0.9835,0.0142,0.1179
+standard,C2_refined_s12_g25,25.399,26.738,0.0113,0.993,0.0492,0.1183

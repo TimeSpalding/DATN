@@ -1,0 +1,4 @@
+exp_name,t_preprocess_s,t_infer_s,t_total_s,peak_vram_gb,mask_area_pct,lpips_out_unified,ssim_out_unified,clip_cloth,clip_gain,dino_cloth,dino_gain
+C0_baseline_s20_g45,1.019,40.8563,41.8752,4.333,26.0535,0.052,0.9353,0.733,0.0669,0.4979,0.1407
+C1_refined_s20_g45,0.1319,41.079,41.211,4.333,19.3185,0.0468,0.9366,0.714,0.0529,0.4393,0.092
+C2_refined_s12_g25,0.1345,25.2122,25.3467,4.333,19.3185,0.0264,0.9491,0.7254,0.0643,0.4439,0.0966
