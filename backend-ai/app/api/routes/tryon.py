@@ -26,9 +26,9 @@ async def try_on(
     cloth_image: UploadFile = File(..., description="Ảnh trang phục"),
     category: str = Form("overall", description="Loại trang phục: upper | lower | overall"),
     seed: int = Form(42, description="Seed cố định giúp tái lập kết quả (-1 để dùng ngẫu nhiên)"),
-    steps: int = Form(20, description="Số bước khử nhiễu UNet (12-50)"),
-    guidance_scale: float = Form(4.5, description="Hệ số Classifier-Free Guidance"),
-    mask_mode: str = Form("refined", description="Chế độ mặt nạ: refined | baseline"),
+    steps: int = Form(12, description="Số bước khử nhiễu UNet (mặc định 12 từ kết quả ablation W08; hỗ trợ 12-50)"),
+    guidance_scale: float = Form(2.5, description="Hệ số Classifier-Free Guidance (mặc định 2.5 cân bằng tốc độ và giữ nền)"),
+    mask_mode: str = Form("baseline", description="Chế độ mặt nạ: baseline (mặc định giữ phom áo) | refined (bảo vệ quần tối/túi xách)"),
 ):
     """
     Nhận ảnh người + ảnh trang phục, forward sang Kaggle CatVTON service,
