@@ -25,6 +25,10 @@ async def try_on(
     person_image: UploadFile = File(..., description="Ảnh người mẫu"),
     cloth_image: UploadFile = File(..., description="Ảnh trang phục"),
     category: str = Form("overall", description="Loại trang phục: upper | lower | overall"),
+    seed: int = Form(42, description="Seed cố định giúp tái lập kết quả (-1 để dùng ngẫu nhiên)"),
+    steps: int = Form(20, description="Số bước khử nhiễu UNet (12-50)"),
+    guidance_scale: float = Form(4.5, description="Hệ số Classifier-Free Guidance"),
+    mask_mode: str = Form("refined", description="Chế độ mặt nạ: refined | baseline"),
 ):
     """
     Nhận ảnh người + ảnh trang phục, forward sang Kaggle CatVTON service,
@@ -38,10 +42,13 @@ async def try_on(
     valid_categories = {"upper", "lower", "overall"}
     if category not in valid_categories:
         raise HTTPException(status_code=400, detail=f"category phải là một trong: {valid_categories}")
+    if mask_mode not in {"refined", "baseline"}:
+        raise HTTPException(status_code=400, detail="mask_mode phải là refined hoặc baseline")
 
     logger.info(
         f"[TryOn] Nhận request: person={person_image.filename}, "
-        f"cloth={cloth_image.filename}, category={category}"
+        f"cloth={cloth_image.filename}, category={category}, "
+        f"seed={seed}, steps={steps}, cfg={guidance_scale}, mask={mask_mode}"
     )
     logger.info(f"[TryOn] Đang forward sang CatVTON service: {CATVTON_SERVICE_URL}")
 
@@ -57,7 +64,13 @@ async def try_on(
                     "person_image": (person_image.filename, person_bytes, person_image.content_type),
                     "cloth_image": (cloth_image.filename, cloth_bytes, cloth_image.content_type),
                 },
-                data={"category": category},
+                data={
+                    "category": category,
+                    "seed": str(seed),
+                    "steps": str(steps),
+                    "guidance_scale": str(guidance_scale),
+                    "mask_mode": mask_mode,
+                },
             )
 
         if response.status_code != 200:
@@ -82,6 +95,9 @@ async def try_on(
             "X-Peak-VRAM-GB",
             "X-Weight-Precision",
             "X-Inference-Steps",
+            "X-Seed",
+            "X-Mask-Mode",
+            "X-Guidance-Scale",
         ):
             if header_name in response.headers:
                 forwarded_headers[header_name] = response.headers[header_name]
