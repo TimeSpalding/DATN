@@ -1,0 +1,39 @@
+{
+  "week": "W08",
+  "branch": "fix/w08-benchmark-and-catvton",
+  "issues": [19, 20],
+  "milestone": "w08",
+  "tag": "w08",
+  "kaggle": {
+    "dataset": "neitng/datn-w08-frozen-vton-set",
+    "kernel": "neitng/datn-w08-vton-experiment",
+    "versions_verified": [1, 2],
+    "hardware": "2x Tesla T4",
+    "environment": {
+      "python": "3.13.16",
+      "torch": "2.11.0+cu130",
+      "cuda": "13.0",
+      "cudnn": 92700,
+      "diffusers": "0.32.2",
+      "transformers": "4.49.0"
+    }
+  },
+  "frozen_manifest": {
+    "path": "Evidence/W08/frozen_pairs_w08.json",
+    "schema_version": "w08-frozen-v1",
+    "total_pairs": 20,
+    "categories": {
+      "upper": 19,
+      "overall": 1,
+      "lower": 0
+    },
+    "base_seed": 42
+  },
+  "recommended_api_defaults": {
+    "seed": 42,
+    "steps": 12,
+    "guidance_scale": 2.5,
+    "mask_mode": "baseline",
+    "note": "refined mode preserved as opt-in for bag/cup occlusion or dark-on-dark pants protection"
+  }
+}

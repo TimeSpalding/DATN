@@ -1,0 +1,14 @@
+{
+  "python": "3.13.16",
+  "torch": "2.11.0+cu130",
+  "cuda_available": true,
+  "cuda_version": "13.0",
+  "cudnn_version": 92700,
+  "diffusers": "0.32.2",
+  "transformers": "4.49.0",
+  "gpu_count": 2,
+  "gpus": [
+    "Tesla T4",
+    "Tesla T4"
+  ]
+}

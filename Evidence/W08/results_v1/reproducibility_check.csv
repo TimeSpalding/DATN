@@ -1,0 +1,10 @@
+pair_id,comparison,mae_px,max_abs_px,exact_pixel_pct,ssim
+S01,Det_RunA_vs_Det_RunB_GPU0,0.0,0.0,100.0,1.0
+S01,Det_RunA_vs_NoSeed_RunD_GPU0,15.70034,254.0,0.04,0.78682
+S01,Det_RunA_GPU0_vs_Det_RunC_GPU1,0.0,0.0,100.0,1.0
+M01,Det_RunA_vs_Det_RunB_GPU0,0.0,0.0,100.0,1.0
+M01,Det_RunA_vs_NoSeed_RunD_GPU0,12.53345,255.0,1.07,0.820537
+M01,Det_RunA_GPU0_vs_Det_RunC_GPU1,0.0,0.0,100.0,1.0
+O01,Det_RunA_vs_Det_RunB_GPU0,0.0,0.0,100.0,1.0
+O01,Det_RunA_vs_NoSeed_RunD_GPU0,3.55115,202.0,1.47,0.938662
+O01,Det_RunA_GPU0_vs_Det_RunC_GPU1,0.0,0.0,100.0,1.0

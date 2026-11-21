@@ -1,0 +1,4 @@
+pair_id,comparison,mae_px,max_abs_px,exact_pixel_pct,ssim
+S01,Det_RunA_vs_Det_RunB_GPU0,0.0,0.0,100.0,1.0
+S01,Det_RunA_vs_NoSeed_RunD_GPU0,14.45836,247.0,0.23,0.794652
+S01,Det_RunA_GPU0_vs_Det_RunC_GPU1,0.0,0.0,100.0,1.0
